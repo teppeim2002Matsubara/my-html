@@ -27,89 +27,88 @@
 
     <h1>Real-Time MBTA Predictions for Route 77</h1>
 
-    <!-- Massachusetts Ave @ Medford St Stop Predictions (Outbound to Arlington Heights) -->
-    <h2>Massachusetts Ave @ Medford St (Outbound) (Stop ID: 2282)</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Medford St (Stop ID: 2282), showing outbound buses towards Arlington Heights:</p>
+    <!-- Arlington Heights Stop Predictions -->
+    <h2>Arlington Heights (Stop ID: 2281)</h2>
+    <p>Below is the real-time data for the next arrivals of MBTA bus route 77 at Arlington Heights (Stop ID: 2281):</p>
     <table>
         <thead>
             <tr>
+                <th>Direction</th>
                 <th>Arrival Time</th>
                 <th>Status</th>
             </tr>
         </thead>
-        <tbody id="predictions-list-medford">
+        <tbody id="predictions-list-arlington">
             <!-- Data will be populated here -->
         </tbody>
     </table>
 
-    <!-- Massachusetts Ave @ Appleton St Stop Predictions (Inbound to Harvard Station) -->
-    <h2>Massachusetts Ave @ Appleton St (Inbound) (Stop ID: 2291)</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Appleton St (Stop ID: 2291), showing inbound buses towards Harvard Station:</p>
+    <!-- Massachusetts Ave @ Hobbs Ct Stop Predictions -->
+    <h2>Massachusetts Ave @ Hobbs Ct (Stop ID: 2290)</h2>
+    <p>Below is the real-time data for the next arrivals of MBTA bus route 77 at Massachusetts Ave @ Hobbs Ct (Stop ID: 2290):</p>
     <table>
         <thead>
             <tr>
+                <th>Direction</th>
                 <th>Arrival Time</th>
                 <th>Status</th>
             </tr>
         </thead>
-        <tbody id="predictions-list-appleton">
+        <tbody id="predictions-list-hobbs">
             <!-- Data will be populated here -->
         </tbody>
     </table>
 
     <script>
-        // Fetch and display predictions for Massachusetts Ave @ Medford St (Stop 2282, Outbound buses to Arlington Heights)
-        async function getMBTAPredictionsMedford() {
-            const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
+        // Fetch and display predictions for Arlington Heights
+        async function getMBTAPredictionsArlington() {
+            const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2281&filter[route]=77';
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound (to Arlington Heights)
+                displayPredictions(data, 'predictions-list-arlington');
             } catch (error) {
-                console.error('Error fetching predictions for Medford St:', error);
+                console.error('Error fetching predictions for Arlington Heights:', error);
             }
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2291, Inbound buses to Harvard Station)
-        async function getMBTAPredictionsAppleton() {
-            const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2291&filter[route]=77';
+        // Fetch and display predictions for Massachusetts Ave @ Hobbs Ct
+        async function getMBTAPredictionsHobbs() {
+            const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2290&filter[route]=77';
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound (to Harvard Station)
+                displayPredictions(data, 'predictions-list-hobbs');
             } catch (error) {
-                console.error('Error fetching predictions for Appleton St:', error);
+                console.error('Error fetching predictions for Hobbs Ct:', error);
             }
         }
 
         // Function to display predictions in the specified table body
-        function displayPredictions(data, tableId, expectedDirection) {
+        function displayPredictions(data, tableId) {
             const predictionsList = document.getElementById(tableId);
             predictionsList.innerHTML = ''; // Clear any existing data
 
             data.data.forEach(prediction => {
-                const directionId = prediction.attributes.direction_id;
+                const direction = prediction.attributes.direction_id === 0 ? 'Inbound' : 'Outbound';
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
                 const status = prediction.attributes.status || 'No status';
 
-                // Only display rows that match the expected direction (Inbound or Outbound)
-                if (directionId === expectedDirection) {
-                    const row = `<tr>
-                        <td>${arrivalTime}</td>
-                        <td>${status}</td>
-                    </tr>`;
-                    predictionsList.innerHTML += row;
-                }
+                const row = `<tr>
+                    <td>${direction}</td>
+                    <td>${arrivalTime}</td>
+                    <td>${status}</td>
+                </tr>`;
+                predictionsList.innerHTML += row;
             });
         }
 
         // Fetch and display predictions when the page loads
-        getMBTAPredictionsMedford();
-        getMBTAPredictionsAppleton();
+        getMBTAPredictionsArlington();
+        getMBTAPredictionsHobbs();
     </script>
 
 </body>
 </html>
-
 
 
