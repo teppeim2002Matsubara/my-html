@@ -33,7 +33,6 @@
     <table>
         <thead>
             <tr>
-                <th>Direction</th>
                 <th>Arrival Time</th>
                 <th>Status</th>
             </tr>
@@ -49,7 +48,6 @@
     <table>
         <thead>
             <tr>
-                <th>Direction</th>
                 <th>Arrival Time</th>
                 <th>Status</th>
             </tr>
@@ -91,14 +89,12 @@
 
             data.data.forEach(prediction => {
                 const directionId = prediction.attributes.direction_id;
-                const direction = directionId === 0 ? 'Inbound' : 'Outbound';
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
                 const status = prediction.attributes.status || 'No status';
 
                 // Only display rows that match the expected direction
                 if (directionId === expectedDirection) {
                     const row = `<tr>
-                        <td>${direction}</td>
                         <td>${arrivalTime}</td>
                         <td>${status}</td>
                     </tr>`;
