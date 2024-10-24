@@ -27,9 +27,9 @@
 
     <h1>Real-Time MBTA Predictions for Route 77</h1>
 
-    <!-- Arlington Heights Stop Predictions -->
-    <h2>Arlington Heights (Stop ID: 2281)</h2>
-    <p>Below is the real-time data for the next arrivals of MBTA bus route 77 at Arlington Heights (Stop ID: 2281):</p>
+    <!-- Arlington Heights Stop Predictions (Outbound) -->
+    <h2>Arlington Heights (Outbound) (Stop ID: 2281)</h2>
+    <p>Below is the real-time data for MBTA bus route 77 at Arlington Heights (Stop ID: 2281), showing outbound buses towards Arlington Heights:</p>
     <table>
         <thead>
             <tr>
@@ -43,9 +43,9 @@
         </tbody>
     </table>
 
-    <!-- Massachusetts Ave @ Hobbs Ct Stop Predictions -->
-    <h2>Massachusetts Ave @ Hobbs Ct (Stop ID: 2290)</h2>
-    <p>Below is the real-time data for the next arrivals of MBTA bus route 77 at Massachusetts Ave @ Hobbs Ct (Stop ID: 2290):</p>
+    <!-- Massachusetts Ave @ Hobbs Ct Stop Predictions (Inbound) -->
+    <h2>Massachusetts Ave @ Hobbs Ct (Inbound) (Stop ID: 2290)</h2>
+    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Hobbs Ct (Stop ID: 2290), showing inbound buses towards Harvard Station:</p>
     <table>
         <thead>
             <tr>
@@ -66,7 +66,7 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displayPredictions(data, 'predictions-list-arlington');
+                displayPredictions(data, 'predictions-list-arlington', 1); // 1 for Outbound
             } catch (error) {
                 console.error('Error fetching predictions for Arlington Heights:', error);
             }
@@ -78,28 +78,32 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displayPredictions(data, 'predictions-list-hobbs');
+                displayPredictions(data, 'predictions-list-hobbs', 0); // 0 for Inbound
             } catch (error) {
                 console.error('Error fetching predictions for Hobbs Ct:', error);
             }
         }
 
         // Function to display predictions in the specified table body
-        function displayPredictions(data, tableId) {
+        function displayPredictions(data, tableId, expectedDirection) {
             const predictionsList = document.getElementById(tableId);
             predictionsList.innerHTML = ''; // Clear any existing data
 
             data.data.forEach(prediction => {
-                const direction = prediction.attributes.direction_id === 0 ? 'Inbound' : 'Outbound';
+                const directionId = prediction.attributes.direction_id;
+                const direction = directionId === 0 ? 'Inbound' : 'Outbound';
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
                 const status = prediction.attributes.status || 'No status';
 
-                const row = `<tr>
-                    <td>${direction}</td>
-                    <td>${arrivalTime}</td>
-                    <td>${status}</td>
-                </tr>`;
-                predictionsList.innerHTML += row;
+                // Only display rows that match the expected direction
+                if (directionId === expectedDirection) {
+                    const row = `<tr>
+                        <td>${direction}</td>
+                        <td>${arrivalTime}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                    predictionsList.innerHTML += row;
+                }
             });
         }
 
@@ -110,3 +114,4 @@
 
 </body>
 </html>
+
