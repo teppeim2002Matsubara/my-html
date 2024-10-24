@@ -58,7 +58,7 @@
     </table>
 
     <script>
-        // Fetch and display predictions for Arlington Heights
+        // Fetch and display predictions for Arlington Heights (Stop 2281, Outbound buses)
         async function getMBTAPredictionsArlington() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2281&filter[route]=77';
             try {
@@ -70,7 +70,7 @@
             }
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Hobbs Ct
+        // Fetch and display predictions for Massachusetts Ave @ Hobbs Ct (Stop 2290, Inbound buses)
         async function getMBTAPredictionsHobbs() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2290&filter[route]=77';
             try {
@@ -92,7 +92,7 @@
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
                 const status = prediction.attributes.status || 'No status';
 
-                // Only display rows that match the expected direction
+                // Only display rows that match the expected direction (Inbound or Outbound)
                 if (directionId === expectedDirection) {
                     const row = `<tr>
                         <td>${arrivalTime}</td>
@@ -110,4 +110,6 @@
 
 </body>
 </html>
+
+
 
