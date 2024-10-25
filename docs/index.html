@@ -34,6 +34,7 @@
         <thead>
             <tr>
                 <th>Arrival Time</th>
+                <th>Delay</th> <!-- New delay column -->
                 <th>Status</th>
             </tr>
         </thead>
@@ -49,6 +50,7 @@
         <thead>
             <tr>
                 <th>Arrival Time</th>
+                <th>Delay</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -73,34 +75,41 @@
             if (data.data.length === 0) {
                 const row = predictionsList.insertRow();
                 const cell = row.insertCell();
-                cell.colSpan = 2;
+                cell.colSpan = 3; // Adjust column span to match the number of columns (arrival, delay, status)
                 cell.textContent = 'No predictions available';
                 return; // Stop if no data is available
             }
 
             // Loop through the predictions provided by the MBTA API
             data.data.forEach((prediction, index) => {
-                // Log the direction_id to check whether it matches the expected direction
-                console.log(`${tableId} - Prediction ${index + 1} direction_id:`, prediction.attributes.direction_id);
+                console.log(`${tableId} - Prediction ${index + 1}:`, prediction.attributes);
 
-                // Extract the direction_id, arrival_time, and status from the prediction data
+                // Extract the necessary fields
                 const directionId = prediction.attributes.direction_id;
-
-                // Ensure arrival_time exists, or show 'N/A'
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
-
-                // Ensure status exists, or show 'No status'
                 const status = prediction.attributes.status || 'No status';
 
+                // Convert delay from seconds to minutes and seconds
+                const delayInSeconds = prediction.attributes.delay;
+                let delay = 'On time';
+                if (delayInSeconds != null) {
+                    const delayMinutes = Math.floor(delayInSeconds / 60);
+                    const delaySeconds = delayInSeconds % 60;
+                    delay = `${delayMinutes} min ${delaySeconds} sec`;
+                }
+
                 // Only display rows that match the expected direction (Inbound or Outbound)
-                if (directionId === expectedDirection) {  
-                    console.log(`Direction matches: ${directionId} === ${expectedDirection}`);
+                if (directionId === expectedDirection) {
                     // Create a new row
                     const row = predictionsList.insertRow();
 
                     // Insert the arrival time cell
                     const arrivalCell = row.insertCell();
                     arrivalCell.textContent = arrivalTime;
+
+                    // Insert the delay cell
+                    const delayCell = row.insertCell();
+                    delayCell.textContent = delay;
 
                     // Insert the status cell
                     const statusCell = row.insertCell();
