@@ -103,6 +103,10 @@
                 const data = await response.json();
                 console.log('Data for Medford St (Stop 2282):', data); // Log the data for the first table
                 console.log('Predictions array:', data.data); // Log the array of predictions specifically
+                // Log each prediction object separately for clarity
+                data.data.forEach((prediction, index) => {
+                    console.log(`Prediction ${index + 1}:`, prediction);
+                });
 
                 displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
             } catch (error) {
