@@ -77,8 +77,8 @@
 
             // Loop through the predictions provided by the MBTA API
             data.data.forEach((prediction, index) => {
-                // Log each prediction for debugging with additional context for the table
-                console.log(`${tableId} - Prediction ${index + 1}:`, prediction);
+                // Log the direction_id to check whether it matches the expected direction
+                console.log(`${tableId} - Prediction ${index + 1} direction_id:`, prediction.attributes.direction_id);
 
                 // Extract the direction_id, arrival_time, and status from the prediction data
                 const directionId = prediction.attributes.direction_id;
@@ -91,6 +91,7 @@
 
                 // Only display rows that match the expected direction (Inbound or Outbound)
                 if (directionId === expectedDirection) {
+                    console.log(`Direction matches: ${directionId} === ${expectedDirection}`);
                     // Create a new row with the arrival time and status
                     const row = `<tr>
                         <td>${arrivalTime}</td>
@@ -101,6 +102,8 @@
 
                     // Append the row to the table body
                     predictionsList.innerHTML += row;
+                } else {
+                    console.log(`Skipping row: direction_id ${directionId} does not match ${expectedDirection}`);
                 }
             });
         }
