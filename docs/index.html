@@ -29,7 +29,7 @@
 
     <!-- Massachusetts Ave @ Medford St Stop Predictions (Outbound to Arlington Heights) -->
     <h2>Massachusetts Ave @ Medford St (Outbound) (Stop ID: 2282)</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Medford St (Stop ID: 2282), showing outbound buses towards Arlington Heights:</p>
+    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Medford St (Stop ID: 2282). Currently showing inbound predictions due to no outbound predictions being available:</p>
     <table>
         <thead>
             <tr>
@@ -89,9 +89,9 @@
                 // Ensure status exists, or show 'No status'
                 const status = prediction.attributes.status || 'No status';
 
-                // Only display rows that match the expected direction (Inbound or Outbound)
-                if (directionId === expectedDirection) {
-                    console.log(`Direction matches: ${directionId} === ${expectedDirection}`);
+                // Display inbound predictions if outbound is not available
+                if (directionId === expectedDirection || directionId === 0) {  // Fallback to inbound (0)
+                    console.log(`Direction matches or fallback to inbound: ${directionId} === ${expectedDirection}`);
                     // Create a new row with the arrival time and status
                     const row = `<tr>
                         <td>${arrivalTime}</td>
@@ -108,7 +108,7 @@
             });
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Medford St (Stop 2282, Outbound buses to Arlington Heights)
+        // Fetch and display predictions for Massachusetts Ave @ Medford St (Stop 2282)
         async function getMBTAPredictionsMedford() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
             try {
@@ -130,7 +130,7 @@
             }
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2291, Inbound buses to Harvard Station)
+        // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2291)
         async function getMBTAPredictionsAppleton() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2291&filter[route]=77';
             try {
