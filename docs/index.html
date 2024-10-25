@@ -101,6 +101,7 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+                console.log('Data for Medford St (Stop 2282):', data); // Log the data for the first table
                 displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
