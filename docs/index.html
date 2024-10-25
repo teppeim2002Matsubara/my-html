@@ -58,13 +58,47 @@
     </table>
 
     <script>
+        // Function to display predictions in the specified table body
+        function displayPredictions(data, tableId, expectedDirection) {
+            // Get the table body where the predictions will be displayed
+            const predictionsList = document.getElementById(tableId);
+
+            // Clear any existing rows in the table
+            predictionsList.innerHTML = ''; 
+
+            // Check if the data has any predictions
+            if (data.data.length === 0) {
+                predictionsList.innerHTML = '<tr><td colspan="2">No predictions available</td></tr>';
+                return; // Stop if no data is available
+            }
+
+            // Loop through the predictions provided by the MBTA API
+            data.data.forEach(prediction => {
+                // Extract the direction_id, arrival_time, and status from the prediction data
+                const directionId = prediction.attributes.direction_id;
+                const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
+                const status = prediction.attributes.status || 'No status';
+
+                // Only display rows that match the expected direction (Inbound or Outbound)
+                if (directionId === expectedDirection) {
+                    // Create a new row with the arrival time and status
+                    const row = `<tr>
+                        <td>${arrivalTime}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                    // Append the row to the table body
+                    predictionsList.innerHTML += row;
+                }
+            });
+        }
+
         // Fetch and display predictions for Massachusetts Ave @ Medford St (Stop 2282, Outbound buses to Arlington Heights)
         async function getMBTAPredictionsMedford() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound (to Arlington Heights)
+                displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
             }
@@ -76,31 +110,10 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound (to Harvard Station)
+                displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St:', error);
             }
-        }
-
-        // Function to display predictions in the specified table body
-        function displayPredictions(data, tableId, expectedDirection) {
-            const predictionsList = document.getElementById(tableId);
-            predictionsList.innerHTML = ''; // Clear any existing data
-
-            data.data.forEach(prediction => {
-                const directionId = prediction.attributes.direction_id;
-                const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
-                const status = prediction.attributes.status || 'No status';
-
-                // Only display rows that match the expected direction (Inbound or Outbound)
-                if (directionId === expectedDirection) {
-                    const row = `<tr>
-                        <td>${arrivalTime}</td>
-                        <td>${status}</td>
-                    </tr>`;
-                    predictionsList.innerHTML += row;
-                }
-            });
         }
 
         // Function to refresh both tables every 1 second
@@ -118,7 +131,3 @@
 
 </body>
 </html>
-
-
-
-
