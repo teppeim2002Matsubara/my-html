@@ -77,10 +77,8 @@
 
             // Loop through the predictions provided by the MBTA API
             data.data.forEach((prediction, index) => {
-                // Log each prediction for debugging
-                console.log(`Prediction ${index + 1} direction_id:`, prediction.attributes.direction_id);
-                console.log(`Prediction ${index + 1} arrival_time:`, prediction.attributes.arrival_time);
-                console.log(`Prediction ${index + 1} status:`, prediction.attributes.status);
+                // Log each prediction for debugging with additional context for the table
+                console.log(`${tableId} - Prediction ${index + 1}:`, prediction);
 
                 // Extract the direction_id, arrival_time, and status from the prediction data
                 const directionId = prediction.attributes.direction_id;
@@ -111,6 +109,9 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Data for Medford St (Stop 2282):', data); // Log the data for the first table
+                data.data.forEach((prediction, index) => {
+                    console.log(`Medford St - Prediction ${index + 1}:`, prediction); // This is for Medford St (Stop ID: 2282)
+                });
                 displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
@@ -123,6 +124,10 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+                console.log('Data for Appleton St (Stop 2291):', data); // Log the data for the second table
+                data.data.forEach((prediction, index) => {
+                    console.log(`Appleton St - Prediction ${index + 1}:`, prediction); // This is for Appleton St (Stop ID: 2291)
+                });
                 displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St:', error);
@@ -145,5 +150,4 @@
 
 </body>
 </html>
-
 
