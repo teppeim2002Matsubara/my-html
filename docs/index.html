@@ -115,6 +115,15 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Data for Medford St (Stop 2282):', data); // Log the data for the first table
+                
+                if (data.data.length === 0) {
+                    console.log('No predictions for Medford St (Stop 2282)');
+                } else {
+                    data.data.forEach((prediction, index) => {
+                        console.log(`Medford St - Prediction ${index + 1}:`, prediction);
+                    });
+                }
+
                 displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
@@ -128,6 +137,15 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Data for Appleton St (Stop 2291):', data); // Log the data for the second table
+                
+                if (data.data.length === 0) {
+                    console.log('No predictions for Appleton St (Stop 2291)');
+                } else {
+                    data.data.forEach((prediction, index) => {
+                        console.log(`Appleton St - Prediction ${index + 1}:`, prediction);
+                    });
+                }
+
                 displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St:', error);
@@ -150,5 +168,4 @@
 
 </body>
 </html>
-
 
