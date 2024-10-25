@@ -60,6 +60,9 @@
     <script>
         // Function to display predictions in the specified table body
         function displayPredictions(data, tableId, expectedDirection) {
+            console.log(`Updating table: ${tableId}`); // Log table update attempt
+            console.log(data); // Log the data received
+
             // Get the table body where the predictions will be displayed
             const predictionsList = document.getElementById(tableId);
 
@@ -118,6 +121,7 @@
 
         // Function to refresh both tables every 1 second
         function refreshPredictions() {
+            console.log('Refreshing predictions...');
             getMBTAPredictionsMedford();
             getMBTAPredictionsAppleton();
         }
@@ -131,3 +135,4 @@
 
 </body>
 </html>
+
