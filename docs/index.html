@@ -29,7 +29,7 @@
 
     <!-- Massachusetts Ave @ Medford St Stop Predictions (Outbound to Arlington Heights) -->
     <h2>Massachusetts Ave @ Medford St (Outbound) (Stop ID: 2282)</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Medford St (Stop ID: 2282). Currently showing inbound predictions due to no outbound predictions being available:</p>
+    <p>Currently showing inbound predictions due to no outbound predictions being available:</p>
     <table>
         <thead>
             <tr>
@@ -59,16 +59,16 @@
 
     <script>
         // Function to display predictions in the specified table body
-        function displayPredictions(data, tableId) {
+        function displayPredictions(data, tableId, expectedDirection) {
             console.log(`Updating table: ${tableId}`); // Log table update attempt
             console.log(data); // Log the data received
-        
+
             // Get the table body where the predictions will be displayed
             const predictionsList = document.getElementById(tableId);
-        
+
             // Clear any existing rows in the table
             predictionsList.innerHTML = ''; 
-        
+
             // Check if the data has any predictions
             if (data.data.length === 0) {
                 const row = predictionsList.insertRow();
@@ -77,36 +77,50 @@
                 cell.textContent = 'No predictions available';
                 return; // Stop if no data is available
             }
-        
+
             // Loop through the predictions provided by the MBTA API
             data.data.forEach((prediction, index) => {
                 // Log the direction_id to check whether it matches the expected direction
                 console.log(`${tableId} - Prediction ${index + 1} direction_id:`, prediction.attributes.direction_id);
-        
+
                 // Extract the direction_id, arrival_time, and status from the prediction data
+                const directionId = prediction.attributes.direction_id;
+
+                // Ensure arrival_time exists, or show 'N/A'
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
+
+                // Ensure status exists, or show 'No status'
                 const status = prediction.attributes.status || 'No status';
-        
-                // Ignore direction_id, display all predictions
-                const row = predictionsList.insertRow();
-                const arrivalCell = row.insertCell();
-                arrivalCell.textContent = arrivalTime;
-        
-                const statusCell = row.insertCell();
-                statusCell.textContent = status;
-        
-                console.log(`Appending row to ${tableId}:`, row); // Log the row being appended
+
+                // Only display rows that match the expected direction (Inbound or Outbound)
+                if (directionId === expectedDirection || directionId === 0) {  // Fallback to inbound (0)
+                    console.log(`Direction matches or fallback to inbound: ${directionId} === ${expectedDirection}`);
+                    // Create a new row
+                    const row = predictionsList.insertRow();
+
+                    // Insert the arrival time cell
+                    const arrivalCell = row.insertCell();
+                    arrivalCell.textContent = arrivalTime;
+
+                    // Insert the status cell
+                    const statusCell = row.insertCell();
+                    statusCell.textContent = status;
+
+                    console.log(`Appending row to ${tableId}:`, row); // Log the row being appended
+                } else {
+                    console.log(`Skipping row: direction_id ${directionId} does not match ${expectedDirection}`);
+                }
             });
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Medford St (Stop 2282, Outbound buses to Arlington Heights)
+        // Fetch and display predictions for Massachusetts Ave @ Medford St (Stop 2282, treating direction_id 0 as outbound)
         async function getMBTAPredictionsMedford() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
             try {
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Data for Medford St (Stop 2282):', data); // Log the data for the first table
-                
+
                 if (data.data.length === 0) {
                     console.log('No predictions for Medford St (Stop 2282)');
                 } else {
@@ -115,7 +129,8 @@
                     });
                 }
 
-                displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
+                // Treating direction_id = 0 as outbound for Medford St
+                displayPredictions(data, 'predictions-list-medford', 0); // Using 0 for "outbound" instead of 1
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
             }
@@ -159,5 +174,6 @@
 
 </body>
 </html>
+
 
 
