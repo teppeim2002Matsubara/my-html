@@ -96,6 +96,9 @@
                         <td>${arrivalTime}</td>
                         <td>${status}</td>
                     </tr>`;
+                    
+                    console.log(`Appending row to ${tableId}:`, row); // Log the row being appended
+
                     // Append the row to the table body
                     predictionsList.innerHTML += row;
                 }
@@ -109,9 +112,6 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Data for Medford St (Stop 2282):', data); // Log the data for the first table
-                data.data.forEach((prediction, index) => {
-                    console.log(`Medford St - Prediction ${index + 1}:`, prediction); // This is for Medford St (Stop ID: 2282)
-                });
                 displayPredictions(data, 'predictions-list-medford', 1); // 1 for Outbound
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
@@ -125,9 +125,6 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Data for Appleton St (Stop 2291):', data); // Log the data for the second table
-                data.data.forEach((prediction, index) => {
-                    console.log(`Appleton St - Prediction ${index + 1}:`, prediction); // This is for Appleton St (Stop ID: 2291)
-                });
                 displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St:', error);
@@ -150,4 +147,5 @@
 
 </body>
 </html>
+
 
