@@ -62,26 +62,30 @@
         function displayPredictions(data, tableId, expectedDirection) {
             console.log(`Updating table: ${tableId}`); // Log table update attempt
             console.log(data); // Log the data received
-
+        
             // Get the table body where the predictions will be displayed
             const predictionsList = document.getElementById(tableId);
-
+        
             // Clear any existing rows in the table
             predictionsList.innerHTML = ''; 
-
+        
             // Check if the data has any predictions
             if (data.data.length === 0) {
                 predictionsList.innerHTML = '<tr><td colspan="2">No predictions available</td></tr>';
                 return; // Stop if no data is available
             }
-
+        
             // Loop through the predictions provided by the MBTA API
             data.data.forEach(prediction => {
                 // Extract the direction_id, arrival_time, and status from the prediction data
                 const directionId = prediction.attributes.direction_id;
+        
+                // Ensure arrival_time exists, or show 'N/A'
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
+        
+                // Ensure status exists, or show 'No status'
                 const status = prediction.attributes.status || 'No status';
-
+        
                 // Only display rows that match the expected direction (Inbound or Outbound)
                 if (directionId === expectedDirection) {
                     // Create a new row with the arrival time and status
