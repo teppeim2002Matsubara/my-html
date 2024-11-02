@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MBTA Real-Time Predictions for Route 77</title>
+    <title>MBTA Route 77 Predictions</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,11 +25,9 @@
 </head>
 <body>
 
-    <h1>Real-Time MBTA Predictions for Route 77</h1>
-
     <!-- Massachusetts Ave @ Medford St Stop Predictions (Outbound to Arlington Heights) -->
     <h2>Massachusetts Ave @ Medford St (Stop ID: 2282)</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Medford St (Stop ID: 2282):</p>
+    <p>Below are the predictions for MBTA bus route 77 at Massachusetts Ave @ Medford St:</p>
     <table>
         <thead>
             <tr>
@@ -43,25 +41,9 @@
         </tbody>
     </table>
 
-    <!-- Massachusetts Ave @ Appleton St Stop Predictions (Direction 0) -->
-    <h2>Massachusetts Ave @ Appleton St (Stop ID: 2251) - Direction 0</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Appleton St (Stop ID: 2251) for direction 0:</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Arrival Time</th>
-                <th>Delay</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="predictions-list-appleton-0">
-            <!-- Data will be populated here -->
-        </tbody>
-    </table>
-
-    <!-- Massachusetts Ave @ Appleton St Stop Predictions (Direction 1) -->
-    <h2>Massachusetts Ave @ Appleton St (Stop ID: 2251) - Direction 1</h2>
-    <p>Below is the real-time data for MBTA bus route 77 at Massachusetts Ave @ Appleton St (Stop ID: 2251) for direction 1:</p>
+    <!-- Massachusetts Ave @ Appleton St Stop Predictions (Direction 1 Only) -->
+    <h2>Massachusetts Ave @ Appleton St (Stop ID: 2251)</h2>
+    <p>Below are the predictions for MBTA bus route 77 at Massachusetts Ave @ Appleton St:</p>
     <table>
         <thead>
             <tr>
@@ -134,37 +116,23 @@
             }
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2251, direction 0)
-        async function getMBTAPredictionsAppletonDirection0() {
-            const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2251&filter[route]=77';
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                console.log('Data for Appleton St (Stop 2251) - Direction 0:', data);
-                displayPredictions(data, 'predictions-list-appleton-0', 0); // Direction 0 for Appleton St
-            } catch (error) {
-                console.error('Error fetching predictions for Appleton St (Direction 0):', error);
-            }
-        }
-
         // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2251, direction 1)
         async function getMBTAPredictionsAppletonDirection1() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2251&filter[route]=77';
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                console.log('Data for Appleton St (Stop 2251) - Direction 1:', data);
+                console.log('Data for Appleton St (Stop 2251):', data);
                 displayPredictions(data, 'predictions-list-appleton-1', 1); // Direction 1 for Appleton St
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St (Direction 1):', error);
             }
         }
 
-        // Function to refresh all tables every 1 second
+        // Function to refresh both tables every 1 second
         function refreshPredictions() {
             console.log('Refreshing predictions...');
             getMBTAPredictionsMedford();
-            getMBTAPredictionsAppletonDirection0();
             getMBTAPredictionsAppletonDirection1();
         }
 
@@ -177,6 +145,7 @@
 
 </body>
 </html>
+
 
 
 
