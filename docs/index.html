@@ -139,7 +139,7 @@
                 }
 
                 // Treating direction_id = 0 as outbound for Medford St
-                displayPredictions(data, 'predictions-list-medford', 1); // Using 0 for "outbound" instead of 1
+                displayPredictions(data, 'predictions-list-medford', 0); // Using 0 for "outbound" instead of 1
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
             }
@@ -161,7 +161,7 @@
                     });
                 }
 
-                displayPredictions(data, 'predictions-list-appleton', 0); // 0 for Inbound
+                displayPredictions(data, 'predictions-list-appleton', 1); // 0 for Inbound
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St:', error);
             }
