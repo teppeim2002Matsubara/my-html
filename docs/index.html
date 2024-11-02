@@ -60,8 +60,8 @@
     </table>
 
     <script>
-        // Function to display predictions in the specified table body
-        function displayPredictions(data, tableId, expectedDirection) {
+        // Function to display predictions in the specified table body (temporarily bypassing direction check for Appleton)
+        function displayPredictions(data, tableId) {
             console.log(`Updating table: ${tableId}`); // Log table update attempt
             console.log(data); // Log the data received
 
@@ -82,10 +82,9 @@
 
             // Loop through the predictions provided by the MBTA API
             data.data.forEach((prediction, index) => {
-                console.log(`${tableId} - Prediction ${index + 1}:`, prediction.attributes);
-
-                // Extract the necessary fields
                 const directionId = prediction.attributes.direction_id;
+                console.log(`${tableId} - Prediction ${index + 1}: direction_id = ${directionId}`);
+
                 const arrivalTime = prediction.attributes.arrival_time ? new Date(prediction.attributes.arrival_time).toLocaleTimeString() : 'N/A';
                 const status = prediction.attributes.status || 'No status';
 
@@ -98,27 +97,20 @@
                     delay = `${delayMinutes} min ${delaySeconds} sec`;
                 }
 
-                // Only display rows that match the expected direction (Inbound or Outbound)
-                if (directionId === expectedDirection) {
-                    // Create a new row
-                    const row = predictionsList.insertRow();
+                // Create a new row for each prediction (no direction check here)
+                const row = predictionsList.insertRow();
 
-                    // Insert the arrival time cell
-                    const arrivalCell = row.insertCell();
-                    arrivalCell.textContent = arrivalTime;
+                // Insert the arrival time cell
+                const arrivalCell = row.insertCell();
+                arrivalCell.textContent = arrivalTime;
 
-                    // Insert the delay cell
-                    const delayCell = row.insertCell();
-                    delayCell.textContent = delay;
+                // Insert the delay cell
+                const delayCell = row.insertCell();
+                delayCell.textContent = delay;
 
-                    // Insert the status cell
-                    const statusCell = row.insertCell();
-                    statusCell.textContent = status;
-
-                    console.log(`Appending row to ${tableId}:`, row); // Log the row being appended
-                } else {
-                    console.log(`Skipping row: direction_id ${directionId} does not match ${expectedDirection}`);
-                }
+                // Insert the status cell
+                const statusCell = row.insertCell();
+                statusCell.textContent = status;
             });
         }
 
@@ -139,13 +131,13 @@
                 }
 
                 // Treating direction_id = 0 as outbound for Medford St
-                displayPredictions(data, 'predictions-list-medford', 0); // Using 0 for "outbound" instead of 1
+                displayPredictions(data, 'predictions-list-medford'); // No direction check here
             } catch (error) {
                 console.error('Error fetching predictions for Medford St:', error);
             }
         }
 
-        // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2291, Inbound buses to Harvard Station)
+        // Fetch and display predictions for Massachusetts Ave @ Appleton St (Stop 2291, temporarily without direction check)
         async function getMBTAPredictionsAppleton() {
             const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2291&filter[route]=77';
             try {
@@ -161,7 +153,7 @@
                     });
                 }
 
-                displayPredictions(data, 'predictions-list-appleton', 1); // 0 for Inbound
+                displayPredictions(data, 'predictions-list-appleton'); // Temporarily bypassing direction check
             } catch (error) {
                 console.error('Error fetching predictions for Appleton St:', error);
             }
@@ -183,5 +175,6 @@
 
 </body>
 </html>
+
 
 
