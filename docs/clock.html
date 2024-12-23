@@ -28,7 +28,7 @@
       height: 300px;
       border: 8px solid #fff;
       border-radius: 50%;
-      background: #222;
+      background: #fff; /* White clock face */
       box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
     }
 
@@ -36,8 +36,24 @@
       position: absolute;
       font-size: 1.5rem;
       font-weight: bold;
-      color: #fff;
+      color: #000; /* Black numbers */
       transform: translate(-50%, -50%);
+    }
+
+    .analog-clock .scale {
+      position: absolute;
+      width: 2px;
+      height: 10px;
+      background: #000; /* Black scale color */
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 50%;
+      transform: rotate(0deg);
+    }
+
+    .analog-clock .scale.small {
+      height: 5px; /* Smaller scales */
+      background: #bbb; /* Lighter gray for smaller scales */
     }
 
     .hand {
@@ -55,13 +71,13 @@
     .hour-hand {
       width: 25%; /* Hour hand is shorter */
       height: 6px;
-      background: #fff;
+      background: #000; /* Black hour hand */
     }
 
     .minute-hand {
       width: 45%; /* Minute hand is longer */
       height: 4px;
-      background: #bbb;
+      background: #000; /* Black minute hand */
     }
 
     .second-hand {
@@ -74,7 +90,7 @@
       position: absolute;
       width: 12px;
       height: 12px;
-      background: #fff;
+      background: #000; /* Black center point */
       border-radius: 50%;
       top: 50%;
       left: 50%;
@@ -90,6 +106,7 @@
 
     .date {
       font-size: 1rem;
+      font-weight: bold; /* Bold date font */
       color: #bbb;
       margin-top: 5px;
     }
@@ -135,9 +152,11 @@
       document.getElementById('second-hand').style.transform = `rotate(${secondsAngle}deg)`;
     }
 
-    function drawNumbers() {
+    function drawClockFace() {
       const clock = document.getElementById('analog-clock');
       const radius = 150; // Radius of the clock
+
+      // Draw hour numbers
       for (let i = 1; i <= 12; i++) {
         const angle = (i - 3) * (Math.PI / 6); // Adjust for 12 o'clock at the top
         const x = radius + radius * 0.85 * Math.cos(angle); // 0.85 to place numbers slightly inside the border
@@ -151,14 +170,27 @@
 
         clock.appendChild(number);
       }
+
+      // Draw scales (60 divisions)
+      for (let i = 0; i < 60; i++) {
+        const angle = i * 6; // 6 degrees per division
+        const scale = document.createElement('div');
+        scale.className = 'scale';
+        if (i % 5 !== 0) {
+          scale.classList.add('small'); // Smaller scales for non-hour marks
+        }
+        scale.style.transform = `rotate(${angle}deg) translate(0, -145px)`;
+        clock.appendChild(scale);
+      }
     }
 
-    drawNumbers(); // Draw the numbers on the clock
+    drawClockFace(); // Draw numbers and scales on the clock face
     setInterval(updateClock, 1000);
     updateClock(); // Initialize immediately
   </script>
 </body>
 </html>
+
 
 
 
