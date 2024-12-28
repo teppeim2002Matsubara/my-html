@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Standby Clock</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: black;
+        }
+
+        .clock-container {
+            width: 90%;
+            max-width: 400px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background-color: black;
+        }
+
+        .time {
+            font-family: 'San Francisco', 'Arial', sans-serif;
+            font-size: 96px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+                         0 0 20px rgba(255, 255, 255, 0.6);
+        }
+
+        .colon {
+            opacity: 1;
+            transition: opacity 0.5s;
+        }
+
+        .date {
+            font-family: 'San Francisco', 'Arial', sans-serif;
+            font-size: 24px;
+            color: white;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="time" id="clock">
+            <span id="hours">00</span><span class="colon" id="colon">:</span><span id="minutes">00</span>
+        </div>
+        <div class="date" id="date"></div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString(undefined, options);
+            document.getElementById('date').textContent = dateString;
+        }
+
+        function blinkColon() {
+            const colon = document.getElementById('colon');
+            colon.style.opacity = colon.style.opacity === '1' ? '0' : '1';
+        }
+
+        // Update the clock every second
+        setInterval(updateClock, 1000);
+        setInterval(blinkColon, 500);
+        updateClock(); // Initialize immediately
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
