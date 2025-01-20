@@ -84,7 +84,7 @@
     const sheetSelector = document.getElementById("sheetSelector");
 
     // Fetch the Excel file from the local directory
-    fetch('flashcards.xlsx')
+    fetch('flashcards_updated.xlsx')
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
