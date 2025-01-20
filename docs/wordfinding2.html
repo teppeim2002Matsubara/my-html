@@ -69,6 +69,12 @@
     #time-records th {
       background-color: #f4f4f4;
     }
+    #time-records .words-list {
+      font-size: 14px;
+      color: #555;
+      max-height: 60px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -89,6 +95,7 @@
       <tr>
         <th>#</th>
         <th>Time (seconds)</th>
+        <th>Words List</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -102,6 +109,7 @@
     let startTime;
     let totalTime = 0;
     let timeRecords = [];
+    let wordsUsedInCurrentGame = [];
     let lastSelectedSheet = null;
 
     const gameContainer = document.getElementById("game-container");
@@ -164,6 +172,7 @@
       startTime = Date.now();
       currentRowIndex = 0;
       totalTime = 0;
+      wordsUsedInCurrentGame = [];
 
       gameContainer.innerHTML = "";
       titleElement.classList.remove("hidden");
@@ -195,6 +204,8 @@
       const selected = wordList[Math.floor(Math.random() * wordList.length)];
       const correctWord = selected.word;
       const titleRead = selected.read;
+
+      wordsUsedInCurrentGame.push(titleRead);
 
       titleElement.textContent = `Find: ${titleRead}`;
 
@@ -233,47 +244,5 @@
         } else {
           const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
           nextRow.classList.remove("hidden");
-          updateRowAndTitle(currentRowIndex);
-        }
-      }
-    }
-
-    function endGame() {
-      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
-      resultElement.classList.remove("hidden");
-
-      timeRecords.push(totalTime.toFixed(2));
-      if (timeRecords.length > 10) timeRecords.shift();
-
-      updateTimeRecords();
-
-      sameSheetButton.classList.remove("hidden");
-      changeSheetButton.classList.remove("hidden");
-    }
-
-    function updateTimeRecords() {
-      const tbody = timeRecordsTable.querySelector("tbody");
-      tbody.innerHTML = "";
-
-      timeRecords.forEach((time, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${index + 1}</td><td>${time}</td>`;
-        tbody.appendChild(row);
-      });
-
-      timeRecordsTable.classList.remove("hidden");
-    }
-
-    function resetUI() {
-      gameContainer.innerHTML = "";
-      questionNumberElement.classList.add("hidden");
-      titleElement.classList.add("hidden");
-      resultElement.classList.add("hidden");
-      timeRecordsTable.classList.add("hidden");
-      sameSheetButton.classList.add("hidden");
-      changeSheetButton.classList.add("hidden");
-    }
-  </script>
-</body>
-</html>
+          updateRowAndTitle(
 
