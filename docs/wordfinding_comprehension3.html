@@ -144,7 +144,7 @@
       goButton.disabled = !(sheetSelector.value && modeSelector.value);
     }
 
-    fetch("flashcards.xlsx")
+    fetch("flashcards_updated3.xlsx")
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
@@ -166,7 +166,7 @@
         return;
       }
 
-      fetch("flashcards.xlsx")
+      fetch("flashcards_updated3.xlsx")
         .then(response => response.arrayBuffer())
         .then(data => {
           const workbook = XLSX.read(data, { type: "array" });
@@ -215,7 +215,6 @@
   </script>
 </body>
 </html>
-
 
 
 
