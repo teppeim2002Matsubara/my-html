@@ -283,7 +283,36 @@
     function endGame() {
       resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
       resultElement.classList.remove("hidden");
+
+      timeRecords.push({
+        time: totalTime.toFixed(2),
+        words: [...wordsUsedInCurrentGame],
+        reads: [...readsUsedInCurrentGame],
+      });
+      if (timeRecords.length > 10) timeRecords.shift();
+
+      updateTimeRecords();
+    }
+
+    function updateTimeRecords() {
+      const tbody = timeRecordsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      timeRecords.forEach((record, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${record.time}</td>
+          <td class='words-list'>${record.words.join(", ")}</td>
+          <td class='words-list'>${record.reads.join(", ")}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      timeRecordsTable.classList.remove("hidden");
     }
   </script>
 </body>
 </html>
+
+
