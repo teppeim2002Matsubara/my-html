@@ -16,18 +16,34 @@
     header {
       width: 100%;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 10px 20px;
+      padding: 20px;
       background-color: #f0f0f0;
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     }
-    #question-number {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    h1, h2, select {
+    h1, h2, select, button {
       margin: 20px 0;
+      font-size: 22px;
+    }
+    #title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #333;
+      text-align: center;
+    }
+    .large-button {
+      font-size: 24px;
+      padding: 15px 30px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .large-button:hover {
+      background-color: #0056b3;
     }
     .game-container {
       display: flex;
@@ -41,8 +57,8 @@
       margin: 10px 0;
     }
     .button {
-      font-size: 24px;
-      padding: 15px;
+      font-size: 20px;
+      padding: 10px 20px;
       margin: 5px;
       background-color: #007BFF;
       color: white;
@@ -79,20 +95,27 @@
 </head>
 <body>
   <header>
-    <div id="question-number" class="hidden">Question 1/10</div>
     <h1>Word-Find Game</h1>
-    <div>
-      <button id="sameSheetButton" class="hidden">Same Sheet</button>
-      <button id="changeSheetButton" class="hidden">Change Sheet</button>
-    </div>
   </header>
-  <h2 id="title" class="hidden">Find: </h2>
-  <select id="sheetSelector" class="hidden"></select>
-  <select id="modeSelector" class="hidden">
-    <option value="word-comprehension">Word Comprehension</option>
-    <option value="read-comprehension">Read Comprehension</option>
-  </select>
-  <div class="game-container" id="game-container"></div>
+  <h2>Select Mode and Sheet</h2>
+  <div>
+    <label for="sheetSelector">Choose Sheet:</label>
+    <select id="sheetSelector" style="font-size: 20px; padding: 5px;">
+    </select>
+  </div>
+  <div>
+    <label for="modeSelector">Choose Mode:</label>
+    <select id="modeSelector" style="font-size: 20px; padding: 5px;">
+      <option value="word-comprehension">Word Comprehension</option>
+      <option value="read-comprehension">Read Comprehension</option>
+    </select>
+  </div>
+  <button id="goButton" class="large-button" disabled>Go</button>
+
+  <div class="game-container hidden" id="game-container">
+    <div id="title" class="hidden"></div>
+    <div class="row" id="row-container"></div>
+  </div>
   <h2 id="result" class="hidden"></h2>
   <table id="time-records" class="hidden">
     <thead>
@@ -121,17 +144,27 @@
 
     const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
 
-    const gameContainer = document.getElementById("game-container");
-    const titleElement = document.getElementById("title");
-    const resultElement = document.getElementById("result");
-    const questionNumberElement = document.getElementById("question-number");
     const sheetSelector = document.getElementById("sheetSelector");
     const modeSelector = document.getElementById("modeSelector");
-    const sameSheetButton = document.getElementById("sameSheetButton");
-    const changeSheetButton = document.getElementById("changeSheetButton");
+    const goButton = document.getElementById("goButton");
+    const gameContainer = document.getElementById("game-container");
+    const titleElement = document.getElementById("title");
+    const rowContainer = document.getElementById("row-container");
+    const resultElement = document.getElementById("result");
     const timeRecordsTable = document.getElementById("time-records");
 
-    fetch('flashcards_updated3.xlsx')
+    sheetSelector.addEventListener("change", validateGoButton);
+    modeSelector.addEventListener("change", validateGoButton);
+
+    goButton.addEventListener("click", () => {
+      loadSheetAndStartGame();
+    });
+
+    function validateGoButton() {
+      goButton.disabled = !(sheetSelector.value && modeSelector.value);
+    }
+
+    fetch("flashcards_updated3.xlsx")
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
@@ -143,82 +176,47 @@
           option.textContent = sheetName;
           sheetSelector.appendChild(option);
         });
-
-        sheetSelector.classList.remove("hidden");
-        modeSelector.classList.remove("hidden");
-
-        sheetSelector.addEventListener("change", () => {
-          lastSelectedSheet = sheetSelector.value;
-          loadSheet(workbook, lastSelectedSheet);
-        });
-
-        modeSelector.addEventListener("change", () => {
-          currentMode = modeSelector.value;
-        });
-
-        changeSheetButton.addEventListener("click", () => {
-          sheetSelector.value = lastSelectedSheet;
-          sheetSelector.classList.remove("hidden");
-          modeSelector.classList.remove("hidden");
-          resetUI();
-        });
-
-        sameSheetButton.addEventListener("click", () => {
-          setupGame();
-        });
       })
       .catch(error => console.error("Error loading Excel file:", error));
 
-    function loadSheet(workbook, sheetName) {
-      const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(sheet);
+    function loadSheetAndStartGame() {
+      const selectedSheet = sheetSelector.value;
 
-      wordList = json.map(row => ({ word: row.Word, read: row.Read }));
+      fetch("flashcards_updated3.xlsx")
+        .then(response => response.arrayBuffer())
+        .then(data => {
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheet = workbook.Sheets[selectedSheet];
+          const json = XLSX.utils.sheet_to_json(sheet);
 
-      sheetSelector.classList.add("hidden");
-      modeSelector.classList.add("hidden");
-      setupGame();
+          wordList = json.map(row => ({ word: row.Word, read: row.Read }));
+
+          if (wordList.length === 0) {
+            alert("The selected sheet is empty. Please select another sheet.");
+            return;
+          }
+
+          setupGame();
+        })
+        .catch(error => console.error("Error loading Excel file:", error));
     }
 
     function setupGame() {
-      if (wordList.length === 0) {
-        alert("Word list is empty! Please ensure the Excel file is available.");
-        return;
-      }
-
       startTime = Date.now();
       currentRowIndex = 0;
       totalTime = 0;
       wordsUsedInCurrentGame = [];
       readsUsedInCurrentGame = [];
 
-      gameContainer.innerHTML = "";
+      gameContainer.classList.remove("hidden");
       titleElement.classList.remove("hidden");
-      questionNumberElement.classList.remove("hidden");
-
-      for (let i = 0; i < totalRows; i++) {
-        const row = createRow(i);
-        gameContainer.appendChild(row);
-      }
+      resultElement.classList.add("hidden");
+      timeRecordsTable.classList.add("hidden");
 
       updateRowAndTitle(currentRowIndex);
     }
 
-    function createRow(rowIndex) {
-      const row = document.createElement("div");
-      row.classList.add("row");
-      row.dataset.rowIndex = rowIndex;
-
-      if (rowIndex !== 0) {
-        row.classList.add("hidden");
-      }
-
-      return row;
-    }
-
     function updateRowAndTitle(rowIndex) {
-      questionNumberElement.textContent = `Question ${rowIndex + 1}/${totalRows}`;
-
       const selected = wordList[Math.floor(Math.random() * wordList.length)];
       const title = currentMode === "word-comprehension" ? selected.read : selected.word;
       const correctChoice = currentMode === "word-comprehension" ? selected.word : selected.read;
@@ -227,9 +225,6 @@
       readsUsedInCurrentGame.push(selected.read);
 
       titleElement.textContent = `Find: ${title}`;
-
-      const row = document.querySelector(`[data-row-index="${rowIndex}"]`);
-      row.innerHTML = "";
 
       const distractors =
         currentMode === "read-comprehension"
@@ -242,12 +237,14 @@
 
       const options = [...distractors, correctChoice].sort(() => 0.5 - Math.random());
 
+      rowContainer.innerHTML = "";
+
       options.forEach(option => {
         const button = document.createElement("button");
         button.textContent = option;
         button.classList.add("button");
         button.onclick = () => handleSelection(option, correctChoice);
-        row.appendChild(button);
+        rowContainer.appendChild(button);
       });
     }
 
@@ -273,15 +270,11 @@
         totalTime += (now - startTime) / 1000;
         startTime = now;
 
-        const currentRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
-        currentRow.classList.add("hidden");
         currentRowIndex++;
 
         if (currentRowIndex >= totalRows) {
           endGame();
         } else {
-          const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
-          nextRow.classList.remove("hidden");
           updateRowAndTitle(currentRowIndex);
         }
       }
@@ -299,9 +292,6 @@
       if (timeRecords.length > 10) timeRecords.shift();
 
       updateTimeRecords();
-
-      sameSheetButton.classList.remove("hidden");
-      changeSheetButton.classList.remove("hidden");
     }
 
     function updateTimeRecords() {
@@ -313,22 +303,13 @@
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${record.time}</td>
-          <td class="words-list">${record.words.join(", ")}</td>
-          <td class="words-list">${record.reads.join(", ")}</td>`;
+          <td class='words-list'>${record.words.join(", ")}</td>
+          <td class='words-list'>${record.reads.join(", ")}</td>
+        `;
         tbody.appendChild(row);
       });
 
       timeRecordsTable.classList.remove("hidden");
-    }
-
-    function resetUI() {
-      gameContainer.innerHTML = "";
-      questionNumberElement.classList.add("hidden");
-      titleElement.classList.add("hidden");
-      resultElement.classList.add("hidden");
-      timeRecordsTable.classList.add("hidden");
-      sameSheetButton.classList.add("hidden");
-      changeSheetButton.classList.add("hidden");
     }
   </script>
 </body>
