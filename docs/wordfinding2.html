@@ -46,19 +46,16 @@
 <body>
   <h1>Word-Find Game</h1>
   <h2 id="title">Find: </h2>
-  <div class="game-container" id="game-container">
-    <!-- Game rows will be dynamically added here -->
-  </div>
+  <div class="game-container" id="game-container"></div>
   <h2 id="result" class="hidden"></h2>
+  
+  <!-- Include the SheetJS library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script>
-    // Word list from your uploaded file
-    const wordList = [
-      "引く", "羽", "雲", "公園", "遠い", // Add more words here
-      "明るい", "暗い", "早い", "遅い", "大きい",
-    ];
-
     const totalRows = 10;
-    let titleWord = "";
+    let wordList = [];
+    let titleRead = "";
+    let correctWord = "";
     let startTime;
     let totalTime = 0;
     let currentRow = 0;
@@ -67,10 +64,28 @@
     const titleElement = document.getElementById("title");
     const resultElement = document.getElementById("result");
 
+    // Fetch the Excel file from the local directory
+    fetch('flashcards.xlsx')
+      .then(response => response.arrayBuffer())
+      .then(data => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[firstSheetName];
+        const json = XLSX.utils.sheet_to_json(sheet);
+
+        // Convert the Excel rows into a usable array
+        wordList = json.map(row => ({ word: row.Word, read: row.Read }));
+        setupGame();
+      })
+      .catch(error => console.error("Error loading Excel file:", error));
+
     // Initialize the game
     function setupGame() {
-      titleWord = wordList[Math.floor(Math.random() * wordList.length)];
-      titleElement.textContent = `Find: ${titleWord}`;
+      if (wordList.length === 0) {
+        alert("Word list is empty! Please ensure the Excel file is available.");
+        return;
+      }
+
       startTime = Date.now();
       currentRow = 0;
       totalTime = 0;
@@ -84,18 +99,34 @@
         row.classList.add("row");
         row.dataset.rowIndex = i;
 
-        // Create 5 buttons, one with the titleWord
-        const words = [...wordList.sort(() => 0.5 - Math.random()).slice(0, 4), titleWord].sort(() => 0.5 - Math.random());
-        words.forEach(word => {
+        // Randomly select the title word (from the 'Read' column) and its correct match
+        const selected = wordList[Math.floor(Math.random() * wordList.length)];
+        titleRead = selected.read;
+        correctWord = selected.word;
+
+        // Generate distractors
+        const distractors = wordList
+          .filter(item => item.word !== correctWord) // Avoid using the correct word as a distractor
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 4)
+          .map(item => item.word);
+
+        // Add the correct word and shuffle
+        const options = [...distractors, correctWord].sort(() => 0.5 - Math.random());
+
+        // Create buttons for the options
+        options.forEach(option => {
           const button = document.createElement("button");
-          button.textContent = word;
+          button.textContent = option;
           button.classList.add("button");
-          button.onclick = () => handleSelection(word, i);
+          button.onclick = () => handleSelection(option, i);
           row.appendChild(button);
         });
 
-        // Hide all rows except the first one
-        if (i > 0) {
+        // Add the title and set up rows
+        if (i === 0) {
+          titleElement.textContent = `Find: ${titleRead}`;
+        } else {
           row.classList.add("hidden");
         }
 
@@ -105,7 +136,7 @@
 
     // Handle button clicks
     function handleSelection(selectedWord, rowIndex) {
-      if (selectedWord === titleWord && rowIndex === currentRow) {
+      if (selectedWord === correctWord && rowIndex === currentRow) {
         const now = Date.now();
         totalTime += (now - startTime) / 1000;
         startTime = now;
@@ -119,6 +150,10 @@
           endGame();
         } else {
           document.querySelector(`[data-row-index="${currentRow}"]`).classList.remove("hidden");
+          // Update the title for the next row
+          titleRead = wordList[Math.floor(Math.random() * wordList.length)].read;
+          correctWord = wordList.find(item => item.read === titleRead).word;
+          titleElement.textContent = `Find: ${titleRead}`;
         }
       }
     }
@@ -128,11 +163,9 @@
       resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
       resultElement.classList.remove("hidden");
     }
-
-    // Start the game on page load
-    setupGame();
   </script>
 </body>
 </html>
+
 
 
