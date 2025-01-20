@@ -26,7 +26,7 @@
       font-size: 20px;
       font-weight: bold;
     }
-    h1, h2 {
+    h1, h2, select {
       margin: 20px 0;
     }
     .game-container {
@@ -60,10 +60,11 @@
 </head>
 <body>
   <header>
-    <div id="question-number">Question 1/10</div>
+    <div id="question-number" class="hidden">Question 1/10</div>
     <h1>Word-Find Game</h1>
   </header>
-  <h2 id="title">Find: </h2>
+  <h2 id="title" class="hidden">Find: </h2>
+  <select id="sheetSelector" class="hidden"></select>
   <div class="game-container" id="game-container"></div>
   <h2 id="result" class="hidden"></h2>
   
@@ -80,126 +81,37 @@
     const titleElement = document.getElementById("title");
     const resultElement = document.getElementById("result");
     const questionNumberElement = document.getElementById("question-number");
+    const sheetSelector = document.getElementById("sheetSelector");
 
     // Fetch the Excel file from the local directory
-    fetch('flashcards.xlsx')
+    fetch('flashcards_updated.xlsx')
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
-        const firstSheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[firstSheetName];
-        const json = XLSX.utils.sheet_to_json(sheet);
+        const sheetNames = workbook.SheetNames;
 
-        // Convert the Excel rows into a usable array
-        wordList = json.map(row => ({ word: row.Word, read: row.Read }));
-        setupGame();
-      })
-      .catch(error => console.error("Error loading Excel file:", error));
+        // Populate the dropdown with sheet names
+        sheetNames.forEach(sheetName => {
+          const option = document.createElement("option");
+          option.value = sheetName;
+          option.textContent = sheetName;
+          sheetSelector.appendChild(option);
+        });
 
-    // Initialize the game
-    function setupGame() {
-      if (wordList.length === 0) {
-        alert("Word list is empty! Please ensure the Excel file is available.");
-        return;
-      }
+        // Show the dropdown to allow sheet selection
+        sheetSelector.classList.remove("hidden");
 
-      startTime = Date.now();
-      currentRowIndex = 0;
-      totalTime = 0;
+        // Handle sheet selection
+        sheetSelector.addEventListener("change", () => {
+          const selectedSheet = sheetSelector.value;
+          const sheet = workbook.Sheets[selectedSheet];
+          const json = XLSX.utils.sheet_to_json(sheet);
 
-      // Clear previous rows
-      gameContainer.innerHTML = "";
+          // Convert the Excel rows into a usable array
+          wordList = json.map(row => ({ word: row.Word, read: row.Read }));
 
-      // Create 10 rows
-      for (let i = 0; i < totalRows; i++) {
-        const row = createRow(i);
-        gameContainer.appendChild(row);
-      }
-
-      // Show the first row and set the title
-      updateRowAndTitle(currentRowIndex);
-    }
-
-    function createRow(rowIndex) {
-      const row = document.createElement("div");
-      row.classList.add("row");
-      row.dataset.rowIndex = rowIndex;
-
-      // Hide all rows initially
-      if (rowIndex !== 0) {
-        row.classList.add("hidden");
-      }
-
-      return row;
-    }
-
-    function updateRowAndTitle(rowIndex) {
-      // Update the question number
-      questionNumberElement.textContent = `Question ${rowIndex + 1}/${totalRows}`;
-
-      // Select the title word from the "Read" column and its correct match
-      const selected = wordList[Math.floor(Math.random() * wordList.length)];
-      const correctWord = selected.word;
-      const titleRead = selected.read;
-
-      // Update the title
-      titleElement.textContent = `Find: ${titleRead}`;
-
-      // Get the row element
-      const row = document.querySelector(`[data-row-index="${rowIndex}"]`);
-      row.innerHTML = ""; // Clear previous buttons
-
-      // Generate distractors
-      const distractors = wordList
-        .filter(item => item.word !== correctWord) // Avoid using the correct word as a distractor
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 4)
-        .map(item => item.word);
-
-      // Add the correct word and shuffle
-      const options = [...distractors, correctWord].sort(() => 0.5 - Math.random());
-
-      // Create buttons for the options
-      options.forEach(option => {
-        const button = document.createElement("button");
-        button.textContent = option;
-        button.classList.add("button");
-        button.onclick = () => handleSelection(option, correctWord);
-        row.appendChild(button);
-      });
-    }
-
-    function handleSelection(selectedWord, correctWord) {
-      if (selectedWord === correctWord) {
-        const now = Date.now();
-        totalTime += (now - startTime) / 1000;
-        startTime = now;
-
-        // Hide current row and show the next row
-        const currentRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
-        currentRow.classList.add("hidden");
-        currentRowIndex++;
-
-        if (currentRowIndex >= totalRows) {
-          // End the game
-          endGame();
-        } else {
-          // Show the next row and update the title
-          const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
-          nextRow.classList.remove("hidden");
-          updateRowAndTitle(currentRowIndex);
-        }
-      }
-    }
-
-    function endGame() {
-      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
-      resultElement.classList.remove("hidden");
-    }
-  </script>
-</body>
-</html>
-
+          // Hide the dropdown and start the game
+          sheetSelector.classList.add
 
 
 
