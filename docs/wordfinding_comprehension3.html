@@ -54,6 +54,24 @@
     .hidden {
       display: none;
     }
+    .row {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 5px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
     #time-records {
       margin-top: 20px;
       width: 90%;
@@ -96,6 +114,7 @@
 
   <div class="game-container hidden" id="game-container">
     <div id="title" class="hidden"></div>
+    <div class="row" id="row-container"></div>
   </div>
   <h2 id="result" class="hidden"></h2>
   <table id="time-records" class="hidden">
@@ -117,7 +136,6 @@
     let currentRowIndex = 0;
     let startTime;
     let totalTime = 0;
-    let timeRecords = [];
     let wordsUsedInCurrentGame = [];
     let readsUsedInCurrentGame = [];
     let lastSelectedSheet = null;
@@ -130,6 +148,7 @@
     const goButton = document.getElementById("goButton");
     const gameContainer = document.getElementById("game-container");
     const titleElement = document.getElementById("title");
+    const rowContainer = document.getElementById("row-container");
     const resultElement = document.getElementById("result");
     const timeRecordsTable = document.getElementById("time-records");
 
@@ -161,10 +180,6 @@
 
     function loadSheetAndStartGame() {
       const selectedSheet = sheetSelector.value;
-      if (!selectedSheet) {
-        alert("Please select a sheet.");
-        return;
-      }
 
       fetch("flashcards_updated3.xlsx")
         .then(response => response.arrayBuffer())
@@ -209,12 +224,67 @@
       readsUsedInCurrentGame.push(selected.read);
 
       titleElement.textContent = `Find: ${title}`;
+
+      const distractors =
+        currentMode === "read-comprehension"
+          ? generateHiraganaVariations(correctChoice)
+          : wordList
+              .filter(item => item.word !== correctChoice)
+              .sort(() => 0.5 - Math.random())
+              .slice(0, 4)
+              .map(item => item.word);
+
+      const options = [...distractors, correctChoice].sort(() => 0.5 - Math.random());
+
+      rowContainer.innerHTML = "";
+
+      options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.classList.add("button");
+        button.onclick = () => handleSelection(option, correctChoice);
+        rowContainer.appendChild(button);
+      });
     }
 
-    // Additional logic remains the same for row creation, selection, and game handling.
+    function generateHiraganaVariations(correctRead) {
+      const variations = [];
+      const correctChars = correctRead.split("");
+
+      for (let i = 0; i < 4; i++) {
+        const randomIndex = Math.floor(Math.random() * correctChars.length);
+        const randomHiragana = hiragana[Math.floor(Math.random() * hiragana.length)];
+        const variation = correctChars
+          .map((char, index) => (index === randomIndex ? randomHiragana : char))
+          .join("");
+        variations.push(variation);
+      }
+
+      return variations;
+    }
+
+    function handleSelection(selectedChoice, correctChoice) {
+      if (selectedChoice === correctChoice) {
+        const now = Date.now();
+        totalTime += (now - startTime) / 1000;
+        startTime = now;
+
+        currentRowIndex++;
+
+        if (currentRowIndex >= totalRows) {
+          endGame();
+        } else {
+          updateRowAndTitle(currentRowIndex);
+        }
+      }
+    }
+
+    function endGame() {
+      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
+      resultElement.classList.remove("hidden");
+    }
   </script>
 </body>
 </html>
-
 
 
