@@ -7,11 +7,26 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    h1, h2 {
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #f0f0f0;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #question-number {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    h1, h2, select {
       margin: 20px 0;
     }
     .game-container {
@@ -41,98 +56,269 @@
     .hidden {
       display: none;
     }
+    #time-records {
+      margin-top: 20px;
+      width: 80%;
+      text-align: left;
+      font-size: 18px;
+    }
+    #time-records th, #time-records td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    #time-records th {
+      background-color: #f4f4f4;
+    }
+    #time-records .words-list {
+      font-size: 14px;
+      color: #555;
+      max-height: 60px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
-  <h1>Word-Find Game</h1>
-  <h2 id="title">Find: </h2>
-  <div class="game-container" id="game-container">
-    <!-- Game rows will be dynamically added here -->
-  </div>
+  <header>
+    <div id="question-number" class="hidden">Question 1/10</div>
+    <h1>Word-Find Game</h1>
+    <div>
+      <button id="sameSheetButton" class="hidden">Same Sheet</button>
+      <button id="changeSheetButton" class="hidden">Change Sheet</button>
+    </div>
+  </header>
+  <h2 id="title" class="hidden">Find: </h2>
+  <select id="sheetSelector" class="hidden"></select>
+  <select id="modeSelector" class="hidden">
+    <option value="word-comprehension">Word Comprehension</option>
+    <option value="read-comprehension">Read Comprehension</option>
+  </select>
+  <div class="game-container" id="game-container"></div>
   <h2 id="result" class="hidden"></h2>
-  <script>
-    // Word list from your uploaded file
-    const wordList = [
-      "引く", "羽", "雲", "公園", "遠い", // Add more words here
-      "明るい", "暗い", "早い", "遅い", "大きい",
-    ];
+  <table id="time-records" class="hidden">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Time (seconds)</th>
+        <th>Words List</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script>
     const totalRows = 10;
-    let titleWord = "";
+    let wordList = [];
+    let currentRowIndex = 0;
     let startTime;
     let totalTime = 0;
-    let currentRow = 0;
+    let timeRecords = [];
+    let wordsUsedInCurrentGame = [];
+    let lastSelectedSheet = null;
+    let currentMode = "word-comprehension";
+
+    const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
 
     const gameContainer = document.getElementById("game-container");
     const titleElement = document.getElementById("title");
     const resultElement = document.getElementById("result");
+    const questionNumberElement = document.getElementById("question-number");
+    const sheetSelector = document.getElementById("sheetSelector");
+    const modeSelector = document.getElementById("modeSelector");
+    const sameSheetButton = document.getElementById("sameSheetButton");
+    const changeSheetButton = document.getElementById("changeSheetButton");
+    const timeRecordsTable = document.getElementById("time-records");
 
-    // Initialize the game
-    function setupGame() {
-      titleWord = wordList[Math.floor(Math.random() * wordList.length)];
-      titleElement.textContent = `Find: ${titleWord}`;
-      startTime = Date.now();
-      currentRow = 0;
-      totalTime = 0;
+    fetch('flashcards_updated3.xlsx')
+      .then(response => response.arrayBuffer())
+      .then(data => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetNames = workbook.SheetNames;
 
-      // Clear previous rows
-      gameContainer.innerHTML = "";
-
-      // Create 10 rows
-      for (let i = 0; i < totalRows; i++) {
-        const row = document.createElement("div");
-        row.classList.add("row");
-        row.dataset.rowIndex = i;
-
-        // Create 5 buttons, one with the titleWord
-        const words = [...wordList.sort(() => 0.5 - Math.random()).slice(0, 4), titleWord].sort(() => 0.5 - Math.random());
-        words.forEach(word => {
-          const button = document.createElement("button");
-          button.textContent = word;
-          button.classList.add("button");
-          button.onclick = () => handleSelection(word, i);
-          row.appendChild(button);
+        sheetNames.forEach(sheetName => {
+          const option = document.createElement("option");
+          option.value = sheetName;
+          option.textContent = sheetName;
+          sheetSelector.appendChild(option);
         });
 
-        // Hide all rows except the first one
-        if (i > 0) {
-          row.classList.add("hidden");
-        }
+        sheetSelector.classList.remove("hidden");
+        modeSelector.classList.remove("hidden");
 
-        gameContainer.appendChild(row);
-      }
+        sheetSelector.addEventListener("change", () => {
+          lastSelectedSheet = sheetSelector.value;
+          loadSheet(workbook, lastSelectedSheet);
+        });
+
+        modeSelector.addEventListener("change", () => {
+          currentMode = modeSelector.value;
+        });
+
+        changeSheetButton.addEventListener("click", () => {
+          sheetSelector.value = lastSelectedSheet;
+          sheetSelector.classList.remove("hidden");
+          modeSelector.classList.remove("hidden");
+          resetUI();
+        });
+
+        sameSheetButton.addEventListener("click", () => {
+          setupGame();
+        });
+      })
+      .catch(error => console.error("Error loading Excel file:", error));
+
+    function loadSheet(workbook, sheetName) {
+      const sheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(sheet);
+
+      wordList = json.map(row => ({ word: row.Word, read: row.Read }));
+
+      sheetSelector.classList.add("hidden");
+      modeSelector.classList.add("hidden");
+      setupGame();
     }
 
-    // Handle button clicks
-    function handleSelection(selectedWord, rowIndex) {
-      if (selectedWord === titleWord && rowIndex === currentRow) {
+    function setupGame() {
+      if (wordList.length === 0) {
+        alert("Word list is empty! Please ensure the Excel file is available.");
+        return;
+      }
+
+      startTime = Date.now();
+      currentRowIndex = 0;
+      totalTime = 0;
+      wordsUsedInCurrentGame = [];
+
+      gameContainer.innerHTML = "";
+      titleElement.classList.remove("hidden");
+      questionNumberElement.classList.remove("hidden");
+
+      for (let i = 0; i < totalRows; i++) {
+        const row = createRow(i);
+        gameContainer.appendChild(row);
+      }
+
+      updateRowAndTitle(currentRowIndex);
+    }
+
+    function createRow(rowIndex) {
+      const row = document.createElement("div");
+      row.classList.add("row");
+      row.dataset.rowIndex = rowIndex;
+
+      if (rowIndex !== 0) {
+        row.classList.add("hidden");
+      }
+
+      return row;
+    }
+
+    function updateRowAndTitle(rowIndex) {
+      questionNumberElement.textContent = `Question ${rowIndex + 1}/${totalRows}`;
+
+      const selected = wordList[Math.floor(Math.random() * wordList.length)];
+      const title = currentMode === "word-comprehension" ? selected.read : selected.word;
+      const correctChoice = currentMode === "word-comprehension" ? selected.word : selected.read;
+
+      wordsUsedInCurrentGame.push(correctChoice);
+
+      titleElement.textContent = `Find: ${title}`;
+
+      const row = document.querySelector(`[data-row-index="${rowIndex}"]`);
+      row.innerHTML = "";
+
+      const distractors =
+        currentMode === "read-comprehension"
+          ? generateHiraganaVariations(correctChoice)
+          : wordList
+              .filter(item => item.word !== correctChoice)
+              .sort(() => 0.5 - Math.random())
+              .slice(0, 4)
+              .map(item => item.word);
+
+      const options = [...distractors, correctChoice].sort(() => 0.5 - Math.random());
+
+      options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.classList.add("button");
+        button.onclick = () => handleSelection(option, correctChoice);
+        row.appendChild(button);
+      });
+    }
+
+    function generateHiraganaVariations(correctRead) {
+      const variations = [];
+      const correctChars = correctRead.split("");
+
+      for (let i = 0; i < 4; i++) {
+        const randomIndex = Math.floor(Math.random() * correctChars.length);
+        const randomHiragana = hiragana[Math.floor(Math.random() * hiragana.length)];
+        const variation = correctChars
+          .map((char, index) => (index === randomIndex ? randomHiragana : char))
+          .join("");
+        variations.push(variation);
+      }
+
+      return variations;
+    }
+
+    function handleSelection(selectedChoice, correctChoice) {
+      if (selectedChoice === correctChoice) {
         const now = Date.now();
         totalTime += (now - startTime) / 1000;
         startTime = now;
 
-        // Hide current row and show the next row
-        document.querySelector(`[data-row-index="${rowIndex}"]`).classList.add("hidden");
-        currentRow++;
+        const currentRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
+        currentRow.classList.add("hidden");
+        currentRowIndex++;
 
-        // End game if all rows are completed
-        if (currentRow >= totalRows) {
+        if (currentRowIndex >= totalRows) {
           endGame();
         } else {
-          document.querySelector(`[data-row-index="${currentRow}"]`).classList.remove("hidden");
+          const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
+          nextRow.classList.remove("hidden");
+          updateRowAndTitle(currentRowIndex);
         }
       }
     }
 
-    // End the game
     function endGame() {
       resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
       resultElement.classList.remove("hidden");
+
+      timeRecords.push({ time: totalTime.toFixed(2), words: [...wordsUsedInCurrentGame] });
+      if (timeRecords.length > 10) timeRecords.shift();
+
+      updateTimeRecords();
+
+      sameSheetButton.classList.remove("hidden");
+      changeSheetButton.classList.remove("hidden");
     }
 
-    // Start the game on page load
-    setupGame();
+    function updateTimeRecords() {
+      const tbody = timeRecordsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      timeRecords.forEach((record, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${index + 1}</td><td>${record.time}</td><td class="words-list">${record.words.join(", ")}</td>`;
+        tbody.appendChild(row);
+      });
+
+      timeRecordsTable.classList.remove("hidden");
+    }
+
+    function resetUI() {
+      gameContainer.innerHTML = "";
+      questionNumberElement.classList.add("hidden");
+      titleElement.classList.add("hidden");
+      resultElement.classList.add("hidden");
+      timeRecordsTable.classList.add("hidden");
+      sameSheetButton.classList.add("hidden");
+      changeSheetButton.classList.add("hidden");
+    }
   </script>
 </body>
 </html>
-
 
