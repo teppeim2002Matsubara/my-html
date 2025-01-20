@@ -7,43 +7,17 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
       margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
     header {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
       background-color: #f0f0f0;
+      padding: 20px;
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     }
-    h1, h2, select, button {
+    h1, h2 {
       margin: 20px 0;
-      font-size: 22px;
-    }
-    #title {
-      font-size: 24px;
-      font-weight: bold;
-      margin: 20px 0;
-      color: #333;
-      text-align: center;
-    }
-    .large-button {
-      font-size: 24px;
-      padding: 15px 30px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .large-button:hover {
-      background-color: #0056b3;
     }
     .game-container {
       display: flex;
@@ -57,8 +31,8 @@
       margin: 10px 0;
     }
     .button {
-      font-size: 20px;
-      padding: 10px 20px;
+      font-size: 24px;
+      padding: 15px;
       margin: 5px;
       background-color: #007BFF;
       color: white;
@@ -85,11 +59,9 @@
     #time-records th {
       background-color: #f4f4f4;
     }
-    #time-records .words-list {
+    .words-list {
       font-size: 14px;
       color: #555;
-      max-height: 60px;
-      overflow-y: auto;
     }
   </style>
 </head>
@@ -100,20 +72,19 @@
   <h2>Select Mode and Sheet</h2>
   <div>
     <label for="sheetSelector">Choose Sheet:</label>
-    <select id="sheetSelector" style="font-size: 20px; padding: 5px;">
-    </select>
+    <select id="sheetSelector"></select>
   </div>
   <div>
     <label for="modeSelector">Choose Mode:</label>
-    <select id="modeSelector" style="font-size: 20px; padding: 5px;">
+    <select id="modeSelector">
       <option value="word-comprehension">Word Comprehension</option>
       <option value="read-comprehension">Read Comprehension</option>
     </select>
   </div>
-  <button id="goButton" class="large-button" disabled>Go</button>
+  <button id="goButton" class="button" disabled>Go</button>
 
   <div class="game-container hidden" id="game-container">
-    <div id="title" class="hidden"></div>
+    <h2 id="title" class="hidden"></h2>
     <div class="row" id="row-container"></div>
   </div>
   <h2 id="result" class="hidden"></h2>
@@ -137,11 +108,6 @@
     let startTime;
     let totalTime = 0;
     let timeRecords = [];
-    let wordsUsedInCurrentGame = [];
-    let readsUsedInCurrentGame = [];
-    let lastSelectedSheet = null;
-    let currentMode = "word-comprehension";
-
     const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
 
     const sheetSelector = document.getElementById("sheetSelector");
@@ -190,12 +156,10 @@
           const json = XLSX.utils.sheet_to_json(sheet);
 
           wordList = json.map(row => ({ word: row.Word, read: row.Read }));
-
           if (wordList.length === 0) {
             alert("The selected sheet is empty. Please select another sheet.");
             return;
           }
-
           setupGame();
         })
         .catch(error => console.error("Error loading Excel file:", error));
@@ -205,8 +169,6 @@
       startTime = Date.now();
       currentRowIndex = 0;
       totalTime = 0;
-      wordsUsedInCurrentGame = [];
-      readsUsedInCurrentGame = [];
 
       gameContainer.classList.remove("hidden");
       titleElement.classList.remove("hidden");
@@ -216,24 +178,17 @@
       updateRowAndTitle(currentRowIndex);
     }
 
-
-
-        
-
     function updateRowAndTitle(rowIndex) {
       const selected = wordList[Math.floor(Math.random() * wordList.length)];
-      const title = currentMode === "word-comprehension" ? selected.read : selected.word;
-      const correctChoice = currentMode === "word-comprehension" ? selected.word : selected.read;
-
-      wordsUsedInCurrentGame.push(selected.word);
-      readsUsedInCurrentGame.push(selected.read);
+      const title = modeSelector.value === "word-comprehension" ? selected.read : selected.word;
+      const correctChoice = modeSelector.value === "word-comprehension" ? selected.word : selected.read;
 
       titleElement.textContent = `Find: ${title}`;
 
       const distractors =
-        currentMode === "read-comprehension"
+        modeSelector.value === "read-comprehension"
           ? generateHiraganaVariations(correctChoice)
-      : wordList
+          : wordList
               .filter(item => item.word !== correctChoice)
               .sort(() => 0.5 - Math.random())
               .slice(0, 4)
@@ -242,7 +197,6 @@
       const options = [...distractors, correctChoice].sort(() => 0.5 - Math.random());
 
       rowContainer.innerHTML = "";
-
       options.forEach(option => {
         const button = document.createElement("button");
         button.textContent = option;
@@ -253,23 +207,17 @@
     }
 
     function generateHiraganaVariations(correctRead) {
-      const variations = [];
+      const variations = new Set();
       const correctChars = correctRead.split("");
-
-      while (variations.length < 4) {
-        const randomIndex = Math.floor(Math.random() * correctChars.length);
+      while (variations.size < 4) {
+        const index = Math.floor(Math.random() * correctChars.length);
         const randomHiragana = hiragana[Math.floor(Math.random() * hiragana.length)];
-        if (randomHiragana !== correctChars[randomIndex]) {
-          const variation = correctChars
-            .map((char, index) => (index === randomIndex ? randomHiragana : char))
-            .join("");
-          if (!variations.includes(variation)) {
-            variations.push(variation);
-          }
+        if (randomHiragana !== correctChars[index]) {
+          const variation = correctChars.map((char, i) => (i === index ? randomHiragana : char)).join("");
+          variations.add(variation);
         }
       }
-
-      return variations;
+      return Array.from(variations);
     }
 
     function handleSelection(selectedChoice, correctChoice) {
@@ -277,46 +225,20 @@
         const now = Date.now();
         totalTime += (now - startTime) / 1000;
         startTime = now;
-
         currentRowIndex++;
-
         if (currentRowIndex >= totalRows) {
           endGame();
         } else {
           updateRowAndTitle(currentRowIndex);
         }
+      } else {
+        alert("Incorrect! Try again.");
       }
     }
 
     function endGame() {
-      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
+      resultElement.innerHTML = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
       resultElement.classList.remove("hidden");
-
-      timeRecords.push({
-        time: totalTime.toFixed(2),
-        words: [...wordsUsedInCurrentGame],
-        reads: [...readsUsedInCurrentGame],
-      });
-      if (timeRecords.length > 10) timeRecords.shift();
-
-      updateTimeRecords();
-    }
-
-    function updateTimeRecords() {
-      const tbody = timeRecordsTable.querySelector("tbody");
-      tbody.innerHTML = "";
-
-      timeRecords.forEach((record, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${record.time}</td>
-          <td class='words-list'>${record.words.join(", ")}</td>
-          <td class='words-list'>${record.reads.join(", ")}</td>
-        `;
-        tbody.appendChild(row);
-      });
-
       timeRecordsTable.classList.remove("hidden");
     }
   </script>
