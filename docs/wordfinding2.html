@@ -75,7 +75,10 @@
   <header>
     <div id="question-number" class="hidden">Question 1/10</div>
     <h1>Word-Find Game</h1>
-    <button id="changeSheetButton" class="hidden">Change Sheet</button>
+    <div>
+      <button id="sameSheetButton" class="hidden">Same Sheet</button>
+      <button id="changeSheetButton" class="hidden">Change Sheet</button>
+    </div>
   </header>
   <h2 id="title" class="hidden">Find: </h2>
   <select id="sheetSelector" class="hidden"></select>
@@ -106,17 +109,16 @@
     const resultElement = document.getElementById("result");
     const questionNumberElement = document.getElementById("question-number");
     const sheetSelector = document.getElementById("sheetSelector");
+    const sameSheetButton = document.getElementById("sameSheetButton");
     const changeSheetButton = document.getElementById("changeSheetButton");
     const timeRecordsTable = document.getElementById("time-records");
 
-    // Fetch the Excel file from the local directory
-    fetch('flashcards_updated.xlsx') // Ensure the correct file name
+    fetch('flashcards.xlsx') // Ensure the correct file name
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
         const sheetNames = workbook.SheetNames;
 
-        // Populate the dropdown with sheet names
         sheetNames.forEach(sheetName => {
           const option = document.createElement("option");
           option.value = sheetName;
@@ -124,25 +126,21 @@
           sheetSelector.appendChild(option);
         });
 
-        // Show the dropdown to allow sheet selection
         sheetSelector.classList.remove("hidden");
 
-        // Handle sheet selection
         sheetSelector.addEventListener("change", () => {
           lastSelectedSheet = sheetSelector.value;
           loadSheet(workbook, lastSelectedSheet);
         });
 
-        // Handle "Change Sheet" button click
         changeSheetButton.addEventListener("click", () => {
           sheetSelector.value = lastSelectedSheet;
           sheetSelector.classList.remove("hidden");
-          gameContainer.innerHTML = "";
-          questionNumberElement.classList.add("hidden");
-          titleElement.classList.add("hidden");
-          resultElement.classList.add("hidden");
-          timeRecordsTable.classList.add("hidden");
-          changeSheetButton.classList.add("hidden");
+          resetUI();
+        });
+
+        sameSheetButton.addEventListener("click", () => {
+          setupGame();
         });
       })
       .catch(error => console.error("Error loading Excel file:", error));
@@ -151,10 +149,8 @@
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(sheet);
 
-      // Convert the Excel rows into a usable array
       wordList = json.map(row => ({ word: row.Word, read: row.Read }));
 
-      // Hide the dropdown and start the game
       sheetSelector.classList.add("hidden");
       setupGame();
     }
@@ -169,18 +165,15 @@
       currentRowIndex = 0;
       totalTime = 0;
 
-      // Clear previous rows
       gameContainer.innerHTML = "";
       titleElement.classList.remove("hidden");
       questionNumberElement.classList.remove("hidden");
 
-      // Create 10 rows
       for (let i = 0; i < totalRows; i++) {
         const row = createRow(i);
         gameContainer.appendChild(row);
       }
 
-      // Show the first row and set the title
       updateRowAndTitle(currentRowIndex);
     }
 
@@ -189,7 +182,6 @@
       row.classList.add("row");
       row.dataset.rowIndex = rowIndex;
 
-      // Hide all rows initially
       if (rowIndex !== 0) {
         row.classList.add("hidden");
       }
@@ -255,6 +247,7 @@
 
       updateTimeRecords();
 
+      sameSheetButton.classList.remove("hidden");
       changeSheetButton.classList.remove("hidden");
     }
 
@@ -269,6 +262,16 @@
       });
 
       timeRecordsTable.classList.remove("hidden");
+    }
+
+    function resetUI() {
+      gameContainer.innerHTML = "";
+      questionNumberElement.classList.add("hidden");
+      titleElement.classList.add("hidden");
+      resultElement.classList.add("hidden");
+      timeRecordsTable.classList.add("hidden");
+      sameSheetButton.classList.add("hidden");
+      changeSheetButton.classList.add("hidden");
     }
   </script>
 </body>
