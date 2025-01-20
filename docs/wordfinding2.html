@@ -56,19 +56,41 @@
     .hidden {
       display: none;
     }
+    #time-records {
+      margin-top: 20px;
+      width: 80%;
+      text-align: left;
+      font-size: 18px;
+    }
+    #time-records th, #time-records td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    #time-records th {
+      background-color: #f4f4f4;
+    }
   </style>
 </head>
 <body>
   <header>
     <div id="question-number" class="hidden">Question 1/10</div>
     <h1>Word-Find Game</h1>
+    <button id="changeSheetButton" class="hidden">Change Sheet</button>
   </header>
   <h2 id="title" class="hidden">Find: </h2>
   <select id="sheetSelector" class="hidden"></select>
   <div class="game-container" id="game-container"></div>
   <h2 id="result" class="hidden"></h2>
-  
-  <!-- Include the SheetJS library -->
+  <table id="time-records" class="hidden">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Time (seconds)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script>
     const totalRows = 10;
@@ -76,15 +98,19 @@
     let currentRowIndex = 0;
     let startTime;
     let totalTime = 0;
+    let timeRecords = [];
+    let lastSelectedSheet = null;
 
     const gameContainer = document.getElementById("game-container");
     const titleElement = document.getElementById("title");
     const resultElement = document.getElementById("result");
     const questionNumberElement = document.getElementById("question-number");
     const sheetSelector = document.getElementById("sheetSelector");
+    const changeSheetButton = document.getElementById("changeSheetButton");
+    const timeRecordsTable = document.getElementById("time-records");
 
     // Fetch the Excel file from the local directory
-    fetch('flashcards_updated.xlsx')
+    fetch('flashcards_updated.xlsx') // Ensure the correct file name
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
@@ -103,21 +129,36 @@
 
         // Handle sheet selection
         sheetSelector.addEventListener("change", () => {
-          const selectedSheet = sheetSelector.value;
-          const sheet = workbook.Sheets[selectedSheet];
-          const json = XLSX.utils.sheet_to_json(sheet);
+          lastSelectedSheet = sheetSelector.value;
+          loadSheet(workbook, lastSelectedSheet);
+        });
 
-          // Convert the Excel rows into a usable array
-          wordList = json.map(row => ({ word: row.Word, read: row.Read }));
-
-          // Hide the dropdown and start the game
-          sheetSelector.classList.add("hidden");
-          setupGame();
+        // Handle "Change Sheet" button click
+        changeSheetButton.addEventListener("click", () => {
+          sheetSelector.value = lastSelectedSheet;
+          sheetSelector.classList.remove("hidden");
+          gameContainer.innerHTML = "";
+          questionNumberElement.classList.add("hidden");
+          titleElement.classList.add("hidden");
+          resultElement.classList.add("hidden");
+          timeRecordsTable.classList.add("hidden");
+          changeSheetButton.classList.add("hidden");
         });
       })
       .catch(error => console.error("Error loading Excel file:", error));
 
-    // Initialize the game
+    function loadSheet(workbook, sheetName) {
+      const sheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(sheet);
+
+      // Convert the Excel rows into a usable array
+      wordList = json.map(row => ({ word: row.Word, read: row.Read }));
+
+      // Hide the dropdown and start the game
+      sheetSelector.classList.add("hidden");
+      setupGame();
+    }
+
     function setupGame() {
       if (wordList.length === 0) {
         alert("Word list is empty! Please ensure the Excel file is available.");
@@ -157,32 +198,25 @@
     }
 
     function updateRowAndTitle(rowIndex) {
-      // Update the question number
       questionNumberElement.textContent = `Question ${rowIndex + 1}/${totalRows}`;
 
-      // Select the title word from the "Read" column and its correct match
       const selected = wordList[Math.floor(Math.random() * wordList.length)];
       const correctWord = selected.word;
       const titleRead = selected.read;
 
-      // Update the title
       titleElement.textContent = `Find: ${titleRead}`;
 
-      // Get the row element
       const row = document.querySelector(`[data-row-index="${rowIndex}"]`);
-      row.innerHTML = ""; // Clear previous buttons
+      row.innerHTML = "";
 
-      // Generate distractors
       const distractors = wordList
-        .filter(item => item.word !== correctWord) // Avoid using the correct word as a distractor
+        .filter(item => item.word !== correctWord)
         .sort(() => 0.5 - Math.random())
         .slice(0, 4)
         .map(item => item.word);
 
-      // Add the correct word and shuffle
       const options = [...distractors, correctWord].sort(() => 0.5 - Math.random());
 
-      // Create buttons for the options
       options.forEach(option => {
         const button = document.createElement("button");
         button.textContent = option;
@@ -198,16 +232,13 @@
         totalTime += (now - startTime) / 1000;
         startTime = now;
 
-        // Hide current row and show the next row
         const currentRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
         currentRow.classList.add("hidden");
         currentRowIndex++;
 
         if (currentRowIndex >= totalRows) {
-          // End the game
           endGame();
         } else {
-          // Show the next row and update the title
           const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
           nextRow.classList.remove("hidden");
           updateRowAndTitle(currentRowIndex);
@@ -218,6 +249,26 @@
     function endGame() {
       resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
       resultElement.classList.remove("hidden");
+
+      timeRecords.push(totalTime.toFixed(2));
+      if (timeRecords.length > 10) timeRecords.shift();
+
+      updateTimeRecords();
+
+      changeSheetButton.classList.remove("hidden");
+    }
+
+    function updateTimeRecords() {
+      const tbody = timeRecordsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      timeRecords.forEach((time, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${index + 1}</td><td>${time}</td>`;
+        tbody.appendChild(row);
+      });
+
+      timeRecordsTable.classList.remove("hidden");
     }
   </script>
 </body>
