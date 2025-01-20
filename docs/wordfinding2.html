@@ -54,11 +54,9 @@
   <script>
     const totalRows = 10;
     let wordList = [];
-    let titleRead = "";
-    let correctWord = "";
+    let currentRowIndex = 0;
     let startTime;
     let totalTime = 0;
-    let currentRow = 0;
 
     const gameContainer = document.getElementById("game-container");
     const titleElement = document.getElementById("title");
@@ -87,7 +85,7 @@
       }
 
       startTime = Date.now();
-      currentRow = 0;
+      currentRowIndex = 0;
       totalTime = 0;
 
       // Clear previous rows
@@ -95,70 +93,83 @@
 
       // Create 10 rows
       for (let i = 0; i < totalRows; i++) {
-        const row = document.createElement("div");
-        row.classList.add("row");
-        row.dataset.rowIndex = i;
-
-        // Randomly select the title word (from the 'Read' column) and its correct match
-        const selected = wordList[Math.floor(Math.random() * wordList.length)];
-        titleRead = selected.read;
-        correctWord = selected.word;
-
-        // Generate distractors
-        const distractors = wordList
-          .filter(item => item.word !== correctWord) // Avoid using the correct word as a distractor
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 4)
-          .map(item => item.word);
-
-        // Add the correct word and shuffle
-        const options = [...distractors, correctWord].sort(() => 0.5 - Math.random());
-
-        // Create buttons for the options
-        options.forEach(option => {
-          const button = document.createElement("button");
-          button.textContent = option;
-          button.classList.add("button");
-          button.onclick = () => handleSelection(option, i);
-          row.appendChild(button);
-        });
-
-        // Add the title and set up rows
-        if (i === 0) {
-          titleElement.textContent = `Find: ${titleRead}`;
-        } else {
-          row.classList.add("hidden");
-        }
-
+        const row = createRow(i);
         gameContainer.appendChild(row);
       }
+
+      // Show the first row and set the title
+      updateRowAndTitle(currentRowIndex);
     }
 
-    // Handle button clicks
-    function handleSelection(selectedWord, rowIndex) {
-      if (selectedWord === correctWord && rowIndex === currentRow) {
+    function createRow(rowIndex) {
+      const row = document.createElement("div");
+      row.classList.add("row");
+      row.dataset.rowIndex = rowIndex;
+
+      // Hide all rows initially
+      if (rowIndex !== 0) {
+        row.classList.add("hidden");
+      }
+
+      return row;
+    }
+
+    function updateRowAndTitle(rowIndex) {
+      // Select the title word from the "Read" column and its correct match
+      const selected = wordList[Math.floor(Math.random() * wordList.length)];
+      const correctWord = selected.word;
+      const titleRead = selected.read;
+
+      // Update the title
+      titleElement.textContent = `Find: ${titleRead}`;
+
+      // Get the row element
+      const row = document.querySelector(`[data-row-index="${rowIndex}"]`);
+      row.innerHTML = ""; // Clear previous buttons
+
+      // Generate distractors
+      const distractors = wordList
+        .filter(item => item.word !== correctWord) // Avoid using the correct word as a distractor
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 4)
+        .map(item => item.word);
+
+      // Add the correct word and shuffle
+      const options = [...distractors, correctWord].sort(() => 0.5 - Math.random());
+
+      // Create buttons for the options
+      options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.classList.add("button");
+        button.onclick = () => handleSelection(option, correctWord);
+        row.appendChild(button);
+      });
+    }
+
+    function handleSelection(selectedWord, correctWord) {
+      if (selectedWord === correctWord) {
         const now = Date.now();
         totalTime += (now - startTime) / 1000;
         startTime = now;
 
         // Hide current row and show the next row
-        document.querySelector(`[data-row-index="${rowIndex}"]`).classList.add("hidden");
-        currentRow++;
+        const currentRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
+        currentRow.classList.add("hidden");
+        currentRowIndex++;
 
-        // End game if all rows are completed
-        if (currentRow >= totalRows) {
+        if (currentRowIndex >= totalRows) {
+          // End the game
           endGame();
         } else {
-          document.querySelector(`[data-row-index="${currentRow}"]`).classList.remove("hidden");
-          // Update the title for the next row
-          titleRead = wordList[Math.floor(Math.random() * wordList.length)].read;
-          correctWord = wordList.find(item => item.read === titleRead).word;
-          titleElement.textContent = `Find: ${titleRead}`;
+          // Show the next row and update the title
+          const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
+          nextRow.classList.remove("hidden");
+          updateRowAndTitle(currentRowIndex);
         }
       }
     }
 
-    // End the game
     function endGame() {
       resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
       resultElement.classList.remove("hidden");
