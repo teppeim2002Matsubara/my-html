@@ -121,7 +121,7 @@
     const changeSheetButton = document.getElementById("changeSheetButton");
     const timeRecordsTable = document.getElementById("time-records");
 
-    fetch('flashcards.xlsx') // Ensure the correct file name
+    fetch('flashcards_updated.xlsx') // Ensure the correct file name
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
