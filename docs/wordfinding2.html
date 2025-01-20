@@ -121,7 +121,7 @@
     const changeSheetButton = document.getElementById("changeSheetButton");
     const timeRecordsTable = document.getElementById("time-records");
 
-    fetch('flashcards_updated.xlsx') // Ensure the correct file name
+    fetch('flashcards.xlsx') // Ensure the correct file name
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
@@ -244,5 +244,47 @@
         } else {
           const nextRow = document.querySelector(`[data-row-index="${currentRowIndex}"]`);
           nextRow.classList.remove("hidden");
-          updateRowAndTitle(
+          updateRowAndTitle(currentRowIndex);
+        }
+      }
+    }
+
+    function endGame() {
+      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
+      resultElement.classList.remove("hidden");
+
+      timeRecords.push({ time: totalTime.toFixed(2), words: [...wordsUsedInCurrentGame] });
+      if (timeRecords.length > 10) timeRecords.shift();
+
+      updateTimeRecords();
+
+      sameSheetButton.classList.remove("hidden");
+      changeSheetButton.classList.remove("hidden");
+    }
+
+    function updateTimeRecords() {
+      const tbody = timeRecordsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      timeRecords.forEach((record, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${index + 1}</td><td>${record.time}</td><td class="words-list">${record.words.join(", ")}</td>`;
+        tbody.appendChild(row);
+      });
+
+      timeRecordsTable.classList.remove("hidden");
+    }
+
+    function resetUI() {
+      gameContainer.innerHTML = "";
+      questionNumberElement.classList.add("hidden");
+      titleElement.classList.add("hidden");
+      resultElement.classList.add("hidden");
+      timeRecordsTable.classList.add("hidden");
+      sameSheetButton.classList.add("hidden");
+      changeSheetButton.classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
 
