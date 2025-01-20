@@ -236,11 +236,51 @@
       }
     }
 
-    function endGame() {
-      resultElement.innerHTML = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
-      resultElement.classList.remove("hidden");
-      timeRecordsTable.classList.remove("hidden");
-    }
+function endGame() {
+  resultElement.innerHTML = `
+    <strong>Game Over!</strong> 
+    <br>Total Time: <em>${totalTime.toFixed(2)} seconds</em>`;
+  resultElement.classList.remove("hidden");
+
+  // Save the current game results in the time records
+  const currentGameRecord = {
+    time: totalTime.toFixed(2),
+    words: wordsUsedInCurrentGame,
+    reads: readsUsedInCurrentGame,
+  };
+
+  timeRecords.push(currentGameRecord);
+
+  // Limit the table to 10 records
+  if (timeRecords.length > 10) {
+    timeRecords.shift();
+  }
+
+  // Update the time records table
+  updateTimeRecords();
+}
+
+function updateTimeRecords() {
+  const tbody = timeRecordsTable.querySelector("tbody");
+  tbody.innerHTML = ""; // Clear the existing rows
+
+  timeRecords.forEach((record, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${record.time}</td>
+      <td class="words-list">${record.words.join(", ")}</td>
+      <td class="words-list">${record.reads.join(", ")}</td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+  // Make the table visible
+  timeRecordsTable.classList.remove("hidden");
+}
+
   </script>
 </body>
 </html>
