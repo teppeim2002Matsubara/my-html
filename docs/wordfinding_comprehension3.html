@@ -255,4 +255,35 @@
       for (let i = 0; i < 4; i++) {
         const randomIndex = Math.floor(Math.random() * correctChars.length);
         const randomHiragana = hiragana[Math.floor(Math.random() * hiragana.length)];
+        const variation = correctChars
+          .map((char, index) => (index === randomIndex ? randomHiragana : char))
+          .join("");
+        variations.push(variation);
+      }
 
+      return variations;
+    }
+
+    function handleSelection(selectedChoice, correctChoice) {
+      if (selectedChoice === correctChoice) {
+        const now = Date.now();
+        totalTime += (now - startTime) / 1000;
+        startTime = now;
+
+        currentRowIndex++;
+
+        if (currentRowIndex >= totalRows) {
+          endGame();
+        } else {
+          updateRowAndTitle(currentRowIndex);
+        }
+      }
+    }
+
+    function endGame() {
+      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
+      resultElement.classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
