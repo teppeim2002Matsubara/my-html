@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word-Find Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2 {
+      margin: 20px 0;
+    }
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .button {
+      font-size: 24px;
+      padding: 15px;
+      margin: 5px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Word-Find Game</h1>
+  <h2 id="title">Find: </h2>
+  <div class="game-container" id="game-container">
+    <!-- Game rows will be dynamically added here -->
+  </div>
+  <h2 id="result" class="hidden"></h2>
+  <script>
+    // Word list from your uploaded file
+    const wordList = [
+      "引く", "羽", "雲", "公園", "遠い", // Add more words here
+      "明るい", "暗い", "早い", "遅い", "大きい",
+    ];
+
+    const totalRows = 10;
+    let titleWord = "";
+    let startTime;
+    let totalTime = 0;
+    let currentRow = 0;
+
+    const gameContainer = document.getElementById("game-container");
+    const titleElement = document.getElementById("title");
+    const resultElement = document.getElementById("result");
+
+    // Initialize the game
+    function setupGame() {
+      titleWord = wordList[Math.floor(Math.random() * wordList.length)];
+      titleElement.textContent = `Find: ${titleWord}`;
+      startTime = Date.now();
+      currentRow = 0;
+      totalTime = 0;
+
+      // Clear previous rows
+      gameContainer.innerHTML = "";
+
+      // Create 10 rows
+      for (let i = 0; i < totalRows; i++) {
+        const row = document.createElement("div");
+        row.classList.add("row");
+        row.dataset.rowIndex = i;
+
+        // Create 5 buttons, one with the titleWord
+        const words = [...wordList.sort(() => 0.5 - Math.random()).slice(0, 4), titleWord].sort(() => 0.5 - Math.random());
+        words.forEach(word => {
+          const button = document.createElement("button");
+          button.textContent = word;
+          button.classList.add("button");
+          button.onclick = () => handleSelection(word, i);
+          row.appendChild(button);
+        });
+
+        // Hide all rows except the first one
+        if (i > 0) {
+          row.classList.add("hidden");
+        }
+
+        gameContainer.appendChild(row);
+      }
+    }
+
+    // Handle button clicks
+    function handleSelection(selectedWord, rowIndex) {
+      if (selectedWord === titleWord && rowIndex === currentRow) {
+        const now = Date.now();
+        totalTime += (now - startTime) / 1000;
+        startTime = now;
+
+        // Hide current row and show the next row
+        document.querySelector(`[data-row-index="${rowIndex}"]`).classList.add("hidden");
+        currentRow++;
+
+        // End game if all rows are completed
+        if (currentRow >= totalRows) {
+          endGame();
+        } else {
+          document.querySelector(`[data-row-index="${currentRow}"]`).classList.remove("hidden");
+        }
+      }
+    }
+
+    // End the game
+    function endGame() {
+      resultElement.textContent = `Game Over! Total Time: ${totalTime.toFixed(2)} seconds`;
+      resultElement.classList.remove("hidden");
+    }
+
+    // Start the game on page load
+    setupGame();
+  </script>
+</body>
+</html>
+
+
