@@ -164,7 +164,7 @@
       goButton.disabled = !(sheetSelector.value && modeSelector.value);
     }
 
-    fetch("flashcards_updated3.xlsx")
+    fetch("flashcards.xlsx")
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
@@ -182,7 +182,7 @@
     function loadSheetAndStartGame() {
       const selectedSheet = sheetSelector.value;
 
-      fetch("flashcards_updated3.xlsx")
+      fetch("flashcards.xlsx")
         .then(response => response.arrayBuffer())
         .then(data => {
           const workbook = XLSX.read(data, { type: "array" });
