@@ -164,7 +164,7 @@
       goButton.disabled = !(sheetSelector.value && modeSelector.value);
     }
 
-    fetch("flashcards_updated4.xlsx")
+    fetch("flashcards.xlsx")
       .then(response => response.arrayBuffer())
       .then(data => {
         const workbook = XLSX.read(data, { type: "array" });
@@ -182,7 +182,7 @@
     function loadSheetAndStartGame() {
       const selectedSheet = sheetSelector.value;
 
-      fetch("flashcards_updated4.xlsx")
+      fetch("flashcards.xlsx")
         .then(response => response.arrayBuffer())
         .then(data => {
           const workbook = XLSX.read(data, { type: "array" });
@@ -216,6 +216,10 @@
       updateRowAndTitle(currentRowIndex);
     }
 
+
+
+        
+
     function updateRowAndTitle(rowIndex) {
       const selected = wordList[Math.floor(Math.random() * wordList.length)];
       const title = currentMode === "word-comprehension" ? selected.read : selected.word;
@@ -229,7 +233,7 @@
       const distractors =
         currentMode === "read-comprehension"
           ? generateHiraganaVariations(correctChoice)
-          : wordList
+      : wordList
               .filter(item => item.word !== correctChoice)
               .sort(() => 0.5 - Math.random())
               .slice(0, 4)
@@ -252,13 +256,17 @@
       const variations = [];
       const correctChars = correctRead.split("");
 
-      for (let i = 0; i < 4; i++) {
+      while (variations.length < 4) {
         const randomIndex = Math.floor(Math.random() * correctChars.length);
         const randomHiragana = hiragana[Math.floor(Math.random() * hiragana.length)];
-        const variation = correctChars
-          .map((char, index) => (index === randomIndex ? randomHiragana : char))
-          .join("");
-        variations.push(variation);
+        if (randomHiragana !== correctChars[randomIndex]) {
+          const variation = correctChars
+            .map((char, index) => (index === randomIndex ? randomHiragana : char))
+            .join("");
+          if (!variations.includes(variation)) {
+            variations.push(variation);
+          }
+        }
       }
 
       return variations;
