@@ -108,6 +108,8 @@
     let startTime;
     let totalTime = 0;
     let timeRecords = [];
+    let wordsUsedInCurrentGame = [];
+    let readsUsedInCurrentGame = [];
     const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
 
     const sheetSelector = document.getElementById("sheetSelector");
@@ -169,6 +171,8 @@
       startTime = Date.now();
       currentRowIndex = 0;
       totalTime = 0;
+      wordsUsedInCurrentGame = [];
+      readsUsedInCurrentGame = [];
 
       gameContainer.classList.remove("hidden");
       titleElement.classList.remove("hidden");
@@ -183,20 +187,22 @@
       const title = modeSelector.value === "word-comprehension" ? selected.read : selected.word;
       const correctChoice = modeSelector.value === "word-comprehension" ? selected.word : selected.read;
 
+      wordsUsedInCurrentGame.push(selected.word);
+      readsUsedInCurrentGame.push(selected.read);
+
       titleElement.textContent = `Find: ${title}`;
 
-      const distractors =
-        modeSelector.value === "read-comprehension"
-          ? generateHiraganaVariations(correctChoice)
-          : wordList
-              .filter(item => item.word !== correctChoice)
-              .sort(() => 0.5 - Math.random())
-              .slice(0, 4)
-              .map(item => item.word);
+      const distractors = modeSelector.value === "read-comprehension"
+        ? generateHiraganaVariations(correctChoice)
+        : wordList
+            .filter(item => item.word !== correctChoice)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 4)
+            .map(item => item.word);
 
       const options = [...distractors, correctChoice].sort(() => 0.5 - Math.random());
-
       rowContainer.innerHTML = "";
+
       options.forEach(option => {
         const button = document.createElement("button");
         button.textContent = option;
@@ -236,51 +242,41 @@
       }
     }
 
-function endGame() {
-  resultElement.innerHTML = `
-    <strong>Game Over!</strong> 
-    <br>Total Time: <em>${totalTime.toFixed(2)} seconds</em>`;
-  resultElement.classList.remove("hidden");
+    function endGame() {
+      resultElement.innerHTML = `
+        <strong>Game Over!</strong>
+        <br>Total Time: <em>${totalTime.toFixed(2)} seconds</em>`;
+      resultElement.classList.remove("hidden");
 
-  // Save the current game results in the time records
-  const currentGameRecord = {
-    time: totalTime.toFixed(2),
-    words: wordsUsedInCurrentGame,
-    reads: readsUsedInCurrentGame,
-  };
+      const currentGameRecord = {
+        time: totalTime.toFixed(2),
+        words: [...wordsUsedInCurrentGame],
+        reads: [...readsUsedInCurrentGame],
+      };
 
-  timeRecords.push(currentGameRecord);
+      timeRecords.push(currentGameRecord);
+      if (timeRecords.length > 10) timeRecords.shift();
 
-  // Limit the table to 10 records
-  if (timeRecords.length > 10) {
-    timeRecords.shift();
-  }
+      updateTimeRecords();
+    }
 
-  // Update the time records table
-  updateTimeRecords();
-}
+    function updateTimeRecords() {
+      const tbody = timeRecordsTable.querySelector("tbody");
+      tbody.innerHTML = "";
 
-function updateTimeRecords() {
-  const tbody = timeRecordsTable.querySelector("tbody");
-  tbody.innerHTML = ""; // Clear the existing rows
+      timeRecords.forEach((record, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${record.time}</td>
+          <td class="words-list">${record.words.join(", ")}</td>
+          <td class="words-list">${record.reads.join(", ")}</td>
+        `;
+        tbody.appendChild(row);
+      });
 
-  timeRecords.forEach((record, index) => {
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${record.time}</td>
-      <td class="words-list">${record.words.join(", ")}</td>
-      <td class="words-list">${record.reads.join(", ")}</td>
-    `;
-
-    tbody.appendChild(row);
-  });
-
-  // Make the table visible
-  timeRecordsTable.classList.remove("hidden");
-}
-
+      timeRecordsTable.classList.remove("hidden");
+    }
   </script>
 </body>
 </html>
