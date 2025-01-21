@@ -262,8 +262,10 @@
         }
       } else {
         mistakenWords.push(selectedChoice);
+        alert(`Incorrect! You selected "${selectedChoice}". The correct answer was "${correctChoice}".`);
       }
     }
+
 
     function endGame() {
       resultElement.innerHTML = `
