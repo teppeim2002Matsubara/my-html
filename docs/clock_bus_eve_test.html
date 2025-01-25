@@ -194,7 +194,7 @@
         const data = await response.json();
 
         const arrivalTimesContainer = document.getElementById('arrival-times');
-        arrivalTimesContainer.innerHTML = ''; // Clear previous predictions
+        arrivalTimesContainer.innerHTML = '';
 
         if (data.data.length === 0) {
           arrivalTimesContainer.textContent = 'No predictions available';
@@ -229,7 +229,84 @@
     }
 
     async function fetchCalendarEvents() {
-      // Same logic for fetching and displaying calendar events
+      try {
+        const response = await fetch(ICS_URL);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ICS file: ${response.statusText}`);
+        }
+        const icsData = await response.text();
+        const events = parseICSEvents(icsData);
+
+        const today = new Date();
+        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+        const todayEvents = events.filter(event => {
+          const eventDate = new Date(event.start);
+          return eventDate.toDateString() === today.toDateString();
+        });
+
+        const tomorrowEvents = events.filter(event => {
+          const eventDate = new Date(event.start);
+          return eventDate.toDateString() === tomorrow.toDateString();
+        });
+
+        const calendarEventsContainer = document.getElementById('calendar-events');
+        calendarEventsContainer.innerHTML = '';
+
+        // Display today's events
+        if (todayEvents.length > 0) {
+          todayEvents.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
+          });
+        } else {
+          calendarEventsContainer.innerHTML += `<p>Today No event</p>`;
+        }
+
+        // Display tomorrow's events
+        if (tomorrowEvents.length > 0) {
+          tomorrowEvents.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
+          });
+        } else {
+          calendarEventsContainer.innerHTML += `<p>Tomorrow No event</p>`;
+        }
+      } catch (error) {
+        console.error('Error fetching calendar events:', error);
+        document.getElementById('calendar-events').textContent = 'Failed to load calendar events';
+      }
+    }
+
+    function parseICSEvents(icsData) {
+      const events = [];
+      const lines = icsData.split('\n');
+      let event = null;
+
+      lines.forEach(line => {
+        if (line.startsWith('BEGIN:VEVENT')) {
+          event = {};
+        } else if (line.startsWith('END:VEVENT')) {
+          events.push(event);
+          event = null;
+        } else if (event) {
+          const [key, value] = line.split(/:(.+)/);
+          if (key === 'DTSTART') event.start = parseICSDate(value);
+          if (key === 'SUMMARY') event.summary = value;
+        }
+      });
+
+      return events;
+    }
+
+    function parseICSDate(icsDate) {
+      const year = parseInt(icsDate.substr(0, 4), 10);
+      const month = parseInt(icsDate.substr(4, 2), 10) - 1;
+      const day = parseInt(icsDate.substr(6, 2), 10);
+      const hours = parseInt(icsDate.substr(9, 2), 10);
+      const minutes = parseInt(icsDate.substr(11, 2), 10);
+      const seconds = parseInt(icsDate.substr(13, 2), 10);
+      return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
     }
 
     function drawClockFace() {
@@ -267,7 +344,7 @@
     updateClock();
     fetchBusPredictions();
     fetchCalendarEvents();
-    setInterval(fetchCalendarEvents, 60000); // Refresh every 60 seconds
+    setInterval(fetchCalendarEvents, 60000); // Refresh calendar events every 60 seconds
   </script>
 </body>
 </html>
