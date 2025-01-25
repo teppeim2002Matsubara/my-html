@@ -175,67 +175,6 @@
       document.getElementById('second-hand').style.transform = `rotate(${secondsAngle}deg)`;
     }
 
-    function isInTimetable() {
-      const now = new Date();
-      const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-
-      // Check if it's Monday-Friday (1-5) and between 6:45 AM and 8:30 AM
-      return (
-        day >= 1 && day <= 5 && // Monday to Friday
-        ((hours === 6 && minutes >= 45) || // 6:45 AM to 6:59 AM
-        (hours === 7) || // 7:00 AM to 7:59 AM
-        (hours === 8 && minutes <= 30)) // 8:00 AM to 8:30 AM
-      );
-    }
-
-    async function fetchBusPredictions() {
-      if (!isInTimetable()) {
-        document.getElementById('arrival-times').innerHTML = ''; // Clear bus predictions
-        return;
-      }
-
-      const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        const arrivalTimesContainer = document.getElementById('arrival-times');
-        arrivalTimesContainer.innerHTML = '';
-
-        if (data.data.length === 0) {
-          arrivalTimesContainer.textContent = 'No predictions available';
-        } else {
-          const now = new Date();
-          data.data.forEach(prediction => {
-            if (prediction.attributes.arrival_time) {
-              const arrivalTime = new Date(prediction.attributes.arrival_time);
-              const timeDifferenceInMs = arrivalTime - now;
-              const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
-              const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
-              const formattedTime = `${String(arrivalTime.getHours()).padStart(2, '0')}:${String(arrivalTime.getMinutes()).padStart(2, '0')}`;
-
-              const arrivalElement = document.createElement('div');
-              arrivalElement.className = 'arrival-time';
-
-              // Assign colors based on the time difference
-              if (timeDifferenceMinutes < 5) {
-                arrivalElement.classList.add('red');
-              } else if (timeDifferenceMinutes < 10) {
-                arrivalElement.classList.add('yellow');
-              }
-
-              arrivalElement.textContent = `${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec)`;
-              arrivalTimesContainer.appendChild(arrivalElement);
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching bus predictions:', error);
-      }
-    }
-
     function drawClockFace() {
       const clock = document.getElementById('analog-clock');
       const radius = 150;
@@ -248,6 +187,7 @@
         const number = document.createElement('div');
         number.className = 'number';
         number.textContent = i;
+        number.style.position = 'absolute';
         number.style.left = `${x}px`;
         number.style.top = `${y}px`;
 
@@ -266,9 +206,7 @@
 
     drawClockFace();
     setInterval(updateClock, 1000);
-    setInterval(fetchBusPredictions, 1000);
     updateClock();
-    fetchBusPredictions();
   </script>
 </body>
 </html>
