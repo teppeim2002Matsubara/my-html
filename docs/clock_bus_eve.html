@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clock with Tomorrow's Events</title>
+  <title>Clock with Bus Predictions and Calendar</title>
   <style>
     body {
       margin: 0;
@@ -15,16 +15,6 @@
       background: #000;
       font-family: Arial, sans-serif;
       color: #fff;
-    }
-
-    .events-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .events-container p {
-      font-size: 1.2rem;
-      margin: 0;
     }
 
     .clock-container {
@@ -43,11 +33,35 @@
       box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
     }
 
-    .analog-clock .hand {
+    .analog-clock .number {
+      position: absolute;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #000;
+      transform: translate(-50%, -50%);
+    }
+
+    .analog-clock .scale {
+      position: absolute;
+      width: 2px;
+      height: 10px;
+      background: #000;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 50%;
+      transform: rotate(0deg);
+    }
+
+    .analog-clock .scale.small {
+      height: 5px;
+      background: #bbb;
+    }
+
+    .hand {
       position: absolute;
       width: 50%;
       height: 4px;
-      background: #000;
+      background: #fff;
       top: 50%;
       left: 50%;
       transform-origin: 0% 50%;
@@ -55,26 +69,68 @@
       border-radius: 2px;
     }
 
-    .analog-clock .hour-hand {
+    .hour-hand {
       width: 25%;
       height: 6px;
+      background: #000;
     }
 
-    .analog-clock .minute-hand {
+    .minute-hand {
       width: 45%;
       height: 4px;
+      background: #000;
     }
 
-    .analog-clock .second-hand {
+    .second-hand {
       width: 50%;
       height: 2px;
       background: red;
     }
 
+    .center-point {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #000;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .digital-clock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
     .digital-clock {
       font-size: 2rem;
       font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .bus-arrival {
+      font-size: 1rem;
+      color: #bbb;
+      text-align: left;
+    }
+
+    .arrival-time.yellow {
+      color: yellow;
+    }
+
+    .arrival-time.red {
+      color: red;
+    }
+
+    .calendar-events {
       margin-top: 20px;
+      font-size: 1rem;
+      text-align: center;
+      color: #fff;
     }
 
     .date {
@@ -86,82 +142,97 @@
   </style>
 </head>
 <body>
-  <div class="events-container" id="events-container">
-    <p>Loading events...</p>
-  </div>
-
   <div class="clock-container">
-    <div class="analog-clock">
+    <div class="analog-clock" id="analog-clock">
       <div class="hand hour-hand" id="hour-hand"></div>
       <div class="hand minute-hand" id="minute-hand"></div>
       <div class="hand second-hand" id="second-hand"></div>
+      <div class="center-point"></div>
     </div>
-    <div class="digital-clock" id="digital-clock">Loading...</div>
-    <div class="date" id="date">Loading...</div>
+    <div class="digital-clock-container">
+      <div class="digital-clock" id="digital-clock"></div>
+      <div class="bus-arrival" id="arrival-times"></div>
+    </div>
+    <div class="date" id="date"></div>
+    <div class="calendar-events" id="calendar-events"></div>
   </div>
 
   <script>
-    const ICS_URL = './basicFeb.ics'; // Local path to the ICS file in the same GitHub Pages directory
+    const ICS_URL = './basicFeb.ics'; // Path to the local ICS file
 
     function updateClock() {
       const now = new Date();
+
+      // Update digital clock
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('digital-clock').textContent = `${hours}:${minutes}:${seconds}`;
+      document.getElementById('digital-clock').textContent = `${hours}:${minutes}`;
 
-      const dateElement = document.getElementById('date');
+      // Update date
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const day = days[now.getDay()];
-      const month = months[now.getMonth()];
+      const dayName = days[now.getDay()];
+      const monthName = months[now.getMonth()];
       const date = now.getDate();
-      dateElement.textContent = `${month} ${date} ${day}`;
+      document.getElementById('date').textContent = `${monthName} ${date} ${dayName}`;
 
-      const hourAngle = ((now.getHours() % 12) + now.getMinutes() / 60) * 30 - 90;
-      const minuteAngle = now.getMinutes() * 6 - 90;
-      const secondAngle = now.getSeconds() * 6 - 90;
+      // Update clock hands
+      const hoursAngle = ((now.getHours() % 12) + now.getMinutes() / 60) * 30 - 90;
+      const minutesAngle = now.getMinutes() * 6 - 90;
+      const secondsAngle = now.getSeconds() * 6 - 90;
 
-      document.getElementById('hour-hand').style.transform = `rotate(${hourAngle}deg)`;
-      document.getElementById('minute-hand').style.transform = `rotate(${minuteAngle}deg)`;
-      document.getElementById('second-hand').style.transform = `rotate(${secondAngle}deg)`;
+      document.getElementById('hour-hand').style.transform = `rotate(${hoursAngle}deg)`;
+      document.getElementById('minute-hand').style.transform = `rotate(${minutesAngle}deg)`;
+      document.getElementById('second-hand').style.transform = `rotate(${secondsAngle}deg)`;
     }
 
-    async function fetchTomorrowEvents() {
-      const now = new Date();
-      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-
+    async function fetchCalendarEvents() {
       try {
         const response = await fetch(ICS_URL);
-
         if (!response.ok) {
-          throw new Error(`Failed to load ICS file: ${response.statusText}`);
+          throw new Error(`Failed to fetch ICS file: ${response.statusText}`);
         }
-
         const icsData = await response.text();
         const events = parseICSEvents(icsData);
+
+        const today = new Date();
+        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+        const todayEvents = events.filter(event => {
+          const eventDate = new Date(event.start);
+          return eventDate.toDateString() === today.toDateString();
+        });
 
         const tomorrowEvents = events.filter(event => {
           const eventDate = new Date(event.start);
           return eventDate.toDateString() === tomorrow.toDateString();
         });
 
-        const eventsContainer = document.getElementById('events-container');
-        eventsContainer.innerHTML = '';
+        const calendarEventsContainer = document.getElementById('calendar-events');
+        calendarEventsContainer.innerHTML = '';
 
+        // Display today's events
+        if (todayEvents.length > 0) {
+          todayEvents.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
+          });
+        } else {
+          calendarEventsContainer.innerHTML += `<p>Today No event</p>`;
+        }
+
+        // Display tomorrow's events
         if (tomorrowEvents.length > 0) {
           tomorrowEvents.forEach(event => {
             const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const eventElement = document.createElement('p');
-            eventElement.textContent = `${eventTime} - ${event.summary}`;
-            eventsContainer.appendChild(eventElement);
+            calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
           });
         } else {
-          eventsContainer.innerHTML = '<p>No events tomorrow</p>';
+          calendarEventsContainer.innerHTML += `<p>Tomorrow No event</p>`;
         }
       } catch (error) {
-        console.error('Error fetching events:', error);
-        document.getElementById('events-container').innerHTML = '<p>Failed to load events</p>';
+        console.error('Error fetching calendar events:', error);
+        document.getElementById('calendar-events').textContent = 'Failed to load calendar events';
       }
     }
 
@@ -178,10 +249,8 @@
           event = null;
         } else if (event) {
           const [key, value] = line.split(/:(.+)/);
-          if (key && value) {
-            if (key === 'DTSTART') event.start = parseICSDate(value);
-            if (key === 'SUMMARY') event.summary = value;
-          }
+          if (key === 'DTSTART') event.start = parseICSDate(value);
+          if (key === 'SUMMARY') event.summary = value;
         }
       });
 
@@ -198,9 +267,40 @@
       return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
     }
 
+    function drawClockFace() {
+      const clock = document.getElementById('analog-clock');
+      const radius = 150;
+
+      for (let i = 1; i <= 12; i++) {
+        const angle = (i - 3) * (Math.PI / 6);
+        const x = radius + radius * 0.85 * Math.cos(angle);
+        const y = radius + radius * 0.85 * Math.sin(angle);
+
+        const number = document.createElement('div');
+        number.className = 'number';
+        number.textContent = i;
+        number.style.position = 'absolute';
+        number.style.left = `${x}px`;
+        number.style.top = `${y}px`;
+
+        clock.appendChild(number);
+      }
+
+      for (let i = 0; i < 60; i++) {
+        const angle = i * 6;
+        const scale = document.createElement('div');
+        scale.className = 'scale';
+        if (i % 5 !== 0) scale.classList.add('small');
+        scale.style.transform = `rotate(${angle}deg) translate(0, -145px)`;
+        clock.appendChild(scale);
+      }
+    }
+
+    drawClockFace();
     setInterval(updateClock, 1000);
     updateClock();
-    fetchTomorrowEvents();
+    fetchCalendarEvents();
+    setInterval(fetchCalendarEvents, 60000); // Refresh every 60 seconds
   </script>
 </body>
 </html>
