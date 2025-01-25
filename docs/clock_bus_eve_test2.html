@@ -21,11 +21,11 @@
       font-size: 1rem;
       text-align: center;
       color: #fff;
-      margin-bottom: 10px; /* Reduced space below calendar events */
+      margin-bottom: 10px;
     }
 
     .calendar-events p {
-      margin: 5px 0; /* Smaller space between Today and Tomorrow events */
+      margin: 5px 0;
     }
 
     .clock-container {
@@ -113,7 +113,7 @@
     .digital-clock-container {
       display: flex;
       align-items: center;
-      margin-top: 15px; /* Reduced space above the digital clock */
+      margin-top: 15px;
     }
 
     .digital-clock {
@@ -163,7 +163,7 @@
   </div>
 
   <script>
-    const ICS_URL = './basicFeb.ics'; // Path to the local ICS file
+    const ICS_URL = './basicFeb.ics'; // Path to the ICS file
 
     function updateClock() {
       const now = new Date();
@@ -195,7 +195,6 @@
       const clock = document.getElementById('analog-clock');
       const radius = 150;
 
-      // Draw numbers (1–12)
       for (let i = 1; i <= 12; i++) {
         const angle = (i - 3) * (Math.PI / 6);
         const x = radius + radius * 0.85 * Math.cos(angle);
@@ -206,13 +205,11 @@
         number.textContent = i;
         number.style.left = `${x}px`;
         number.style.top = `${y}px`;
-
         clock.appendChild(number);
       }
 
-      // Draw scales (60 divisions)
       for (let i = 0; i < 60; i++) {
-        const angle = i * 6; // 6 degrees per division
+        const angle = i * 6;
         const scale = document.createElement('div');
         scale.className = 'scale';
         if (i % 5 !== 0) scale.classList.add('small');
@@ -222,15 +219,126 @@
     }
 
     async function fetchCalendarEvents() {
-      // Calendar event fetching logic remains unchanged
+      try {
+        const response = await fetch(ICS_URL);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ICS file: ${response.statusText}`);
+        }
+        const icsData = await response.text();
+        const events = parseICSEvents(icsData);
+
+        const today = new Date();
+        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+        const todayEvents = events.filter(event => new Date(event.start).toDateString() === today.toDateString());
+        const tomorrowEvents = events.filter(event => new Date(event.start).toDateString() === tomorrow.toDateString());
+
+        const calendarEventsContainer = document.getElementById('calendar-events');
+        calendarEventsContainer.innerHTML = '';
+
+        if (todayEvents.length > 0) {
+          todayEvents.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
+          });
+        } else {
+          calendarEventsContainer.innerHTML += `<p>Today No event</p>`;
+        }
+
+        if (tomorrowEvents.length > 0) {
+          tomorrowEvents.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
+          });
+        } else {
+          calendarEventsContainer.innerHTML += `<p>Tomorrow No event</p>`;
+        }
+      } catch (error) {
+        console.error('Error fetching calendar events:', error);
+        document.getElementById('calendar-events').textContent = 'Failed to load calendar events';
+      }
+    }
+
+    function parseICSEvents(icsData) {
+      const events = [];
+      const lines = icsData.split('\n');
+      let event = null;
+
+      lines.forEach(line => {
+        if (line.startsWith('BEGIN:VEVENT')) {
+          event = {};
+        } else if (line.startsWith('END:VEVENT')) {
+          events.push(event);
+          event = null;
+        } else if (event) {
+          const [key, value] = line.split(/:(.+)/);
+          if (key === 'DTSTART') event.start = parseICSDate(value);
+          if (key === 'SUMMARY') event.summary = value;
+        }
+      });
+
+      return events;
+    }
+
+    function parseICSDate(icsDate) {
+      const year = parseInt(icsDate.substr(0, 4), 10);
+      const month = parseInt(icsDate.substr(4, 2), 10) - 1;
+      const day = parseInt(icsDate.substr(6, 2), 10);
+      const hours = parseInt(icsDate.substr(9, 2), 10);
+      const minutes = parseInt(icsDate.substr(11, 2), 10);
+      const seconds = parseInt(icsDate.substr(13, 2), 10);
+      return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    }
+
+    async function fetchBusPredictions() {
+      const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const arrivalTimesContainer = document.getElementById('arrival-times');
+        arrivalTimesContainer.innerHTML = '';
+
+        if (data.data.length === 0) {
+          arrivalTimesContainer.textContent = 'No predictions available';
+        } else {
+          const now = new Date();
+          data.data.forEach(prediction => {
+            if (prediction.attributes.arrival_time) {
+              const arrivalTime = new Date(prediction.attributes.arrival_time);
+              const timeDifferenceInMs = arrivalTime - now;
+              const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
+              const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
+              const formattedTime = `${String(arrivalTime.getHours()).padStart(2, '0')}:${String(arrivalTime.getMinutes()).padStart(2, '0')}`;
+
+              const arrivalElement = document.createElement('div');
+              arrivalElement.className = 'arrival-time';
+
+              if (timeDifferenceMinutes < 5) {
+                arrivalElement.classList.add('red');
+              } else if (timeDifferenceMinutes < 10) {
+                arrivalElement.classList.add('yellow');
+              }
+
+              arrivalElement.textContent = `${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec)`;
+              arrivalTimesContainer.appendChild(arrivalElement);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching bus predictions:', error);
+      }
     }
 
     drawClockFace();
     setInterval(updateClock, 1000);
+    setInterval(fetchBusPredictions, 1000);
+    setInterval(fetchCalendarEvents, 60000);
     updateClock();
     fetchCalendarEvents();
-    setInterval(fetchCalendarEvents, 60000); // Refresh calendar events every 60 seconds
+    fetchBusPredictions();
   </script>
 </body>
 </html>
+
 
