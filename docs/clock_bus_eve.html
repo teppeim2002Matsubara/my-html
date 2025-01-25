@@ -17,6 +17,13 @@
       color: #fff;
     }
 
+    .calendar-events {
+      font-size: 1rem;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
     .clock-container {
       display: flex;
       flex-direction: column;
@@ -126,13 +133,6 @@
       color: red;
     }
 
-    .calendar-events {
-      margin-top: 20px;
-      font-size: 1rem;
-      text-align: center;
-      color: #fff;
-    }
-
     .date {
       font-size: 1rem;
       font-weight: bold;
@@ -142,6 +142,9 @@
   </style>
 </head>
 <body>
+  <div class="calendar-events" id="calendar-events">
+    Loading calendar events...
+  </div>
   <div class="clock-container">
     <div class="analog-clock" id="analog-clock">
       <div class="hand hour-hand" id="hour-hand"></div>
@@ -154,7 +157,6 @@
       <div class="bus-arrival" id="arrival-times"></div>
     </div>
     <div class="date" id="date"></div>
-    <div class="calendar-events" id="calendar-events"></div>
   </div>
 
   <script>
@@ -214,7 +216,7 @@
         // Display today's events
         if (todayEvents.length > 0) {
           todayEvents.forEach(event => {
-            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
           });
         } else {
@@ -224,7 +226,7 @@
         // Display tomorrow's events
         if (tomorrowEvents.length > 0) {
           tomorrowEvents.forEach(event => {
-            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
           });
         } else {
@@ -234,6 +236,67 @@
         console.error('Error fetching calendar events:', error);
         document.getElementById('calendar-events').textContent = 'Failed to load calendar events';
       }
+    }
+
+    async function fetchBusPredictions() {
+      if (!isInTimetable()) {
+        document.getElementById('arrival-times').innerHTML = ''; // Clear bus predictions
+        return;
+      }
+
+      const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const arrivalTimesContainer = document.getElementById('arrival-times');
+        arrivalTimesContainer.innerHTML = '';
+
+        if (data.data.length === 0) {
+          arrivalTimesContainer.textContent = 'No predictions available';
+        } else {
+          const now = new Date();
+          data.data.forEach(prediction => {
+            if (prediction.attributes.arrival_time) {
+              const arrivalTime = new Date(prediction.attributes.arrival_time);
+              const timeDifferenceInMs = arrivalTime - now;
+              const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
+              const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
+              const formattedTime = `${String(arrivalTime.getHours()).padStart(2, '0')}:${String(arrivalTime.getMinutes()).padStart(2, '0')}`;
+
+              const arrivalElement = document.createElement('div');
+              arrivalElement.className = 'arrival-time';
+
+              // Assign colors based on the time difference
+              if (timeDifferenceMinutes < 5) {
+                arrivalElement.classList.add('red');
+              } else if (timeDifferenceMinutes < 10) {
+                arrivalElement.classList.add('yellow');
+              }
+
+              arrivalElement.textContent = `${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec)`;
+              arrivalTimesContainer.appendChild(arrivalElement);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching bus predictions:', error);
+      }
+    }
+
+    function isInTimetable() {
+      const now = new Date();
+      const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+
+      // Check if it's Monday-Friday (1-5) and between 6:45 AM and 8:30 AM
+      return (
+        day >= 1 && day <= 5 && // Monday to Friday
+        ((hours === 6 && minutes >= 45) || // 6:45 AM to 6:59 AM
+        (hours === 7) || // 7:00 AM to 7:59 AM
+        (hours === 8 && minutes <= 30)) // 8:00 AM to 8:30 AM
+      );
     }
 
     function parseICSEvents(icsData) {
@@ -298,7 +361,9 @@
 
     drawClockFace();
     setInterval(updateClock, 1000);
+    setInterval(fetchBusPredictions, 1000);
     updateClock();
+    fetchBusPredictions();
     fetchCalendarEvents();
     setInterval(fetchCalendarEvents, 60000); // Refresh every 60 seconds
   </script>
