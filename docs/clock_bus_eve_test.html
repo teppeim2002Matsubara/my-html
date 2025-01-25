@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clock with Tomorrow's Events</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #000;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+
+    .events-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .events-container p {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .clock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .analog-clock {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 8px solid #fff;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .analog-clock .hand {
+      position: absolute;
+      width: 50%;
+      height: 4px;
+      background: #000;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 50%;
+      transform: rotate(-90deg);
+      border-radius: 2px;
+    }
+
+    .analog-clock .hour-hand {
+      width: 25%;
+      height: 6px;
+    }
+
+    .analog-clock .minute-hand {
+      width: 45%;
+      height: 4px;
+    }
+
+    .analog-clock .second-hand {
+      width: 50%;
+      height: 2px;
+      background: red;
+    }
+
+    .digital-clock {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .date {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #bbb;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="events-container" id="events-container">
+    <p>Loading events...</p>
+  </div>
+
+  <div class="clock-container">
+    <div class="analog-clock">
+      <div class="hand hour-hand" id="hour-hand"></div>
+      <div class="hand minute-hand" id="minute-hand"></div>
+      <div class="hand second-hand" id="second-hand"></div>
+    </div>
+    <div class="digital-clock" id="digital-clock">Loading...</div>
+    <div class="date" id="date">Loading...</div>
+  </div>
+
+  <script>
+    const ICS_URL = '/Users/matsubarateppei/Dropbox/Dropbox20180420/Martinos/準備/Hardy/Kohaku/python/clock_bus_eve.html/basic.ics'; // Local path to the ICS file
+
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('digital-clock').textContent = `${hours}:${minutes}:${seconds}`;
+
+      const dateElement = document.getElementById('date');
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const day = days[now.getDay()];
+      const month = months[now.getMonth()];
+      const date = now.getDate();
+      dateElement.textContent = `${month} ${date} ${day}`;
+
+      const hourAngle = ((now.getHours() % 12) + now.getMinutes() / 60) * 30 - 90;
+      const minuteAngle = now.getMinutes() * 6 - 90;
+      const secondAngle = now.getSeconds() * 6 - 90;
+
+      document.getElementById('hour-hand').style.transform = `rotate(${hourAngle}deg)`;
+      document.getElementById('minute-hand').style.transform = `rotate(${minuteAngle}deg)`;
+      document.getElementById('second-hand').style.transform = `rotate(${secondAngle}deg)`;
+    }
+
+    async function fetchTomorrowEvents() {
+      const now = new Date();
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+      try {
+        const response = await fetch(ICS_URL);
+
+        if (!response.ok) {
+          throw new Error(`Failed to load ICS file: ${response.statusText}`);
+        }
+
+        const icsData = await response.text();
+        const events = parseICSEvents(icsData);
+
+        const tomorrowEvents = events.filter(event => {
+          const eventDate = new Date(event.start);
+          return eventDate.toDateString() === tomorrow.toDateString();
+        });
+
+        const eventsContainer = document.getElementById('events-container');
+        eventsContainer.innerHTML = '';
+
+        if (tomorrowEvents.length > 0) {
+          tomorrowEvents.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const eventElement = document.createElement('p');
+            eventElement.textContent = `${eventTime} - ${event.summary}`;
+            eventsContainer.appendChild(eventElement);
+          });
+        } else {
+          eventsContainer.innerHTML = '<p>No events tomorrow</p>';
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        document.getElementById('events-container').innerHTML = '<p>Failed to load events</p>';
+      }
+    }
+
+    function parseICSEvents(icsData) {
+      const events = [];
+      const lines = icsData.split('\n');
+      let event = null;
+
+      lines.forEach(line => {
+        if (line.startsWith('BEGIN:VEVENT')) {
+          event = {};
+        } else if (line.startsWith('END:VEVENT')) {
+          events.push(event);
+          event = null;
+        } else if (event) {
+          const [key, value] = line.split(/:(.+)/);
+          if (key && value) {
+            if (key === 'DTSTART') event.start = parseICSDate(value);
+            if (key === 'SUMMARY') event.summary = value;
+          }
+        }
+      });
+
+      return events;
+    }
+
+    function parseICSDate(icsDate) {
+      const year = parseInt(icsDate.substr(0, 4), 10);
+      const month = parseInt(icsDate.substr(4, 2), 10) - 1;
+      const day = parseInt(icsDate.substr(6, 2), 10);
+      const hours = parseInt(icsDate.substr(9, 2), 10);
+      const minutes = parseInt(icsDate.substr(11, 2), 10);
+      const seconds = parseInt(icsDate.substr(13, 2), 10);
+      return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+    fetchTomorrowEvents();
+  </script>
+</body>
+</html>
