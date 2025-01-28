@@ -251,9 +251,37 @@
       }
     }
 
+    function drawClockFace() {
+      const clock = document.getElementById('analog-clock');
+      const radius = 150;
+
+      for (let i = 1; i <= 12; i++) {
+        const angle = (i - 3) * (Math.PI / 6);
+        const x = radius + radius * 0.85 * Math.cos(angle);
+        const y = radius + radius * 0.85 * Math.sin(angle);
+
+        const number = document.createElement('div');
+        number.className = 'number';
+        number.textContent = i;
+        number.style.position = 'absolute';
+        number.style.left = `${x}px`;
+        number.style.top = `${y}px`;
+        clock.appendChild(number);
+      }
+
+      for (let i = 0; i < 60; i++) {
+        const angle = i * 6;
+        const scale = document.createElement('div');
+        scale.className = 'scale';
+        if (i % 5 !== 0) scale.classList.add('small');
+        scale.style.transform = `rotate(${angle}deg) translate(0, -145px)`;
+        clock.appendChild(scale);
+      }
+    }
+
     drawClockFace();
     setInterval(updateClock, 1000);
-    setInterval(fetchBusPredictions, 1000); // Fetch bus predictions every second
+    setInterval(fetchBusPredictions, 1000);
     updateClock();
     fetchCalendarEvents();
     fetchBusPredictions();
