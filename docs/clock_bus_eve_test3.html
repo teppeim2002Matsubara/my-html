@@ -216,8 +216,7 @@
         arrivalTimesContainer.innerHTML = '';
 
         if (!isWeekday || !isWithinTimeRange) {
-          arrivalTimesContainer.textContent = 'Bus predictions are only shown between 6:30 AM and 8:30 AM (Mon-Fri, NY time).';
-          return;
+          return; // Simply stop displaying bus predictions
         }
 
         const response = await fetch(url);
