@@ -163,7 +163,7 @@
   </div>
 
   <script>
-    const ICS_URL = './basicFeb.ics'; // Ensure this path points to your ICS file
+    const ICS_URL = './basicFeb.ics'; // Path to the ICS file
 
     function updateClock() {
       const now = new Date();
@@ -191,39 +191,41 @@
       document.getElementById('second-hand').style.transform = `rotate(${secondsAngle}deg)`;
     }
 
-    function isInTimetable() {
-      const now = new Date();
-      const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-
-      // Check if it's Monday-Friday (1-5) and between 6:45 AM and 8:30 AM
-      return (
-        day >= 1 && day <= 5 && // Monday to Friday
-        ((hours === 6 && minutes >= 45) || // 6:45 AM to 6:59 AM
-        (hours === 7) || // 7:00 AM to 7:59 AM
-        (hours === 8 && minutes <= 30)) // 8:00 AM to 8:30 AM
-      );
-    }
-
     async function fetchBusPredictions() {
-      if (!isInTimetable()) {
-        document.getElementById('arrival-times').innerHTML = ''; // Clear bus predictions
-        return;
-      }
-
       const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
       try {
-        const response = await fetch(url);
-        const data = await response.json();
+        const now = new Date();
+        const nyTime = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          hour: '2-digit',
+          minute: '2-digit',
+          weekday: 'short',
+        }).formatToParts(now);
+
+        const currentHour = parseInt(nyTime.find(part => part.type === 'hour').value, 10);
+        const currentMinute = parseInt(nyTime.find(part => part.type === 'minute').value, 10);
+        const currentDay = nyTime.find(part => part.type === 'weekday').value;
+
+        const isWeekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(currentDay);
+        const isWithinTimeRange =
+          (currentHour === 6 && currentMinute >= 30) ||
+          (currentHour > 6 && currentHour < 8) ||
+          (currentHour === 8 && currentMinute <= 30);
 
         const arrivalTimesContainer = document.getElementById('arrival-times');
         arrivalTimesContainer.innerHTML = '';
 
+        if (!isWeekday || !isWithinTimeRange) {
+          arrivalTimesContainer.textContent = 'Bus predictions are only shown between 6:30 AM and 8:30 AM (Mon-Fri, NY time).';
+          return;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
         if (data.data.length === 0) {
           arrivalTimesContainer.textContent = 'No predictions available';
         } else {
-          const now = new Date();
           data.data.forEach(prediction => {
             if (prediction.attributes.arrival_time) {
               const arrivalTime = new Date(prediction.attributes.arrival_time);
@@ -251,41 +253,11 @@
       }
     }
 
-    function drawClockFace() {
-      const clock = document.getElementById('analog-clock');
-      const radius = 150;
-
-      for (let i = 1; i <= 12; i++) {
-        const angle = (i - 3) * (Math.PI / 6);
-        const x = radius + radius * 0.85 * Math.cos(angle);
-        const y = radius + radius * 0.85 * Math.sin(angle);
-
-        const number = document.createElement('div');
-        number.className = 'number';
-        number.textContent = i;
-        number.style.position = 'absolute';
-        number.style.left = `${x}px`;
-        number.style.top = `${y}px`;
-        clock.appendChild(number);
-      }
-
-      for (let i = 0; i < 60; i++) {
-        const angle = i * 6;
-        const scale = document.createElement('div');
-        scale.className = 'scale';
-        if (i % 5 !== 0) scale.classList.add('small');
-        scale.style.transform = `rotate(${angle}deg) translate(0, -145px)`;
-        clock.appendChild(scale);
-      }
-    }
-
-    drawClockFace();
     setInterval(updateClock, 1000);
-    setInterval(fetchBusPredictions, 1000); // Fetch bus predictions every second
-    setInterval(fetchCalendarEvents, 60000); // Fetch calendar events every minute
+    setInterval(fetchBusPredictions, 1000);
     updateClock();
-    fetchCalendarEvents();
     fetchBusPredictions();
   </script>
 </body>
 </html>
+
