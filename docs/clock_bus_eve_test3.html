@@ -250,10 +250,7 @@
             const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
           });
-        } else {
-          calendarEventsContainer.innerHTML += `<p>Tomorrow No event</p>`;
-        }
-      } catch (error) {
+        }} catch (error) {
         console.error('Error fetching calendar events:', error);
         document.getElementById('calendar-events').textContent = 'Failed to load calendar events';
       }
@@ -290,65 +287,115 @@
       return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
     }
 
-    async function fetchBusPredictions() {
-        const url = 'https://api-v3.mbta.com/predictions?filter[stop]=2282&filter[route]=77';
-        const now = new Date();
-        const nyTime = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'America/New_York',
-            hour: '2-digit',
-            minute: '2-digit',
-            weekday: 'short',
-        }).formatToParts(now);
+    
+    let lastSuccessfulPredictions = []; // Global variable to store previous successful predictions
 
-        const currentHour = parseInt(nyTime.find(part => part.type === 'hour').value, 10);
-        const currentMinute = parseInt(nyTime.find(part => part.type === 'minute').value, 10);
-        const currentDay = nyTime.find(part => part.type === 'weekday').value;
+  async function fetchBusPredictions() {
+      console.log("Starting fetchBusPredictions function...");
+      
+      const routes = [
+          { route: "77", stop: "2282", symbol: "⭐" },
+          { route: "77", stop: "2260", symbol: "🟠" },
+          { route: "350", stop: "2260", symbol: "🟣" }
+      ];
 
-        const isWeekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(currentDay);
-        const isWithinTimeRange =
-            (currentHour === 6 && currentMinute >= 30) ||
-            (currentHour > 6 && currentHour < 8) ||
-            (currentHour === 8 && currentMinute <= 30);
+      try {
+          console.log("Fetching bus predictions...");
+          const arrivalTimesContainer = document.getElementById("arrival-times");
 
-        const arrivalTimesContainer = document.getElementById('arrival-times');
-        arrivalTimesContainer.innerHTML = '';
+          if (!arrivalTimesContainer) {
+              console.error("Error: arrival-times element not found!");
+              return;
+          }
 
-        if (!isWeekday || !isWithinTimeRange) {
-            // Clear the predictions if outside the time range or weekend
-            return;
-        }
+          let allPredictions = [];
 
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
+          for (const { route, stop, symbol } of routes) {
+              const url = `https://api-v3.mbta.com/predictions?filter[stop]=${stop}&filter[route]=${route}`;
 
-            if (data.data.length === 0) {
-                arrivalTimesContainer.textContent = 'No predictions available';
-            } else {
-                data.data.forEach(prediction => {
-                    if (prediction.attributes.arrival_time) {
-                        const arrivalTime = new Date(prediction.attributes.arrival_time);
-                        const timeDifferenceMinutes = Math.floor((arrivalTime - now) / 60000);
-                        const formattedTime = `${String(arrivalTime.getHours()).padStart(2, '0')}:${String(arrivalTime.getMinutes()).padStart(2, '0')}`;
+              console.log(`Fetching data for route ${route} at stop ${stop}`);
+              const response = await fetch(url);
 
-                        const arrivalElement = document.createElement('div');
-                        arrivalElement.className = 'arrival-time';
+              if (!response.ok) {
+                  throw new Error(`Error fetching data for route ${route} at stop ${stop}: ${response.status}`);
+              }
 
-                        if (timeDifferenceMinutes < 5) {
-                            arrivalElement.classList.add('red');
-                        } else if (timeDifferenceMinutes < 10) {
-                            arrivalElement.classList.add('yellow');
-                        }
+              const data = await response.json();
+              console.log(`Received data for route ${route}:`, data);
 
-                        arrivalElement.textContent = `${formattedTime} (${timeDifferenceMinutes} min)`;
-                        arrivalTimesContainer.appendChild(arrivalElement);
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching bus predictions:', error);
-        }
+              data.data.forEach(prediction => {
+                  if (prediction.attributes && prediction.attributes.arrival_time) {
+                      const arrivalTime = new Date(prediction.attributes.arrival_time);
+                      const timeDifferenceMinutes = Math.floor((arrivalTime - new Date()) / 60000);
+
+                      // ✅ Only include buses arriving within 60 minutes
+                      if (timeDifferenceMinutes >= 0 && timeDifferenceMinutes <= 60) {
+                          allPredictions.push({ arrivalTime, symbol });
+                      }
+                  }
+              });
+          }
+
+          // Sort predictions in chronological order
+          console.log("Sorting predictions...");
+          allPredictions.sort((a, b) => a.arrivalTime - b.arrivalTime);
+
+          console.log("Total sorted predictions:", allPredictions.length);
+
+          // ✅ Only update the display if new predictions are available
+          if (allPredictions.length > 0) {
+              lastSuccessfulPredictions = allPredictions; // Store successful data
+              updateBusDisplay(allPredictions);
+          }
+
+      } catch (error) {
+          console.error("Error in fetchBusPredictions:", error);
+          console.warn("Maintaining previous bus information due to fetch failure.");
+          updateBusDisplay(lastSuccessfulPredictions); // Use last stored data
+      }
+
+      console.log("fetchBusPredictions function completed.");
+  }
+
+  // ✅ Function to update the display, keeping old data if fetch fails
+  function updateBusDisplay(predictions) {
+      const arrivalTimesContainer = document.getElementById("arrival-times");
+
+      if (!arrivalTimesContainer) {
+          console.error("Error: arrival-times element not found!");
+          return;
+      }
+
+      arrivalTimesContainer.innerHTML = ""; // Clear only when updating with data
+
+      const now = new Date();
+      predictions.forEach(({ arrivalTime, symbol }) => {
+          const timeDifferenceInMs = arrivalTime - now;
+          const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
+          const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
+          const formattedTime = `${String(arrivalTime.getHours()).padStart(2, '0')}:${String(arrivalTime.getMinutes()).padStart(2, '0')}`;
+
+          console.log(`Bus arriving at ${formattedTime} in ${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec`);
+
+          const arrivalElement = document.createElement("div");
+          arrivalElement.className = "arrival-time";
+          arrivalElement.style.color = "white"; // Keep text color consistent
+
+          if (timeDifferenceMinutes < 5) {
+              arrivalElement.style.color = "red";
+          } else if (timeDifferenceMinutes < 10) {
+              arrivalElement.style.color = "yellow";
+          }
+
+          arrivalElement.textContent = `${symbol} ${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec)`;
+          arrivalTimesContainer.appendChild(arrivalElement);
+      });
     }
+
+
+
+
+
 
 
 
@@ -362,5 +409,3 @@
   </script>
 </body>
 </html>
-
-
