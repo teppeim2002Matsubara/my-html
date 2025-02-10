@@ -7,9 +7,16 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         button { margin: 5px; padding: 10px; font-size: 16px; }
         #result { margin-top: 20px; font-weight: bold; }
+        .correct { color: green; font-weight: bold; }
+        .incorrect { color: red; font-weight: bold; }
+        table { margin-top: 20px; border-collapse: collapse; width: 60%; margin-left: auto; margin-right: auto; }
+        th, td { border: 1px solid black; padding: 10px; }
     </style>
     <script>
         let words = [];
+        let questionCount = 0;
+        let maxQuestions = 10;
+        let history = [];
 
         async function loadWords() {
             let response = await fetch("https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/flashcards_karuta.json");
@@ -38,6 +45,11 @@
         let selectedAnswers = { q1: null, q2: null };
 
         function newQuestion() {
+            if (questionCount >= maxQuestions) {
+                showResultsTable();
+                return;
+            }
+
             let index = Math.floor(Math.random() * words.length);
             currentQuestion = words[index];
             document.getElementById("word").innerText = currentQuestion.word;
@@ -60,9 +72,41 @@
         }
 
         function displayResult() {
-            let resultText = `Onyomi: ${selectedAnswers.q1} (${selectedAnswers.q1 === currentQuestion.read1 ? "Correct!" : `Wrong! Correct: ${currentQuestion.read1}`})<br>
-                             Kunyomi: ${selectedAnswers.q2} (${selectedAnswers.q2 === currentQuestion.read2 ? "Correct!" : `Wrong! Correct: ${currentQuestion.read2}`})`;
+            let correct1 = selectedAnswers.q1 === currentQuestion.read1;
+            let correct2 = selectedAnswers.q2 === currentQuestion.read2;
+            
+            let resultText = "<p>";
+            resultText += `Onyomi: <span class="${correct1 ? 'correct' : 'incorrect'}">${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}`;
+            resultText += "<br>";
+            resultText += `Kunyomi: <span class="${correct2 ? 'correct' : 'incorrect'}">${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}`;
+            resultText += "</p>";
+            
             document.getElementById("result").innerHTML = resultText;
+            
+            history.push({
+                word: currentQuestion.word,
+                userRead1: selectedAnswers.q1,
+                correctRead1: currentQuestion.read1,
+                userRead2: selectedAnswers.q2,
+                correctRead2: currentQuestion.read2,
+                correct: correct1 && correct2
+            });
+            
+            questionCount++;
+            setTimeout(newQuestion, 2000);
+        }
+
+        function showResultsTable() {
+            let tableHTML = `<table><tr><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
+            history.forEach(entry => {
+                tableHTML += `<tr>
+                    <td>${entry.word}</td>
+                    <td class="${entry.userRead1 === entry.correctRead1 ? 'correct' : 'incorrect'}">${entry.userRead1} (Correct: ${entry.correctRead1})</td>
+                    <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">${entry.userRead2} (Correct: ${entry.correctRead2})</td>
+                </tr>`;
+            });
+            tableHTML += "</table>";
+            document.getElementById("result").innerHTML = tableHTML;
         }
     </script>
 </head>
@@ -74,7 +118,6 @@
     <p>Question 2: What is the Kunyomi reading?</p>
     <div id="q2"></div>
     <div id="result"></div>
-    <button onclick="newQuestion()">Next Question</button>
 </body>
 </html>
 
