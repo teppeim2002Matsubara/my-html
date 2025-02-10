@@ -75,45 +75,28 @@
         }
 
         function checkAnswer() {
-    if (!selectedAnswers.q1 || !selectedAnswers.q2) {
-        alert("Please select answers for both questions.");
-        return;
-    }
-    
-    let correct1 = selectedAnswers.q1 === currentQuestion.read1;
-    let correct2 = selectedAnswers.q2 === currentQuestion.read2;
-    
-    let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}</p>`;
-    resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}</p>`;
-    document.getElementById("result").innerHTML = resultText;
-    
-    history.push({
-        word: currentQuestion.word,
-        userRead1: selectedAnswers.q1,
-        correctRead1: currentQuestion.read1,
-        userRead2: selectedAnswers.q2,
-        correctRead2: currentQuestion.read2,
-        correct: correct1 && correct2
-    });
-    
-    questionCount++;
-    document.getElementById("word").innerText = `${questionCount}/${maxQuestions}: ${currentQuestion.word}`;
-    
-    questionCount++;
-    document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
-}
-    
-    history.push({
-        word: currentQuestion.word,
-        userRead1: selectedAnswers.q1,
-        correctRead1: currentQuestion.read1,
-        userRead2: selectedAnswers.q2,
-        correctRead2: currentQuestion.read2,
-        correct: correct1 && correct2
-    });
-    
-    questionCount++;
-    document.getElementById("word").innerText = `${questionCount}/${maxQuestions}: ${currentQuestion.word}`;
+            if (!selectedAnswers.q1 || !selectedAnswers.q2) {
+                alert("Please select answers for both questions.");
+                return;
+            }
+            
+            let correct1 = selectedAnswers.q1 === currentQuestion.read1;
+            let correct2 = selectedAnswers.q2 === currentQuestion.read2;
+            
+            let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}</p>`;
+            resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}</p>`;
+            document.getElementById("result").innerHTML = resultText;
+            
+            history.push({
+                word: currentQuestion.word,
+                userRead1: selectedAnswers.q1,
+                correctRead1: currentQuestion.read1,
+                userRead2: selectedAnswers.q2,
+                correctRead2: currentQuestion.read2,
+                correct: correct1 && correct2
+            });
+            
+            questionCount++;
         }
 
         function nextQuestion() {
@@ -163,5 +146,4 @@
     <div id="result"></div>
 </body>
 </html>
-
 
