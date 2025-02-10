@@ -31,11 +31,10 @@
                 let response = await fetch("flashcards_karuta.xlsx");
                 if (!response.ok) throw new Error("Failed to load file");
                 let data = await response.arrayBuffer();
-                let workbook = XLSX.read(data, { type: "array", cellStyles: true });
+                let workbook = XLSX.read(data, { type: "array" });
                 let sheet = workbook.Sheets[workbook.SheetNames[0]];
                 let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
 
-                // Read words and check if they are bold
                 words = jsonData.map((row, index) => {
                     let wordCell = `A${index + 2}`; // Adjusted to match Excel row index
                     let isBold = false;
@@ -52,6 +51,7 @@
                     };
                 });
 
+                console.log("Parsed words with bold info:", words);
                 newQuestion();
             } catch (error) {
                 console.error("Error loading words:", error);
@@ -78,9 +78,15 @@
             let index = Math.floor(Math.random() * words.length);
             currentQuestion = words[index];
 
-            document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
-            document.getElementById("word").classList.toggle("bold-word", currentQuestion.bold);
+            let wordElem = document.getElementById("word");
+            wordElem.innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
             
+            if (currentQuestion.bold) {
+                wordElem.classList.add("bold-word");
+            } else {
+                wordElem.classList.remove("bold-word");
+            }
+
             let choices1 = getRandomChoices(currentQuestion.read1, "read1");
             let choices2 = getRandomChoices(currentQuestion.read2, "read2");
 
@@ -165,4 +171,5 @@
     <div id="result"></div>
 </body>
 </html>
+
 
