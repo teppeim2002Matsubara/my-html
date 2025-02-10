@@ -78,6 +78,11 @@
             document.getElementById("result").innerHTML = "";
             document.getElementById("next-buttons").classList.add("hidden");
         }
+        
+        function selectAnswer(q, selected, button) {
+            document.querySelectorAll(`#${q} button`).forEach(btn => btn.style.border = "");
+            button.style.border = "3px solid black";
+        }
     </script>
 </head>
 <body onload="loadWords()">
@@ -96,5 +101,6 @@
     <div id="result"></div>
 </body>
 </html>
+
 
 
