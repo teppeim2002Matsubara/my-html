@@ -33,23 +33,31 @@
                 let data = await response.arrayBuffer();
                 let workbook = XLSX.read(data, { type: "array" });
                 let sheet = workbook.Sheets[workbook.SheetNames[0]];
-                let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
+                
+                words = [];
+                let range = XLSX.utils.decode_range(sheet['!ref']);
 
-                words = jsonData.map((row, index) => {
-                    let wordCell = `A${index + 2}`; // Adjusted to match Excel row index
+                for (let row = range.s.r + 1; row <= range.e.r; row++) { 
+                    let wordCellRef = XLSX.utils.encode_cell({ r: row, c: 0 }); 
+                    let onyomiRef = XLSX.utils.encode_cell({ r: row, c: 1 }); 
+                    let kunyomiRef = XLSX.utils.encode_cell({ r: row, c: 2 }); 
+
+                    let word = sheet[wordCellRef] ? sheet[wordCellRef].v : "";
+                    let onyomi = sheet[onyomiRef] ? sheet[onyomiRef].v : "";
+                    let kunyomi = sheet[kunyomiRef] ? sheet[kunyomiRef].v : "";
+                    
                     let isBold = false;
-
-                    if (sheet[wordCell] && sheet[wordCell].s && sheet[wordCell].s.font) {
-                        isBold = sheet[wordCell].s.font.bold === true;
+                    if (sheet[wordCellRef] && sheet[wordCellRef].s && sheet[wordCellRef].s.font) {
+                        isBold = sheet[wordCellRef].s.font.bold === true;
                     }
 
-                    return {
-                        word: row.Word,
-                        read1: row.Read1,
-                        read2: row.Read2,
+                    words.push({
+                        word: word,
+                        read1: onyomi,
+                        read2: kunyomi,
                         bold: isBold
-                    };
-                });
+                    });
+                }
 
                 console.log("Parsed words with bold info:", words);
                 newQuestion();
