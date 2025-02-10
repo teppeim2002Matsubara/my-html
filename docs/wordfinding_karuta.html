@@ -11,6 +11,7 @@
         .incorrect { color: red; font-weight: bold; }
         table { margin-top: 20px; border-collapse: collapse; width: 60%; margin-left: auto; margin-right: auto; }
         th, td { border: 1px solid black; padding: 10px; }
+        .hidden { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
@@ -65,6 +66,7 @@
             document.getElementById("q2").innerHTML = choices2.map(c => `<button onclick="selectAnswer('q2', '${c}', this)">${c}</button>`).join(' ');
             
             document.getElementById("result").innerHTML = "";
+            document.getElementById("next-buttons").classList.add("hidden");
             selectedAnswers = { q1: null, q2: null };
         }
 
@@ -97,18 +99,7 @@
             });
             
             questionCount++;
-        }
-
-        function nextQuestion() {
-            if (selectedAnswers.q1 && selectedAnswers.q2) {
-                newQuestion();
-            } else {
-                alert("Please select answers for both questions before proceeding.");
-            }
-        }
-
-        function stopRun() {
-            showResultsTable();
+            document.getElementById("next-buttons").classList.remove("hidden");
         }
 
         function showResultsTable() {
@@ -141,9 +132,13 @@
     <div id="q2"></div>
     <br>
     <button onclick="checkAnswer()">Check Answer</button>
-    <button onclick="nextQuestion()">Next Question</button>
-    <button onclick="stopRun()">Stop Run</button>
+    <div id="next-buttons" class="hidden">
+        <button onclick="newQuestion()">Next Question</button>
+        <button onclick="showResultsTable()">Stop Run</button>
+    </div>
     <div id="result"></div>
 </body>
+</html>
+
 </html>
 
