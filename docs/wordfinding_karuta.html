@@ -99,7 +99,11 @@
             });
             
             questionCount++;
-            document.getElementById("next-buttons").classList.remove("hidden");
+            if (questionCount >= maxQuestions) {
+                showResultsTable();
+            } else {
+                document.getElementById("next-buttons").classList.remove("hidden");
+            }
         }
 
         function showResultsTable() {
@@ -138,7 +142,5 @@
     </div>
     <div id="result"></div>
 </body>
-</html>
-
 </html>
 
