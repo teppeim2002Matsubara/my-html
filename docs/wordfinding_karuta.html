@@ -8,13 +8,22 @@
         button { margin: 5px; padding: 10px; font-size: 16px; }
         #result { margin-top: 20px; font-weight: bold; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         let words = [];
 
         async function loadWords() {
-            let response = await fetch("/Users/matsubarateppei/Dropbox/Dropbox20180420/Martinos/準備/Hardy/Kohaku/python/flashcards_karuta.xlsx");
-            let data = await response.json();
-            words = data;
+            let response = await fetch("https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/flashcards_karuta.xlsx");
+            let data = await response.arrayBuffer();
+            let workbook = XLSX.read(data, { type: "array" });
+            let sheet = workbook.Sheets[workbook.SheetNames[0]];
+            let jsonData = XLSX.utils.sheet_to_json(sheet);
+            
+            words = jsonData.map(row => ({
+                word: row.Word,
+                read1: row.Read1,
+                read2: row.Read2
+            }));
             newQuestion();
         }
 
@@ -59,7 +68,6 @@
                              Kunyomi: ${selectedAnswers.q2} (${selectedAnswers.q2 === currentQuestion.read2 ? "Correct!" : `Wrong! Correct: ${currentQuestion.read2}`})`;
             document.getElementById("result").innerHTML = resultText;
         }
-
     </script>
 </head>
 <body onload="loadWords()">
@@ -73,3 +81,4 @@
     <button onclick="newQuestion()">Next Question</button>
 </body>
 </html>
+
