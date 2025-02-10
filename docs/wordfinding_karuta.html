@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Word Finding Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        button { margin: 5px; padding: 10px; font-size: 16px; }
+        #result { margin-top: 20px; font-weight: bold; }
+    </style>
+    <script>
+        let words = [];
+
+        async function loadWords() {
+            let response = await fetch("/Users/matsubarateppei/Dropbox/Dropbox20180420/Martinos/準備/Hardy/Kohaku/python/flashcards_karuta.xlsx");
+            let data = await response.json();
+            words = data;
+            newQuestion();
+        }
+
+        function getRandomChoices(correct, field) {
+            let choices = [correct];
+            while (choices.length < 5) {
+                let randomWord = words[Math.floor(Math.random() * words.length)][field];
+                if (!choices.includes(randomWord)) {
+                    choices.push(randomWord);
+                }
+            }
+            return choices.sort(() => Math.random() - 0.5);
+        }
+
+        let currentQuestion = {};
+        let selectedAnswers = { q1: null, q2: null };
+
+        function newQuestion() {
+            let index = Math.floor(Math.random() * words.length);
+            currentQuestion = words[index];
+            document.getElementById("word").innerText = currentQuestion.word;
+            
+            let choices1 = getRandomChoices(currentQuestion.read1, "read1");
+            let choices2 = getRandomChoices(currentQuestion.read2, "read2");
+
+            document.getElementById("q1").innerHTML = choices1.map(c => `<button onclick="selectAnswer('q1', '${c}')">${c}</button>`).join(' ');
+            document.getElementById("q2").innerHTML = choices2.map(c => `<button onclick="selectAnswer('q2', '${c}')">${c}</button>`).join(' ');
+            
+            document.getElementById("result").innerHTML = "";
+            selectedAnswers = { q1: null, q2: null };
+        }
+
+        function selectAnswer(q, selected) {
+            selectedAnswers[q] = selected;
+            if (selectedAnswers.q1 && selectedAnswers.q2) {
+                displayResult();
+            }
+        }
+
+        function displayResult() {
+            let resultText = `Onyomi: ${selectedAnswers.q1} (${selectedAnswers.q1 === currentQuestion.read1 ? "Correct!" : `Wrong! Correct: ${currentQuestion.read1}`})<br>
+                             Kunyomi: ${selectedAnswers.q2} (${selectedAnswers.q2 === currentQuestion.read2 ? "Correct!" : `Wrong! Correct: ${currentQuestion.read2}`})`;
+            document.getElementById("result").innerHTML = resultText;
+        }
+
+    </script>
+</head>
+<body onload="loadWords()">
+    <h1>Word Finding Game</h1>
+    <h2 id="word"></h2>
+    <p>Question 1: What is the Onyomi reading?</p>
+    <div id="q1"></div>
+    <p>Question 2: What is the Kunyomi reading?</p>
+    <div id="q2"></div>
+    <div id="result"></div>
+    <button onclick="newQuestion()">Next Question</button>
+</body>
+</html>
