@@ -5,12 +5,13 @@
     <title>Word Finding Game</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-h2#word { font-size: 58px; font-weight: bold; }
-table { font-size: 24px; }
+        h2#word { font-size: 32px; font-weight: bold; }
+        table { font-size: 24px; }
         button { margin: 5px; padding: 10px; font-size: 16px; }
         #result { margin-top: 20px; font-weight: bold; }
         .correct { color: green; font-weight: bold; }
         .incorrect { color: red; font-weight: bold; }
+        .bold-word { font-weight: bold; }
         table { margin-top: 20px; border-collapse: collapse; width: 60%; margin-left: auto; margin-right: auto; }
         th, td { border: 1px solid black; padding: 10px; }
         .hidden { display: none; }
@@ -25,15 +26,20 @@ table { font-size: 24px; }
         async function loadWords() {
             let response = await fetch("flashcards_karuta.xlsx");
             let data = await response.arrayBuffer();
-            let workbook = XLSX.read(data, { type: "array" });
+            let workbook = XLSX.read(data, { type: "array", cellStyles: true });
             let sheet = workbook.Sheets[workbook.SheetNames[0]];
-            let jsonData = XLSX.utils.sheet_to_json(sheet);
+            let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
             
-            words = jsonData.map(row => ({
-                word: row.Word,
-                read1: row.Read1,
-                read2: row.Read2
-            }));
+            words = jsonData.map((row, index) => {
+                let cellRef = `A${index + 2}`;
+                let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold;
+                return {
+                    word: row.Word,
+                    read1: row.Read1,
+                    read2: row.Read2,
+                    bold: isBold || false
+                };
+            });
             newQuestion();
         }
 
@@ -59,7 +65,9 @@ table { font-size: 24px; }
 
             let index = Math.floor(Math.random() * words.length);
             currentQuestion = words[index];
-            document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
+            let wordElement = document.getElementById("word");
+            wordElement.innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
+            wordElement.classList.toggle("bold-word", currentQuestion.bold);
             
             let choices1 = getRandomChoices(currentQuestion.read1, "read1");
             let choices2 = getRandomChoices(currentQuestion.read2, "read2");
@@ -107,26 +115,6 @@ table { font-size: 24px; }
                 document.getElementById("next-buttons").classList.remove("hidden");
             }
         }
-
-        function showResultsTable() {
-            let tableHTML = `<table><tr><th>#</th><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
-            history.forEach((entry, index) => {
-                tableHTML += `<tr>
-                    <td>${index + 1}</td>
-                    <td>${entry.word}</td>
-                    <td class="${entry.userRead1 === entry.correctRead1 ? 'correct' : 'incorrect'}">${entry.userRead1} (Correct: ${entry.correctRead1})</td>
-                    <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">${entry.userRead2} (Correct: ${entry.correctRead2})</td>
-                </tr>`;
-            });
-            tableHTML += "</table><br><button onclick='restartGame()'>Next Run</button>";
-            document.getElementById("result").innerHTML = tableHTML;
-        }
-
-        function restartGame() {
-            questionCount = 0;
-            history = [];
-            newQuestion();
-        }
     </script>
 </head>
 <body onload="loadWords()">
@@ -145,6 +133,3 @@ table { font-size: 24px; }
     <div id="result"></div>
 </body>
 </html>
-
-
-
