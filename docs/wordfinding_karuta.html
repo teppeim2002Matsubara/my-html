@@ -83,14 +83,6 @@
             let correct1 = selectedAnswers.q1 === currentQuestion.read1;
             let correct2 = selectedAnswers.q2 === currentQuestion.read2;
             
-            let resultText = "<p>";
-            resultText += `Onyomi: <span class="${correct1 ? 'correct' : 'incorrect'}">${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}`;
-            resultText += "<br>";
-            resultText += `Kunyomi: <span class="${correct2 ? 'correct' : 'incorrect'}">${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}`;
-            resultText += "</p>";
-            
-            document.getElementById("result").innerHTML = resultText;
-            
             history.push({
                 word: currentQuestion.word,
                 userRead1: selectedAnswers.q1,
@@ -104,18 +96,22 @@
         }
 
         function nextQuestion() {
-    if (selectedAnswers.q1 && selectedAnswers.q2) {
-        questionCount++;
-        newQuestion();
-    } else {
-        alert("Please select answers for both questions before proceeding.");
-    }
+            if (selectedAnswers.q1 && selectedAnswers.q2) {
+                newQuestion();
+            } else {
+                alert("Please select answers for both questions before proceeding.");
+            }
+        }
+
+        function stopRun() {
+            showResultsTable();
         }
 
         function showResultsTable() {
-            let tableHTML = `<table><tr><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
-            history.forEach(entry => {
+            let tableHTML = `<table><tr><th>#</th><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
+            history.forEach((entry, index) => {
                 tableHTML += `<tr>
+                    <td>${index + 1}</td>
                     <td>${entry.word}</td>
                     <td class="${entry.userRead1 === entry.correctRead1 ? 'correct' : 'incorrect'}">${entry.userRead1} (Correct: ${entry.correctRead1})</td>
                     <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">${entry.userRead2} (Correct: ${entry.correctRead2})</td>
@@ -142,8 +138,10 @@
     <br>
     <button onclick="checkAnswer()">Check Answer</button>
     <button onclick="nextQuestion()">Next Question</button>
+    <button onclick="stopRun()">Stop Run</button>
     <div id="result"></div>
 </body>
 </html>
+
 
 
