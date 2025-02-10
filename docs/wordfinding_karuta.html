@@ -104,7 +104,12 @@
         }
 
         function nextQuestion() {
-            newQuestion();
+    if (selectedAnswers.q1 && selectedAnswers.q2) {
+        questionCount++;
+        newQuestion();
+    } else {
+        alert("Please select answers for both questions before proceeding.");
+    }
         }
 
         function showResultsTable() {
@@ -140,6 +145,5 @@
     <div id="result"></div>
 </body>
 </html>
-
 
 
