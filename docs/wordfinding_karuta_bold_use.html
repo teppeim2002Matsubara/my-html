@@ -34,11 +34,11 @@
                 let sheet = workbook.Sheets[workbook.SheetNames[0]];
                 
                 words = XLSX.utils.sheet_to_json(sheet, { raw: false }).map(row => ({
-                    word: row.Word,
-                    read1: row.Read1,
-                    read2: row.Read2,
-                    use1: row.Use1,  // Extract Use1
-                    use2: row.Use2   // Extract Use2
+                    word: row.Word?.trim() || "Unknown",
+                    read1: row.Read1?.trim() || "Unknown",
+                    read2: row.Read2?.trim() || "Unknown",
+                    use1: row.Use1?.trim() || "No usage available",  // Fixed
+                    use2: row.Use2?.trim() || "No usage available"   // Fixed
                 }));
 
                 console.log("Parsed words:", words);
@@ -99,10 +99,10 @@
                 word: currentQuestion.word,
                 userRead1: selectedAnswers.q1,
                 correctRead1: currentQuestion.read1,
-                use1: currentQuestion.use1, // Store use1
+                use1: currentQuestion.use1, // Added
                 userRead2: selectedAnswers.q2,
                 correctRead2: currentQuestion.read2,
-                use2: currentQuestion.use2  // Store use2
+                use2: currentQuestion.use2  // Added
             });
 
             let resultText = `
@@ -160,11 +160,8 @@
 <body onload="loadWords()">
     <h1>Word Finding Game</h1>
     <h2 id="word"></h2>
-    <p>Question 1: What is the Onyomi reading?</p>
     <div id="q1"></div>
-    <p>Question 2: What is the Kunyomi reading?</p>
     <div id="q2"></div>
-    <br>
     <button onclick="checkAnswer()">Check Answer</button>
     <div id="next-buttons" class="hidden">
         <button onclick="newQuestion()">Next Question</button>
@@ -173,3 +170,4 @@
     <div id="result"></div>
 </body>
 </html>
+
