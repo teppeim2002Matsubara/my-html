@@ -21,6 +21,7 @@
         let questionCount = 0;
         let maxQuestions = 10;
         let history = [];
+        let selectedAnswers = { q1: null, q2: null };
 
         async function loadWords() {
             try {
@@ -80,8 +81,17 @@
         }
         
         function selectAnswer(q, selected, button) {
+            selectedAnswers[q] = selected;
             document.querySelectorAll(`#${q} button`).forEach(btn => btn.style.border = "");
             button.style.border = "3px solid black";
+        }
+
+        function checkAnswer() {
+            if (!selectedAnswers.q1 || !selectedAnswers.q2) {
+                alert("Please select answers for both questions.");
+                return;
+            }
+            document.getElementById("next-buttons").classList.remove("hidden");
         }
     </script>
 </head>
