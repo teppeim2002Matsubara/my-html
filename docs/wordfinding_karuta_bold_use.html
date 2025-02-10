@@ -34,11 +34,11 @@
                 let sheet = workbook.Sheets[workbook.SheetNames[0]];
                 
                 words = XLSX.utils.sheet_to_json(sheet, { raw: false }).map(row => ({
-                    word: row.Word?.trim() || "Unknown",
-                    read1: row.Read1?.trim() || "Unknown",
-                    read2: row.Read2?.trim() || "Unknown",
-                    use1: row.Use1?.trim() || "No usage available",  // Extracted correctly
-                    use2: row.Use2?.trim() || "No usage available"   // Extracted correctly
+                    word: row["Word"]?.trim() || "Unknown",
+                    read1: row["Read1"]?.trim() || "Unknown",
+                    read2: row["Read2"]?.trim() || "Unknown",
+                    use1: row["use1"] ? row["use1"] : "No usage available",  // Ensure correct case
+                    use2: row["use2"] ? row["use2"] : "No usage available"   // Ensure correct case
                 }));
 
                 console.log("Parsed words:", words);
@@ -160,4 +160,5 @@
     <div id="result"></div>
 </body>
 </html>
+
 
