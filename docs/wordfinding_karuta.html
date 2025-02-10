@@ -23,23 +23,49 @@
         let history = [];
 
         async function loadWords() {
-            let response = await fetch("flashcards_karuta.xlsx");
-            let data = await response.arrayBuffer();
-            let workbook = XLSX.read(data, { type: "array", cellStyles: true });
-            let sheet = workbook.Sheets[workbook.SheetNames[0]];
-            let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
+            try {
+                let response = await fetch("flashcards_karuta.xlsx");
+                if (!response.ok) throw new Error("Failed to load file");
+                let data = await response.arrayBuffer();
+                let workbook = XLSX.read(data, { type: "array", cellStyles: true });
+                let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
+                
+                words = jsonData.map((row, index) => {
+                    let cellRef = `A${index + 2}`;
+                    let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold;
+                    return {
+                        word: row.Word,
+                        read1: row.Read1,
+                        read2: row.Read2,
+                        bold: isBold || false
+                    };
+                });
+                newQuestion();
+            } catch (error) {
+                console.error("Error loading words:", error);
+                document.getElementById("result").innerHTML = "<p style='color: red;'>Error loading data. Please check the file.</p>";
+            }
+        }
+
+        function newQuestion() {
+            if (questionCount >= maxQuestions) {
+                showResultsTable();
+                return;
+            }
+            let index = Math.floor(Math.random() * words.length);
+            let currentQuestion = words[index];
+            document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
+            document.getElementById("word").classList.toggle("bold-word", currentQuestion.bold);
             
-            words = jsonData.map((row, index) => {
-                let cellRef = `A${index + 2}`;
-                let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold;
-                return {
-                    word: row.Word,
-                    read1: row.Read1,
-                    read2: row.Read2,
-                    bold: isBold || false
-                };
-            });
-            newQuestion();
+            let choices1 = getRandomChoices(currentQuestion.read1, "read1");
+            let choices2 = getRandomChoices(currentQuestion.read2, "read2");
+
+            document.getElementById("q1").innerHTML = choices1.map(c => `<button onclick="selectAnswer('q1', '${c}', this)">${c}</button>`).join(' ');
+            document.getElementById("q2").innerHTML = choices2.map(c => `<button onclick="selectAnswer('q2', '${c}', this)">${c}</button>`).join(' ');
+            
+            document.getElementById("result").innerHTML = "";
+            document.getElementById("next-buttons").classList.add("hidden");
         }
 
         function showResultsTable() {
@@ -73,3 +99,4 @@
     <div id="result"></div>
 </body>
 </html>
+
