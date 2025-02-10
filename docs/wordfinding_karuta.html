@@ -91,6 +91,17 @@
                 alert("Please select answers for both questions.");
                 return;
             }
+            
+            let correct1 = selectedAnswers.q1 === words[questionCount].read1;
+            let correct2 = selectedAnswers.q2 === words[questionCount].read2;
+            
+            let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${words[questionCount].read1})`}</p>`;
+            resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${words[questionCount].read2})`}</p>`;
+            document.getElementById("result").innerHTML = resultText;
+            
+            document.getElementById("next-buttons").classList.remove("hidden");
+        }
+            }
             document.getElementById("next-buttons").classList.remove("hidden");
         }
     </script>
@@ -111,6 +122,5 @@
     <div id="result"></div>
 </body>
 </html>
-
 
 
