@@ -97,6 +97,9 @@
     });
     
     questionCount++;
+    document.getElementById("word").innerText = `${questionCount}/${maxQuestions}: ${currentQuestion.word}`;
+    
+    questionCount++;
     document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
 }
     
@@ -108,6 +111,9 @@
         correctRead2: currentQuestion.read2,
         correct: correct1 && correct2
     });
+    
+    questionCount++;
+    document.getElementById("word").innerText = `${questionCount}/${maxQuestions}: ${currentQuestion.word}`;
         }
 
         function nextQuestion() {
@@ -157,6 +163,5 @@
     <div id="result"></div>
 </body>
 </html>
-
 
 
