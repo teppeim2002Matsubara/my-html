@@ -19,7 +19,7 @@
         let history = [];
 
         async function loadWords() {
-            let response = await fetch("https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/flashcards_karuta.json");
+            let response = await fetch("flashcards_karuta.xlsx");
             let jsonData = await response.json();
             
             words = jsonData.map(row => ({
@@ -120,5 +120,6 @@
     <div id="result"></div>
 </body>
 </html>
+
 
 
