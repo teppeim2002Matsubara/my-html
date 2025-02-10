@@ -56,26 +56,30 @@
 
             let index = Math.floor(Math.random() * words.length);
             currentQuestion = words[index];
-            document.getElementById("word").innerText = currentQuestion.word;
+            document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
             
             let choices1 = getRandomChoices(currentQuestion.read1, "read1");
             let choices2 = getRandomChoices(currentQuestion.read2, "read2");
 
-            document.getElementById("q1").innerHTML = choices1.map(c => `<button onclick="selectAnswer('q1', '${c}')">${c}</button>`).join(' ');
-            document.getElementById("q2").innerHTML = choices2.map(c => `<button onclick="selectAnswer('q2', '${c}')">${c}</button>`).join(' ');
+            document.getElementById("q1").innerHTML = choices1.map(c => `<button onclick="selectAnswer('q1', '${c}', this)">${c}</button>`).join(' ');
+            document.getElementById("q2").innerHTML = choices2.map(c => `<button onclick="selectAnswer('q2', '${c}', this)">${c}</button>`).join(' ');
             
             document.getElementById("result").innerHTML = "";
             selectedAnswers = { q1: null, q2: null };
         }
 
-        function selectAnswer(q, selected) {
+        function selectAnswer(q, selected, button) {
             selectedAnswers[q] = selected;
-            if (selectedAnswers.q1 && selectedAnswers.q2) {
-                displayResult();
-            }
+            document.querySelectorAll(`#${q} button`).forEach(btn => btn.style.border = "");
+            button.style.border = "3px solid black";
         }
 
-        function displayResult() {
+        function checkAnswer() {
+            if (!selectedAnswers.q1 || !selectedAnswers.q2) {
+                alert("Please select answers for both questions.");
+                return;
+            }
+            
             let correct1 = selectedAnswers.q1 === currentQuestion.read1;
             let correct2 = selectedAnswers.q2 === currentQuestion.read2;
             
@@ -97,7 +101,10 @@
             });
             
             questionCount++;
-            setTimeout(newQuestion, 2000);
+        }
+
+        function nextQuestion() {
+            newQuestion();
         }
 
         function showResultsTable() {
@@ -109,8 +116,14 @@
                     <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">${entry.userRead2} (Correct: ${entry.correctRead2})</td>
                 </tr>`;
             });
-            tableHTML += "</table>";
+            tableHTML += "</table><br><button onclick='restartGame()'>Next Run</button>";
             document.getElementById("result").innerHTML = tableHTML;
+        }
+
+        function restartGame() {
+            questionCount = 0;
+            history = [];
+            newQuestion();
         }
     </script>
 </head>
@@ -121,8 +134,12 @@
     <div id="q1"></div>
     <p>Question 2: What is the Kunyomi reading?</p>
     <div id="q2"></div>
+    <br>
+    <button onclick="checkAnswer()">Check Answer</button>
+    <button onclick="nextQuestion()">Next Question</button>
     <div id="result"></div>
 </body>
 </html>
+
 
 
