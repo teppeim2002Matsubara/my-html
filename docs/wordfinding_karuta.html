@@ -33,12 +33,12 @@
                 
                 words = jsonData.map((row, index) => {
                     let cellRef = `A${index + 2}`;
-                    let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold;
+                    let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold === true;
                     return {
                         word: row.Word,
                         read1: row.Read1,
                         read2: row.Read2,
-                        bold: isBold || false
+                        bold: isBold
                     };
                 });
                 newQuestion();
@@ -46,6 +46,17 @@
                 console.error("Error loading words:", error);
                 document.getElementById("result").innerHTML = "<p style='color: red;'>Error loading data. Please check the file.</p>";
             }
+        }
+
+        function getRandomChoices(correct, field) {
+            let choices = [correct];
+            while (choices.length < 5) {
+                let randomWord = words[Math.floor(Math.random() * words.length)][field];
+                if (!choices.includes(randomWord)) {
+                    choices.push(randomWord);
+                }
+            }
+            return choices.sort(() => Math.random() - 0.5);
         }
 
         function newQuestion() {
@@ -67,20 +78,6 @@
             document.getElementById("result").innerHTML = "";
             document.getElementById("next-buttons").classList.add("hidden");
         }
-
-        function showResultsTable() {
-            let tableHTML = `<table><tr><th>#</th><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
-            history.forEach((entry, index) => {
-                tableHTML += `<tr>
-                    <td>${index + 1}</td>
-                    <td class="${entry.bold ? 'bold-word' : ''}">${entry.word}</td>
-                    <td class="${entry.userRead1 === entry.correctRead1 ? 'correct' : 'incorrect'}">${entry.userRead1} (Correct: ${entry.correctRead1})</td>
-                    <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">${entry.userRead2} (Correct: ${entry.correctRead2})</td>
-                </tr>`;
-            });
-            tableHTML += "</table><br><button onclick='restartGame()'>Next Run</button>";
-            document.getElementById("result").innerHTML = tableHTML;
-        }
     </script>
 </head>
 <body onload="loadWords()">
@@ -99,4 +96,5 @@
     <div id="result"></div>
 </body>
 </html>
+
 
