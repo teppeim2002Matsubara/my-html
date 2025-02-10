@@ -15,7 +15,26 @@
         .bold-word { font-weight: bold; }
         .hidden { display: none; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">        function showResultsTable() {
+            let tableHTML = `<table><tr><th>#</th><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
+            history.forEach((entry, index) => {
+                tableHTML += `<tr>
+                    <td>${index + 1}</td>
+                    <td class="${entry.bold ? 'bold-word' : ''}">${entry.word}</td>
+                    <td class="${entry.userRead1 === entry.correctRead1 ? 'correct' : 'incorrect'}">${entry.userRead1} (Correct: ${entry.correctRead1})</td>
+                    <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">${entry.userRead2} (Correct: ${entry.correctRead2})</td>
+                </tr>`;
+            });
+            tableHTML += "</table><br><button onclick='restartGame()'>Next Run</button>";
+            document.getElementById("result").innerHTML = tableHTML;
+        }
+        
+        function restartGame() {
+            questionCount = 0;
+            history = [];
+            newQuestion();
+        }
+    </script>
     <script>
         let words = [];
         let questionCount = 0;
