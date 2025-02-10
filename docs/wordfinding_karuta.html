@@ -16,7 +16,6 @@
         .hidden { display: none; }
     </style>
     
-    <!-- Load XLSX Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
     <script>
@@ -25,6 +24,7 @@
         let maxQuestions = 10;
         let history = [];
         let selectedAnswers = { q1: null, q2: null };
+        let currentQuestion = null;
 
         async function loadWords() {
             try {
@@ -69,7 +69,8 @@
                 return;
             }
             let index = Math.floor(Math.random() * words.length);
-            let currentQuestion = words[index];
+            currentQuestion = words[index];
+
             document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
             document.getElementById("word").classList.toggle("bold-word", currentQuestion.bold);
             
@@ -95,13 +96,23 @@
                 return;
             }
             
-            let correct1 = selectedAnswers.q1 === words[questionCount].read1;
-            let correct2 = selectedAnswers.q2 === words[questionCount].read2;
-            
-            let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${words[questionCount].read1})`}</p>`;
-            resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${words[questionCount].read2})`}</p>`;
+            let correct1 = selectedAnswers.q1 === currentQuestion.read1;
+            let correct2 = selectedAnswers.q2 === currentQuestion.read2;
+
+            history.push({
+                word: currentQuestion.word,
+                userRead1: selectedAnswers.q1,
+                correctRead1: currentQuestion.read1,
+                userRead2: selectedAnswers.q2,
+                correctRead2: currentQuestion.read2,
+                bold: currentQuestion.bold
+            });
+
+            let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}</p>`;
+            resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}</p>`;
             document.getElementById("result").innerHTML = resultText;
             
+            questionCount++;
             document.getElementById("next-buttons").classList.remove("hidden");
         }
 
@@ -126,6 +137,7 @@
         function restartGame() {
             questionCount = 0;
             history = [];
+            selectedAnswers = { q1: null, q2: null };
             newQuestion();
         }
     </script>
@@ -146,5 +158,6 @@
     <div id="result"></div>
 </body>
 </html>
+
 
 
