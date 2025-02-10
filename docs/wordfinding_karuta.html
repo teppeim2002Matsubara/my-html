@@ -12,6 +12,7 @@
         table { margin-top: 20px; border-collapse: collapse; width: 60%; margin-left: auto; margin-right: auto; }
         th, td { border: 1px solid black; padding: 10px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         let words = [];
         let questionCount = 0;
@@ -20,7 +21,10 @@
 
         async function loadWords() {
             let response = await fetch("flashcards_karuta.xlsx");
-            let jsonData = await response.json();
+            let data = await response.arrayBuffer();
+            let workbook = XLSX.read(data, { type: "array" });
+            let sheet = workbook.Sheets[workbook.SheetNames[0]];
+            let jsonData = XLSX.utils.sheet_to_json(sheet);
             
             words = jsonData.map(row => ({
                 word: row.Word,
@@ -120,6 +124,5 @@
     <div id="result"></div>
 </body>
 </html>
-
 
 
