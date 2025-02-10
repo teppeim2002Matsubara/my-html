@@ -6,7 +6,7 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         h2#word { font-size: 58px; font-weight: bold; }
-        table { font-size: 24px; }
+        table { font-size: 24px; font-weight: bold; }
         button { margin: 5px; padding: 10px; font-size: 16px; }
         #result { margin-top: 20px; font-weight: bold; }
         .correct { color: green; font-weight: bold; }
@@ -26,13 +26,13 @@
         async function loadWords() {
             let response = await fetch("flashcards_karuta.xlsx");
             let data = await response.arrayBuffer();
-            let workbook = XLSX.read(data, { type: "array", cellStyles: true });
+            let workbook = XLSX.read(data, { type: "array", cellNF: true, cellStyles: true });
             let sheet = workbook.Sheets[workbook.SheetNames[0]];
             let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
             
             words = jsonData.map((row, index) => {
                 let cellRef = `A${index + 2}`;
-                let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold;
+                let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold === true;
                 return {
                     word: row.Word,
                     read1: row.Read1,
