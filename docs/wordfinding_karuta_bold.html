@@ -5,42 +5,51 @@
     <title>Word Finding Game</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        h2#word { font-size: 32px; font-weight: bold; }
-        table { font-size: 24px; }
+        h2#word { font-size: 58px; font-weight: bold; }
+        table { font-size: 24px; font-weight: bold; margin-top: 20px; border-collapse: collapse; width: 60%; margin-left: auto; margin-right: auto; }
+        th, td { border: 1px solid black; padding: 10px; }
         button { margin: 5px; padding: 10px; font-size: 16px; }
         #result { margin-top: 20px; font-weight: bold; }
         .correct { color: green; font-weight: bold; }
         .incorrect { color: red; font-weight: bold; }
         .bold-word { font-weight: bold; }
-        table { margin-top: 20px; border-collapse: collapse; width: 60%; margin-left: auto; margin-right: auto; }
-        th, td { border: 1px solid black; padding: 10px; }
         .hidden { display: none; }
     </style>
+    
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
     <script>
         let words = [];
         let questionCount = 0;
         let maxQuestions = 10;
         let history = [];
+        let selectedAnswers = { q1: null, q2: null };
+        let currentQuestion = null;
 
         async function loadWords() {
-            let response = await fetch("flashcards_karuta.xlsx");
-            let data = await response.arrayBuffer();
-            let workbook = XLSX.read(data, { type: "array", cellStyles: true });
-            let sheet = workbook.Sheets[workbook.SheetNames[0]];
-            let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
-            
-            words = jsonData.map((row, index) => {
-                let cellRef = `A${index + 2}`;
-                let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold;
-                return {
-                    word: row.Word,
-                    read1: row.Read1,
-                    read2: row.Read2,
-                    bold: isBold || false
-                };
-            });
-            newQuestion();
+            try {
+                let response = await fetch("flashcards_karuta.xlsx");
+                if (!response.ok) throw new Error("Failed to load file");
+                let data = await response.arrayBuffer();
+                let workbook = XLSX.read(data, { type: "array", cellStyles: true });
+                let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                let jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false });
+                
+                words = jsonData.map((row, index) => {
+                    let cellRef = `A${index + 2}`;
+                    let isBold = sheet[cellRef] && sheet[cellRef].s && sheet[cellRef].s.font && sheet[cellRef].s.font.bold === true;
+                    return {
+                        word: row.Word,
+                        read1: row.Read1,
+                        read2: row.Read2,
+                        bold: isBold
+                    };
+                });
+                newQuestion();
+            } catch (error) {
+                console.error("Error loading words:", error);
+                document.getElementById("result").innerHTML = "<p style='color: red;'>Error loading data. Please check the file.</p>";
+            }
         }
 
         function getRandomChoices(correct, field) {
@@ -54,20 +63,16 @@
             return choices.sort(() => Math.random() - 0.5);
         }
 
-        let currentQuestion = {};
-        let selectedAnswers = { q1: null, q2: null };
-
         function newQuestion() {
             if (questionCount >= maxQuestions) {
                 showResultsTable();
                 return;
             }
-
             let index = Math.floor(Math.random() * words.length);
             currentQuestion = words[index];
-            let wordElement = document.getElementById("word");
-            wordElement.innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
-            wordElement.classList.toggle("bold-word", currentQuestion.bold);
+
+            document.getElementById("word").innerText = `${questionCount + 1}/${maxQuestions}: ${currentQuestion.word}`;
+            document.getElementById("word").classList.toggle("bold-word", currentQuestion.bold);
             
             let choices1 = getRandomChoices(currentQuestion.read1, "read1");
             let choices2 = getRandomChoices(currentQuestion.read2, "read2");
@@ -77,9 +82,8 @@
             
             document.getElementById("result").innerHTML = "";
             document.getElementById("next-buttons").classList.add("hidden");
-            selectedAnswers = { q1: null, q2: null };
         }
-
+        
         function selectAnswer(q, selected, button) {
             selectedAnswers[q] = selected;
             document.querySelectorAll(`#${q} button`).forEach(btn => btn.style.border = "");
@@ -94,26 +98,47 @@
             
             let correct1 = selectedAnswers.q1 === currentQuestion.read1;
             let correct2 = selectedAnswers.q2 === currentQuestion.read2;
-            
-            let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}</p>`;
-            resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}</p>`;
-            document.getElementById("result").innerHTML = resultText;
-            
+
             history.push({
                 word: currentQuestion.word,
                 userRead1: selectedAnswers.q1,
                 correctRead1: currentQuestion.read1,
                 userRead2: selectedAnswers.q2,
                 correctRead2: currentQuestion.read2,
-                correct: correct1 && correct2
+                bold: currentQuestion.bold
             });
+
+            let resultText = `<p>Onyomi: <span class='${correct1 ? "correct" : "incorrect"}'>${selectedAnswers.q1}</span> ${correct1 ? "Good Job!" : `(Correct: ${currentQuestion.read1})`}</p>`;
+            resultText += `<p>Kunyomi: <span class='${correct2 ? "correct" : "incorrect"}'>${selectedAnswers.q2}</span> ${correct2 ? "Good Job!" : `(Correct: ${currentQuestion.read2})`}</p>`;
+            document.getElementById("result").innerHTML = resultText;
             
             questionCount++;
-            if (questionCount >= maxQuestions) {
-                showResultsTable();
-            } else {
-                document.getElementById("next-buttons").classList.remove("hidden");
-            }
+            document.getElementById("next-buttons").classList.remove("hidden");
+        }
+
+        function showResultsTable() {
+            let tableHTML = `<table><tr><th>#</th><th>Word</th><th>Onyomi</th><th>Kunyomi</th></tr>`;
+            history.forEach((entry, index) => {
+                tableHTML += `<tr>
+                    <td>${index + 1}</td>
+                    <td class="${entry.bold ? 'bold-word' : ''}">${entry.word}</td>
+                    <td class="${entry.userRead1 === entry.correctRead1 ? 'correct' : 'incorrect'}">
+                        ${entry.userRead1} (Correct: ${entry.correctRead1})
+                    </td>
+                    <td class="${entry.userRead2 === entry.correctRead2 ? 'correct' : 'incorrect'}">
+                        ${entry.userRead2} (Correct: ${entry.correctRead2})
+                    </td>
+                </tr>`;
+            });
+            tableHTML += "</table><br><button onclick='restartGame()'>Next Run</button>";
+            document.getElementById("result").innerHTML = tableHTML;
+        }
+
+        function restartGame() {
+            questionCount = 0;
+            history = [];
+            selectedAnswers = { q1: null, q2: null };
+            newQuestion();
         }
     </script>
 </head>
