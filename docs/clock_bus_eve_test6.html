@@ -447,6 +447,7 @@ function updateBusDisplay(predictions) {
       // ✅ Define time-based route selection
       let routes = [];
 
+   
       if (currentDay >= 1 && currentDay <= 5) { // Mon-Fri
           if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 30)) {
               // 7:00 AM - 8:30 AM → Show only Route 77 @ 2282
