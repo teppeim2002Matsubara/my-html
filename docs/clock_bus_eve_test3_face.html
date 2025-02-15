@@ -300,7 +300,7 @@
 
     let routes = [];
 
-    if (currentDay >= 1 && currentDay <= 5) { // Mon-Fri
+    if (currentDay >= 1 && currentDay <= 6) { // Mon-Fri
         if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 30)) {
             routes = [{ route: "77", stop: "2282", symbol: "⭐" }];
         } else if ((currentHour === 8 && currentMinutes >= 0) || (currentHour >= 9 && currentHour < 15)) {
