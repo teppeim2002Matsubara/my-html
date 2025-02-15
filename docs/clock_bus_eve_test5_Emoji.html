@@ -314,19 +314,23 @@
       let routes = [];
 
       
-      //if (currentDay >= 1 && currentDay <= 5) { // Mon-Fri
-      //    if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 30)) {
+      if (currentDay >= 1 && currentDay <= 5) { // Mon-Fri
+          if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 30)) {
               // 7:00 AM - 8:30 AM → Show only Route 77 @ 2282
-      //        routes = [{ route: "77", stop: "2282", symbol: "⭐" }];
-      //    } else if ((currentHour === 8 && currentMinutes >= 0) || (currentHour >= 9 && currentHour < 15)) {
+              routes = [{ route: "77", stop: "2282", symbol: "⭐" }];
+          } else if ((currentHour === 8 && currentMinutes >= 0) || (currentHour >= 9 && currentHour < 15)) {
               // 8:00 AM - 3:00 PM → Show only Route 77 @ 2260 & Route 350 @ 2260
-      //        routes = [
-      //           { route: "77", stop: "2260", symbol: "🟠" },
-      //            { route: "350", stop: "2260", symbol: "🟣" }
-      //        ];
-      //    }
-      //}
+              routes = [
+                 { route: "77", stop: "2260", symbol: "🟠" },
+                  { route: "350", stop: "2260", symbol: "🟣" }
+              ];
+          }
+      }
       
+      routes = [
+         { route: "77", stop: "2260", symbol: "🟠" },
+          { route: "350", stop: "2260", symbol: "🟣" }
+      ]
       if (routes.length === 0) {
           console.log("No bus routes are set to be displayed at this time.");
           updateBusDisplay([]); // Clear display if no routes should be shown
