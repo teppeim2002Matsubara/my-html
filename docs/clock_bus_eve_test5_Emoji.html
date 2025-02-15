@@ -428,7 +428,7 @@
       }
 
       const now = new Date();
-      predictions.forEach(({ arrivalTime, symbol }) => {
+      predictions.forEach(({ arrivalTime, symbol, crowding }) => {
           const timeDifferenceInMs = arrivalTime - now;
           const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
           const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
