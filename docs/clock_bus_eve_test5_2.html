@@ -178,7 +178,7 @@
     //const ICS_URL = './basicFeb.ics'; // Path to the ICS file
     //const ICS_URL = 'https://calendar.google.com/calendar/ical/4657d244401b61134dee6e63e071a0582c27033acf75cd8f81c41b9ac49a6077%40group.calendar.google.com/private-f165d226128acff63465e9d7c627f633/basic.ics';
     const ICS_URL= 'https://calendar.google.com/calendar/ical/4657d244401b61134dee6e63e071a0582c27033acf75cd8f81c41b9ac49a6077%40group.calendar.google.com/public/basic.ics'
-    const API_URL = `https://ics2json.com/?url=${encodeURIComponent(ICS_URL)}`;
+    //const API_URL = `https://ics2json.com/?url=${encodeURIComponent(ICS_URL)}`;
 
 
     function updateClock() {
@@ -318,20 +318,6 @@
 
     function formatTime(date) {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-    }
-
-
-
-
-
-    function parseICSDate(icsDate) {
-      const year = parseInt(icsDate.substr(0, 4), 10);
-      const month = parseInt(icsDate.substr(4, 2), 10) - 1;
-      const day = parseInt(icsDate.substr(6, 2), 10);
-      const hours = parseInt(icsDate.substr(9, 2), 10);
-      const minutes = parseInt(icsDate.substr(11, 2), 10);
-      const seconds = parseInt(icsDate.substr(13, 2), 10);
-      return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
     }
 
     
