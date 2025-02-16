@@ -376,33 +376,49 @@
               const data = await response.json();
               console.log(`Received data for route ${route}:`, data);
 
-              data.data.forEach(prediction => {
-                console.log("Prediction Entry:", prediction); 
+             data.data.forEach(prediction => {
                 if (prediction.attributes.arrival_time) {
                     const arrivalTime = new Date(prediction.attributes.arrival_time);
                     const now = new Date();
                     const timeDifferenceMinutes = Math.floor((arrivalTime - now) / 60000);
-
+            
                     if (timeDifferenceMinutes >= 0 && timeDifferenceMinutes <= 60) {
-                      // ✅ Extract crowding status correctly
-                      let crowdingStatus = "UNKNOWN";
-                      if (prediction.attributes.occupancy_status) {
-                          crowdingStatus = prediction.attributes.occupancy_status;
-                      } else if (
-                          prediction.relationships &&
-                          prediction.relationships.trip &&
-                          prediction.relationships.trip.data &&
-                          prediction.relationships.trip.data.attributes &&
-                          prediction.relationships.trip.data.attributes.occupancy_status
-                      ) {
-                          crowdingStatus = prediction.relationships.trip.data.attributes.occupancy_status;
-                      }
-          
-                      const crowdingEmoji = getCrowdingEmoji(crowdingStatus);
-                      allPredictions.push({ arrivalTime, symbol, crowdingEmoji });
+                        // ✅ Correctly extract occupancy_status from multiple locations
+                        let crowdingStatus = "UNKNOWN";
+                        
+                        if (prediction.attributes.occupancy_status) {
+                            crowdingStatus = prediction.attributes.occupancy_status;
+                        } else if (
+                            prediction.relationships?.vehicle?.data?.id &&
+                            data.included
+                        ) {
+                            // Check the 'included' section for vehicle occupancy status
+                            const vehicleData = data.included.find(
+                                item => item.id === prediction.relationships.vehicle.data.id && item.type === "vehicle"
+                            );
+                            if (vehicleData?.attributes?.occupancy_status) {
+                                crowdingStatus = vehicleData.attributes.occupancy_status;
+                            }
+                        } else if (
+                            prediction.relationships?.trip?.data?.id &&
+                            data.included
+                        ) {
+                            // Check the 'included' section for trip occupancy status
+                            const tripData = data.included.find(
+                                item => item.id === prediction.relationships.trip.data.id && item.type === "trip"
+                            );
+                            if (tripData?.attributes?.occupancy_status) {
+                                crowdingStatus = tripData.attributes.occupancy_status;
+                            }
+                        }
+            
+                        console.log(`Bus ${symbol}: occupancy_status = ${crowdingStatus}`); // ✅ Debug log
+            
+                        const crowdingEmoji = getCrowdingEmoji(crowdingStatus);
+                        allPredictions.push({ arrivalTime, symbol, crowdingEmoji });
                     }
                 }
-              });
+            });
 
           }
 
