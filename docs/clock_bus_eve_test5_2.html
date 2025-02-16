@@ -235,46 +235,49 @@
     }
 
     async function fetchCalendarEvents() {
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ICS data: ${response.statusText}`);
-        }
-        const events = await response.json();
-        displayEvents(events);
-    } catch (error) {
-        console.error("Error fetching calendar events:", error);
-        document.getElementById("calendar-events").textContent = "Failed to load calendar events.";
+      try {
+          const response = await fetch(ICS_URL);
+          if (!response.ok) {
+              throw new Error(`Failed to fetch ICS file: ${response.statusText}`);
+          }
+          const icsData = await response.text();
+          const events = parseICSEvents(icsData);
+
+          displayEvents(events);
+      } catch (error) {
+          console.error("Error fetching calendar events:", error);
+          document.getElementById("calendar-events").textContent = "Failed to load calendar events.";
+      }
     }
-}
+
 
     function displayEvents(events) {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
 
-        const todayEvents = events.filter(event => isSameDay(new Date(event.startDate), today));
-        const tomorrowEvents = events.filter(event => isSameDay(new Date(event.startDate), tomorrow));
+      const todayEvents = events.filter(event => isSameDay(new Date(event.start), today));
+      const tomorrowEvents = events.filter(event => isSameDay(new Date(event.start), tomorrow));
 
-        const calendarEventsContainer = document.getElementById("calendar-events");
-        calendarEventsContainer.innerHTML = "";
+      const calendarEventsContainer = document.getElementById("calendar-events");
+      calendarEventsContainer.innerHTML = "";
 
-        if (todayEvents.length > 0) {
-            todayEvents.forEach(event => {
-                const eventTime = formatTime(new Date(event.startDate));
-                calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
-            });
-        } else {
-            calendarEventsContainer.innerHTML += `<p>Today No event</p>`;
-        }
+      if (todayEvents.length > 0) {
+          todayEvents.forEach(event => {
+              const eventTime = formatTime(new Date(event.start));
+              calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
+          });
+      } else {
+          calendarEventsContainer.innerHTML += `<p>Today No event</p>`;
+      }
 
-        if (tomorrowEvents.length > 0) {
-            tomorrowEvents.forEach(event => {
-                const eventTime = formatTime(new Date(event.startDate));
-                calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
-            });
-        }
-    }
+      if (tomorrowEvents.length > 0) {
+          tomorrowEvents.forEach(event => {
+              const eventTime = formatTime(new Date(event.start));
+              calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
+          });
+      }
+  }
 
     function isSameDay(date1, date2) {
         return date1.getFullYear() === date2.getFullYear() &&
@@ -288,26 +291,37 @@
 
 
 
+
     function parseICSEvents(icsData) {
-      const events = [];
-      const lines = icsData.split('\n');
-      let event = null;
+    const events = [];
+    const lines = icsData.split(/\r?\n/);
+    let event = null;
 
-      lines.forEach(line => {
+    lines.forEach(line => {
         if (line.startsWith('BEGIN:VEVENT')) {
-          event = {};
+            event = {};
         } else if (line.startsWith('END:VEVENT')) {
-          events.push(event);
-          event = null;
+            if (event) {
+                events.push(event);
+                event = null;
+            }
         } else if (event) {
-          const [key, value] = line.split(/:(.+)/);
-          if (key === 'DTSTART') event.start = parseICSDate(value);
-          if (key === 'SUMMARY') event.summary = value;
-        }
-      });
+            let [key, value] = line.split(/:(.+)/);
+            if (!value) return;
 
-      return events;
+            if (key.startsWith('DTSTART')) event.start = parseICSDate(value);
+            if (key.startsWith('DTEND')) event.end = parseICSDate(value);
+            if (key.startsWith('SUMMARY')) event.summary = value;
+        }
+    });
+
+    return events;
     }
+
+    function parseICSDate(icsDate) {
+        return new Date(icsDate.replace(/[^0-9TZ]/g, '').replace(/Z$/, ''));
+    }
+
 
     function parseICSDate(icsDate) {
       const year = parseInt(icsDate.substr(0, 4), 10);
