@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word-Find Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #f0f0f0;
+      padding: 20px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      margin: 20px 0;
+    }
+    .selection-container {
+      margin: 20px 0;
+      font-size: 24px;
+    }
+    .selection-container select {
+      font-size: 24px;
+      padding: 5px;
+    }
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .button {
+      font-size: 24px;
+      padding: 15px;
+      margin: 5px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+    .trial-counter {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    #time-records {
+      margin-top: 20px;
+      width: 90%;
+      text-align: left;
+      font-size: 18px;
+    }
+    #time-records th, #time-records td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    #time-records th {
+      background-color: #f4f4f4;
+    }
+    .words-list {
+      font-size: 14px;
+      color: #555;
+    }
+    .mistaken {
+      font-weight: bold;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Word-Find Game</h1>
+  </header>
+  <div class="selection-container">
+    <label for="sheetSelector">Choose Sheet:</label>
+    <select id="sheetSelector"></select>
+  </div>
+  <div class="selection-container">
+    <label for="modeSelector">Choose Mode:</label>
+    <select id="modeSelector">
+      <option value="word-comprehension">Word Comprehension</option>
+      <option value="read-comprehension">Read Comprehension</option>
+    </select>
+  </div>
+  <button id="goButton" class="button" disabled>Go</button>
+
+  <div class="game-container hidden" id="game-container">
+    <div class="trial-counter" id="trial-counter"></div>
+    <h2 id="title" class="hidden"></h2>
+    <div class="row" id="row-container"></div>
+  </div>
+  <h2 id="result" class="hidden"></h2>
+  <table id="time-records" class="hidden">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Time (seconds)</th>
+        <th>Sheet</th>
+        <th>Mode</th>
+        <th>Mistaken Words</th>
+        <th>Correct Words</th>
+        <th>Correct Reads</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script>
+    const totalRows = 10;
+    let wordList = [];
+    let currentRowIndex = 0;
+    let startTime;
+    let totalTime = 0;
+    let timeRecords = [];
+    let wordsUsedInCurrentGame = [];
+    let readsUsedInCurrentGame = [];
+    let mistakenWords = [];
+    const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+
+    const sheetSelector = document.getElementById("sheetSelector");
+    const modeSelector = document.getElementById("modeSelector");
+    const goButton = document.getElementById("goButton");
+    const gameContainer = document.getElementById("game-container");
+    const titleElement = document.getElementById("title");
+    const rowContainer = document.getElementById("row-container");
+    const resultElement = document.getElementById("result");
+    const timeRecordsTable = document.getElementById("time-records");
+    const trialCounter = document.getElementById("trial-counter");
+
+    sheetSelector.addEventListener("change", validateGoButton);
+    modeSelector.addEventListener("change", validateGoButton);
+
+    goButton.addEventListener("click", () => {
+      loadSheetAndStartGame();
+    });
+
+    function validateGoButton() {
+      goButton.disabled = !(sheetSelector.value && modeSelector.value);
+    }
+
+    fetch("flashcards_updated5.xlsx")
+      .then(response => response.arrayBuffer())
+      .then(data => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetNames = workbook.SheetNames;
+
+        sheetNames.forEach(sheetName => {
+          const option = document.createElement("option");
+          option.value = sheetName;
+          option.textContent = sheetName;
+          sheetSelector.appendChild(option);
+        });
+      })
+      .catch(error => console.error("Error loading Excel file:", error));
+
+    function loadSheetAndStartGame() {
+      const selectedSheet = sheetSelector.value;
+
+      fetch("flashcards_updated5.xlsx")
+        .then(response => response.arrayBuffer())
+        .then(data => {
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheet = workbook.Sheets[selectedSheet];
+          const json = XLSX.utils.sheet_to_json(sheet);
+
+          wordList = json.map(row => ({ word: row.Word, read: row.Read }));
+          if (wordList.length === 0) {
+            alert("The selected sheet is empty. Please select another sheet.");
+            return;
+          }
+          setupGame();
+        })
+        .catch(error => console.error("Error loading Excel file:", error));
+    }
+
+    function setupGame() {
+      startTime = Date.now();
+      currentRowIndex = 0;
+      totalTime = 0;
+      wordsUsedInCurrentGame = [];
+      readsUsedInCurrentGame = [];
+      mistakenWords = [];
+
+      gameContainer.classList.remove("hidden");
+      titleElement.classList.remove("hidden");
+      resultElement.classList.add("hidden");
+      timeRecordsTable.classList.add("hidden");
+
+      updateRowAndTitle(currentRowIndex);
+    }
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+        }
+    }
+
+    function updateRowAndTitle(rowIndex) {
+      const selected = wordList[Math.floor(Math.random() * wordList.length)];
+      const title = modeSelector.value === "word-comprehension" ? selected.read : selected.word;
+      const correctChoice = modeSelector.value === "word-comprehension" ? selected.word : selected.read;
+
+      wordsUsedInCurrentGame.push(selected.word);
+      readsUsedInCurrentGame.push(selected.read);
+
+      titleElement.textContent = `Find: ${title}`;
+      trialCounter.textContent = `Trial: ${rowIndex + 1} / ${totalRows}`;
+
+      const distractors = modeSelector.value === "read-comprehension"
+        ? generateHiraganaVariations(correctChoice)
+        : wordList
+            .filter(item => item.word !== correctChoice)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 4)
+            .map(item => item.word);
+
+
+
+      const options = [...distractors, correctChoice];
+      shuffleArray(options);
+
+      rowContainer.innerHTML = "";
+
+      options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.classList.add("button");
+        button.onclick = () => handleSelection(option, correctChoice);
+        rowContainer.appendChild(button);
+      });
+    }
+
+    function generateHiraganaVariations(correctRead) {
+      const variations = new Set();
+      const correctChars = correctRead.split("");
+      while (variations.size < 4) {
+        const index = Math.floor(Math.random() * correctChars.length);
+        const randomHiragana = hiragana[Math.floor(Math.random() * hiragana.length)];
+        if (randomHiragana !== correctChars[index]) {
+          const variation = correctChars.map((char, i) => (i === index ? randomHiragana : char)).join("");
+          variations.add(variation);
+        }
+      }
+      return Array.from(variations);
+    }
+
+    function handleSelection(selectedChoice, correctChoice) {
+      if (selectedChoice === correctChoice) {
+        const now = Date.now();
+        totalTime += (now - startTime) / 1000;
+        startTime = now;
+        currentRowIndex++;
+        if (currentRowIndex >= totalRows) {
+          endGame();
+        } else {
+          updateRowAndTitle(currentRowIndex);
+        }
+      } else {
+        mistakenWords.push(correctChoice);
+        alert(`Incorrect! You selected "${selectedChoice}". The correct answer was "${correctChoice}".`);
+      }
+    }
+
+    function endGame() {
+      resultElement.innerHTML = `
+        <strong>Game Over!</strong>
+        <br>Total Time: <em>${totalTime.toFixed(2)} seconds</em>`;
+      resultElement.classList.remove("hidden");
+
+      const currentGameRecord = {
+        time: totalTime.toFixed(2),
+        sheet: sheetSelector.value,
+        mode: modeSelector.value,
+        mistaken: [...mistakenWords],
+        words: [...wordsUsedInCurrentGame],
+        reads: [...readsUsedInCurrentGame],
+      };
+
+      timeRecords.push(currentGameRecord);
+      if (timeRecords.length > 10) timeRecords.shift();
+
+      updateTimeRecords();
+    }
+
+    function updateTimeRecords() {
+      const tbody = timeRecordsTable.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      timeRecords.forEach((record, index) => {
+        const mistakenHtml = record.mistaken
+          .map(word => `<span class="mistaken">${word}</span>`)
+          .join(", ");
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${record.time}</td>
+          <td>${record.sheet}</td>
+          <td>${record.mode}</td>
+          <td>${mistakenHtml || "None"}</td>
+          <td class="words-list">${record.words.join(", ")}</td>
+          <td class="words-list">${record.reads.join(", ")}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      timeRecordsTable.classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
