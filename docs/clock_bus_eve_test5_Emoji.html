@@ -3,504 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clock with Bus Predictions and Calendar</title>
+  <title>MBTA Bus Crowding Status</title>
   <style>
     body {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #000;
       font-family: Arial, sans-serif;
-      color: #fff;
-    }
-
-    .calendar-events {
-      font-size: 1rem;
       text-align: center;
+      background-color: #000;
       color: #fff;
-      margin-bottom: 10px;
+      padding: 20px;
     }
-
-    .calendar-events p {
-      margin: 5px 0;
-    }
-
-    .clock-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .analog-clock {
-      position: relative;
-      width: 300px;
-      height: 300px;
-      border: 8px solid #fff;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
-    }
-
-    .analog-clock .number {
-      position: absolute;
+    .bus-info {
       font-size: 1.5rem;
-      font-weight: bold;
-      color: #000;
-      transform: translate(-50%, -50%);
+      margin: 10px 0;
     }
-
-    .analog-clock .scale {
-      position: absolute;
-      width: 2px;
-      height: 10px;
-      background: #000;
-      top: 50%;
-      left: 50%;
-      transform-origin: 0% 50%;
-      transform: rotate(0deg);
-    }
-
-    .analog-clock .scale.small {
-      height: 5px;
-      background: #bbb;
-    }
-
-    .hand {
-      position: absolute;
-      width: 50%;
-      height: 4px;
-      background: #fff;
-      top: 50%;
-      left: 50%;
-      transform-origin: 0% 50%;
-      transform: rotate(-90deg);
-      border-radius: 2px;
-    }
-
-    .hour-hand {
-      width: 25%;
-      height: 6px;
-      background: #000;
-    }
-
-    .minute-hand {
-      width: 45%;
-      height: 4px;
-      background: #000;
-    }
-
-    .second-hand {
-      width: 50%;
-      height: 2px;
-      background: red;
-    }
-
-    .center-point {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      background: #000;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-    }
-
-    .digital-clock-container {
-      display: flex;
-      align-items: center;
-      margin-top: 15px;
-    }
-
-    .digital-clock {
-      font-size: 2rem;
-      font-weight: bold;
-      margin-right: 20px;
-    }
-
-    .bus-arrival {
-      font-size: 1rem;
-      color: #bbb;
-      text-align: left;
-    }
-
-    .arrival-time.yellow {
-      color: yellow;
-    }
-
-    .arrival-time.red {
-      color: red;
-    }
-
-    .date {
-      font-size: 1rem;
-      font-weight: bold;
-      color: #bbb;
-      margin-top: 5px;
-    }
-
-    .weather-icon {
-      position: absolute;
-      top: 45%;
-      left: 50%;
-      transform: translate(-50%, -100%);
-      width: 50px;
-      height: 50px;
-      z-index: 5;
-    }
-
   </style>
 </head>
 <body>
-  <div class="calendar-events" id="calendar-events">
-    Loading calendar events...
-  </div>
-  <div class="clock-container">
-    <img id="weatherIcon" class="weather-icon" src="" alt="Weather Icon">
-    <div class="analog-clock" id="analog-clock">
-      <div class="hand hour-hand" id="hour-hand"></div>
-      <div class="hand minute-hand" id="minute-hand"></div>
-      <div class="hand second-hand" id="second-hand"></div>
-      <div class="center-point"></div>
-    </div>
-    <div class="digital-clock-container">
-      <div class="digital-clock" id="digital-clock"></div>
-      <div class="bus-arrival" id="arrival-times"></div>
-    </div>
-    <div class="date" id="date"></div>
-  </div>
+  <h1>MBTA Bus Crowding Status</h1>
+  <div id="bus-status">Loading...</div>
 
   <script>
-    const ICS_URL = './basicFeb.ics'; // Path to the ICS file
-
-    function updateClock() {
-      const now = new Date();
-
-      // Update digital clock
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('digital-clock').textContent = `${hours}:${minutes}`;
-
-      // Update date
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const dayName = days[now.getDay()];
-      const monthName = months[now.getMonth()];
-      const date = now.getDate();
-      document.getElementById('date').textContent = `${monthName} ${date} ${dayName}`;
-
-      // Update clock hands
-      const hoursAngle = ((now.getHours() % 12) + now.getMinutes() / 60) * 30 - 90;
-      const minutesAngle = now.getMinutes() * 6 - 90;
-      const secondsAngle = now.getSeconds() * 6 - 90;
-
-      document.getElementById('hour-hand').style.transform = `rotate(${hoursAngle}deg)`;
-      document.getElementById('minute-hand').style.transform = `rotate(${minutesAngle}deg)`;
-      document.getElementById('second-hand').style.transform = `rotate(${secondsAngle}deg)`;
+    function getCrowdingEmoji(status) {
+        const crowdingEmojis = {
+            "EMPTY": "😃",  // Very comfortable
+            "MANY_SEATS_AVAILABLE": "🙂",  // Plenty of seats
+            "FEW_SEATS_AVAILABLE": "😐",  // Some seats left
+            "STANDING_ROOM_ONLY": "😓",  // Must stand
+            "CRUSHED_STANDING_ROOM_ONLY": "😵",  // Overcrowded
+            "FULL": "🚷",  // Cannot board
+            "NOT_ACCEPTING_PASSENGERS": "❌",  // Not in service
+            "UNKNOWN": "🤔"  // No data available
+        };
+        return crowdingEmojis[status] || "🤔";
     }
 
-    function drawClockFace() {
-      const clock = document.getElementById('analog-clock');
-      const radius = 150;
-
-      for (let i = 1; i <= 12; i++) {
-        const angle = (i - 3) * (Math.PI / 6);
-        const x = radius + radius * 0.85 * Math.cos(angle);
-        const y = radius + radius * 0.85 * Math.sin(angle);
-
-        const number = document.createElement('div');
-        number.className = 'number';
-        number.textContent = i;
-        number.style.left = `${x}px`;
-        number.style.top = `${y}px`;
-        clock.appendChild(number);
-      }
-
-      for (let i = 0; i < 60; i++) {
-        const angle = i * 6;
-        const scale = document.createElement('div');
-        scale.className = 'scale';
-        if (i % 5 !== 0) scale.classList.add('small');
-        scale.style.transform = `rotate(${angle}deg) translate(0, -145px)`;
-        clock.appendChild(scale);
-      }
-    }
-
-    async function fetchCalendarEvents() {
-      try {
-        const response = await fetch(ICS_URL);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ICS file: ${response.statusText}`);
+    async function fetchBusCrowding() {
+        const url = "https://api-v3.mbta.com/predictions?filter[route]=77&filter[stop]=2260&include=trip,vehicle";
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch data");
+            const data = await response.json();
+            
+            let crowdingStatus = "UNKNOWN";
+            if (data.data.length > 0) {
+                const prediction = data.data[0]; // First bus prediction
+                
+                if (prediction.attributes.occupancy_status) {
+                    crowdingStatus = prediction.attributes.occupancy_status;
+                } else if (
+                    prediction.relationships?.vehicle?.data?.id &&
+                    data.included
+                ) {
+                    // Check if vehicle data contains occupancy_status
+                    const vehicleData = data.included.find(
+                        item => item.id === prediction.relationships.vehicle.data.id && item.type === "vehicle"
+                    );
+                    if (vehicleData?.attributes?.occupancy_status) {
+                        crowdingStatus = vehicleData.attributes.occupancy_status;
+                    }
+                }
+            }
+            
+            const crowdingEmoji = getCrowdingEmoji(crowdingStatus);
+            document.getElementById("bus-status").innerHTML = `Bus 77: ${crowdingStatus} ${crowdingEmoji}`;
+        } catch (error) {
+            console.error("Error fetching bus crowding status:", error);
+            document.getElementById("bus-status").innerHTML = "Failed to load bus data";
         }
-        const icsData = await response.text();
-        const events = parseICSEvents(icsData);
-
-        const today = new Date();
-        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-
-        const todayEvents = events.filter(event => new Date(event.start).toDateString() === today.toDateString());
-        const tomorrowEvents = events.filter(event => new Date(event.start).toDateString() === tomorrow.toDateString());
-
-        const calendarEventsContainer = document.getElementById('calendar-events');
-        calendarEventsContainer.innerHTML = '';
-
-        if (todayEvents.length > 0) {
-          todayEvents.forEach(event => {
-            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-            calendarEventsContainer.innerHTML += `<p>Today ${eventTime} - ${event.summary}</p>`;
-          });
-        } else {
-          calendarEventsContainer.innerHTML += `<p>Today No event</p>`;
-        }
-
-        if (tomorrowEvents.length > 0) {
-          tomorrowEvents.forEach(event => {
-            const eventTime = new Date(event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-            calendarEventsContainer.innerHTML += `<p>Tomorrow ${eventTime} - ${event.summary}</p>`;
-          });
-        }} catch (error) {
-        console.error('Error fetching calendar events:', error);
-        document.getElementById('calendar-events').textContent = 'Failed to load calendar events';
-      }
     }
-
-    function parseICSEvents(icsData) {
-      const events = [];
-      const lines = icsData.split('\n');
-      let event = null;
-
-      lines.forEach(line => {
-        if (line.startsWith('BEGIN:VEVENT')) {
-          event = {};
-        } else if (line.startsWith('END:VEVENT')) {
-          events.push(event);
-          event = null;
-        } else if (event) {
-          const [key, value] = line.split(/:(.+)/);
-          if (key === 'DTSTART') event.start = parseICSDate(value);
-          if (key === 'SUMMARY') event.summary = value;
-        }
-      });
-
-      return events;
-    }
-
-    function parseICSDate(icsDate) {
-      const year = parseInt(icsDate.substr(0, 4), 10);
-      const month = parseInt(icsDate.substr(4, 2), 10) - 1;
-      const day = parseInt(icsDate.substr(6, 2), 10);
-      const hours = parseInt(icsDate.substr(9, 2), 10);
-      const minutes = parseInt(icsDate.substr(11, 2), 10);
-      const seconds = parseInt(icsDate.substr(13, 2), 10);
-      return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
-    }
-
     
-    let lastSuccessfulPredictions = []; // Global variable to store previous successful predictions
-
-  async function fetchBusPredictions() {
-      console.log("Starting fetchBusPredictions function...");
-
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-      // ✅ Define time-based route selection
-      let routes = [];
-
-      
-      if (currentDay >= 1 && currentDay <= 5) { // Mon-Fri
-          if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 30)) {
-              // 7:00 AM - 8:30 AM → Show only Route 77 @ 2282
-              routes = [{ route: "77", stop: "2282", symbol: "⭐" }];
-          } else if ((currentHour === 8 && currentMinutes >= 0) || (currentHour >= 9 && currentHour < 15)) {
-              // 8:00 AM - 3:00 PM → Show only Route 77 @ 2260 & Route 350 @ 2260
-              routes = [
-                 { route: "77", stop: "2260", symbol: "🟠" },
-                  { route: "350", stop: "2260", symbol: "🟣" }
-              ];
-          }
-      }
-      
-      routes = [
-         { route: "77", stop: "2260", symbol: "🟠" },
-          { route: "350", stop: "2260", symbol: "🟣" }
-      ]
-      if (routes.length === 0) {
-          console.log("No bus routes are set to be displayed at this time.");
-          updateBusDisplay([]); // Clear display if no routes should be shown
-          return;
-      }
-
-      try {
-          console.log("Fetching bus predictions...");
-          const arrivalTimesContainer = document.getElementById("arrival-times");
-
-          if (!arrivalTimesContainer) {
-              console.error("Error: arrival-times element not found!");
-              return;
-          }
-
-          let allPredictions = [];
-
-          for (const { route, stop, symbol } of routes) {
-              const url = `https://api-v3.mbta.com/predictions?filter[stop]=${stop}&filter[route]=${route}`;
-
-              console.log(`Fetching data for route ${route} at stop ${stop}`);
-              const response = await fetch(url);
-
-              if (!response.ok) {
-                  throw new Error(`Error fetching data for route ${route} at stop ${stop}: ${response.status}`);
-              }
-
-              const data = await response.json();
-              console.log(`Received data for route ${route}:`, data);
-
-              data.data.forEach(prediction => {
-                  if (prediction.attributes && prediction.attributes.arrival_time) {
-                      const arrivalTime = new Date(prediction.attributes.arrival_time);
-                      const timeDifferenceMinutes = Math.floor((arrivalTime - now) / 60000);
-
-                      // ✅ Only include buses arriving within 60 minutes
-                      if (timeDifferenceMinutes >= 0 && timeDifferenceMinutes <= 60) {
-                          allPredictions.push({ arrivalTime, symbol });
-                      }
-                  }
-              });
-          }
-
-          // Sort predictions in chronological order
-          console.log("Sorting predictions...");
-          allPredictions.sort((a, b) => a.arrivalTime - b.arrivalTime);
-
-          console.log("Total sorted predictions:", allPredictions.length);
-
-          // ✅ Only update the display if new predictions are available
-          if (allPredictions.length > 0) {
-              lastSuccessfulPredictions = allPredictions; // Store successful data
-              updateBusDisplay(allPredictions);
-          }
-
-      } catch (error) {
-          console.error("Error in fetchBusPredictions:", error);
-          console.warn("Maintaining previous bus information due to fetch failure.");
-          updateBusDisplay(lastSuccessfulPredictions); // Use last stored data
-      }
-
-      console.log("fetchBusPredictions function completed.");
-  }
-
-  // Function to convert crowding status into a comfort emoji
-  function getCrowdingEmoji(status) {
-      const crowdingEmojis = {
-          "EMPTY": "😃",  // Very comfortable, empty ride
-          "MANY_SEATS_AVAILABLE": "🙂",  // Relaxed ride, plenty of seats
-          "FEW_SEATS_AVAILABLE": "😐",  // Some seats left, but getting crowded
-          "STANDING_ROOM_ONLY": "😓",  // No seats, must stand
-          "CRUSHED_STANDING_ROOM_ONLY": "😵",  // Overcrowded, barely any space
-          "FULL": "🚷",  // Completely full, cannot board
-          "NOT_ACCEPTING_PASSENGERS": "❌",  // Not in service
-          "UNKNOWN": "🤔"  // No crowding data available
-      };
-      return crowdingEmojis[status] || "🤔"; // Default to unknown if not found
-  }
-
-
-  // ✅ Function to update the display, keeping old data if fetch fails
-  function updateBusDisplay(predictions) {
-      const arrivalTimesContainer = document.getElementById("arrival-times");
-
-      if (!arrivalTimesContainer) {
-          console.error("Error: arrival-times element not found!");
-          return;
-      }
-
-      arrivalTimesContainer.innerHTML = ""; // Clear only when updating with data
-
-      if (predictions.length === 0) {
-          console.log("No predictions to display at this time.");
-          return; // Do not show anything if no buses match the time criteria
-      }
-
-      const now = new Date();
-      predictions.forEach(({ arrivalTime, symbol, crowding }) => {
-          const timeDifferenceInMs = arrivalTime - now;
-          const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
-          const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
-          const formattedTime = `${String(arrivalTime.getHours()).padStart(2, '0')}:${String(arrivalTime.getMinutes()).padStart(2, '0')}`;
-
-          console.log(`Bus arriving at ${formattedTime} in ${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec - Crowding: ${crowding}`);
-
-          const arrivalElement = document.createElement("div");
-          arrivalElement.className = "arrival-time";
-          arrivalElement.style.color = "white"; // Keep text color consistent
-
-          if (timeDifferenceMinutes < 5) {
-              arrivalElement.style.color = "red";
-          } else if (timeDifferenceMinutes < 10) {
-              arrivalElement.style.color = "yellow";
-          }
-
-          const crowdingEmoji = getCrowdingEmoji(crowding);
-          arrivalElement.textContent = `${symbol} ${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec) - ${crowdingEmoji}`;
-          arrivalTimesContainer.appendChild(arrivalElement);
-      });
-    }
-
-    function updateWeather() {
-      const lat = 42.3601;
-      const lon = -71.0589;
-
-      fetch(`https://api.weather.gov/points/${lat},${lon}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Error fetching weather data.");
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (!data.properties || !data.properties.forecast) {
-          throw new Error("Forecast data unavailable.");
-        }
-        return fetch(data.properties.forecast);
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Error fetching forecast details.");
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (!data.properties || !data.properties.periods || data.properties.periods.length === 0) {
-          throw new Error("No forecast data found.");
-        }
-
-        const todayForecast = data.properties.periods[0];
-        document.getElementById("weatherIcon").src = todayForecast.icon;
-      })
-      .catch(error => console.error("Error fetching NOAA weather data:", error));
-    }
-
-
-
-
-
-
-
-    drawClockFace();
-    setInterval(updateClock, 1000);
-    setInterval(fetchBusPredictions, 1000);
-    setInterval(fetchCalendarEvents, 60000);
-    setInterval(updateWeather, 600000);
-    updateClock();
-    fetchCalendarEvents();
-    fetchBusPredictions();
-    updateWeather();
+    fetchBusCrowding();
+    setInterval(fetchBusCrowding, 30000); // Refresh every 30 seconds
   </script>
 </body>
 </html>
