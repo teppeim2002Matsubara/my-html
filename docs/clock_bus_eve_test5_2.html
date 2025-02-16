@@ -234,6 +234,37 @@
       }
     }
 
+    function parseICSEvents(icsData) {
+    const events = [];
+    const lines = icsData.split(/\r?\n/);
+    let event = null;
+
+    lines.forEach(line => {
+        if (line.startsWith('BEGIN:VEVENT')) {
+            event = {};
+        } else if (line.startsWith('END:VEVENT')) {
+            if (event) {
+                events.push(event);
+                event = null;
+            }
+        } else if (event) {
+            let [key, value] = line.split(/:(.+)/);
+            if (!value) return;
+
+            if (key.startsWith('DTSTART')) event.start = parseICSDate(value);
+            if (key.startsWith('DTEND')) event.end = parseICSDate(value);
+            if (key.startsWith('SUMMARY')) event.summary = value;
+        }
+    });
+
+    return events;
+    }
+
+    function parseICSDate(icsDate) {
+        return new Date(icsDate.replace(/[^0-9TZ]/g, '').replace(/Z$/, ''));
+    }
+
+
     async function fetchCalendarEvents() {
       try {
           const response = await fetch(ICS_URL);
@@ -291,36 +322,6 @@
 
 
 
-
-    function parseICSEvents(icsData) {
-    const events = [];
-    const lines = icsData.split(/\r?\n/);
-    let event = null;
-
-    lines.forEach(line => {
-        if (line.startsWith('BEGIN:VEVENT')) {
-            event = {};
-        } else if (line.startsWith('END:VEVENT')) {
-            if (event) {
-                events.push(event);
-                event = null;
-            }
-        } else if (event) {
-            let [key, value] = line.split(/:(.+)/);
-            if (!value) return;
-
-            if (key.startsWith('DTSTART')) event.start = parseICSDate(value);
-            if (key.startsWith('DTEND')) event.end = parseICSDate(value);
-            if (key.startsWith('SUMMARY')) event.summary = value;
-        }
-    });
-
-    return events;
-    }
-
-    function parseICSDate(icsDate) {
-        return new Date(icsDate.replace(/[^0-9TZ]/g, '').replace(/Z$/, ''));
-    }
 
 
     function parseICSDate(icsDate) {
