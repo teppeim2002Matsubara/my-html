@@ -377,6 +377,7 @@
               console.log(`Received data for route ${route}:`, data);
 
               data.data.forEach(prediction => {
+                console.log("Prediction Entry:", prediction); 
                 if (prediction.attributes.arrival_time) {
                     const arrivalTime = new Date(prediction.attributes.arrival_time);
                     const now = new Date();
