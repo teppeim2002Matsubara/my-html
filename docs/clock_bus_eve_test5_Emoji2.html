@@ -364,7 +364,7 @@
           let allPredictions = [];
 
           for (const { route, stop, symbol } of routes) {
-              const url = `https://api-v3.mbta.com/predictions?filter[stop]=${stop}&filter[route]=${route}`;
+              const url = `https://api-v3.mbta.com/predictions?filter[stop]=${stop}&filter[route]=${route}&include=trip,vehicle`;
 
               console.log(`Fetching data for route ${route} at stop ${stop}`);
               const response = await fetch(url);
