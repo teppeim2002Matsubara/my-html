@@ -341,7 +341,11 @@
               ];
           }
       }
-
+      routes = [
+          { route: "77", stop: "2260", symbol: "🟠" },
+          { route: "350", stop: "2260", symbol: "🟣" }
+      ]
+    
       if (routes.length === 0) {
           console.log("No bus routes are set to be displayed at this time.");
           updateBusDisplay([]); // Clear display if no routes should be shown
