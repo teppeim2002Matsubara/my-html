@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lowell Line Departures</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .departure-time {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .red {
+            background-color: #ff4c4c;
+            color: white;
+        }
+        .yellow {
+            background-color: #ffcc00;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lowell Line Departures from North Station</h1>
+    <button onclick="fetchLowellLineDepartures()">Refresh</button>
+    <div id="departure-times"></div>
+
+    <script>
+        async function fetchLowellLineDepartures() {
+            const API_KEY = "d51c0048255e4bc0b5566d25c619a8a4"; 
+            const url = `https://api-v3.mbta.com/predictions?filter[stop]=place-north&filter[route]=CR-Lowell&sort=departure_time&include=stop&api_key=${API_KEY}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const departureTimesContainer = document.getElementById('departure-times');
+                departureTimesContainer.innerHTML = '';
+
+                if (data.data.length === 0) {
+                    departureTimesContainer.textContent = 'No departures available';
+                } else {
+                    const now = new Date();
+                    data.data.forEach(prediction => {
+                        if (prediction.attributes.departure_time) {
+                            const departureTime = new Date(prediction.attributes.departure_time);
+                            const timeDifferenceInMs = departureTime - now;
+                            const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
+                            const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
+                            const formattedTime = `${String(departureTime.getHours()).padStart(2, '0')}:${String(departureTime.getMinutes()).padStart(2, '0')}`;
+
+                            // Extract platform information
+                            const stopId = prediction.relationships.stop.data.id; // Stop ID
+                            const stopData = data.included.find(stop => stop.id === stopId);
+                            const platform = stopData && stopData.attributes.platform_code ? stopData.attributes.platform_code : "Unknown";
+
+                            const departureElement = document.createElement('div');
+                            departureElement.className = 'departure-time';
+
+                            // Assign colors based on the time difference
+                            if (timeDifferenceMinutes < 5) {
+                                departureElement.classList.add('red');
+                            } else if (timeDifferenceMinutes < 10) {
+                                departureElement.classList.add('yellow');
+                            }
+
+                            departureElement.textContent = `Train departs at ${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec) - Platform: ${platform}`;
+                            departureTimesContainer.appendChild(departureElement);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching Lowell Line departures:', error);
+                document.getElementById('departure-times').textContent = 'Error fetching data';
+            }
+        }
+
+        // Auto-fetch on page load
+        window.onload = fetchLowellLineDepartures;
+    </script>
+
+</body>
+</html>
