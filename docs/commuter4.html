@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commuter Rail Departures (Debug Mode)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .departure-time {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .red {
+            background-color: #ff4c4c;
+            color: white;
+        }
+        .yellow {
+            background-color: #ffcc00;
+            color: black;
+        }
+        #current-time {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        #status-message {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Commuter Rail Departures (Debug Mode)</h1>
+    <div id="current-time"></div>
+    <div id="status-message"></div>
+    <button onclick="fetchTrainDepartures()">Refresh</button>
+    <div id="departure-times"></div>
+
+    <script>
+    async function fetchTrainDepartures() {
+        const API_KEY = "d51c0048255e4bc0b5566d25c619a8a4"; 
+        const url = `https://api-v3.mbta.com/predictions?filter[stop]=place-north&filter[route]=CR-Lowell,CR-Fitchburg,CR-Wachusett&sort=departure_time&include=stop,route&api_key=${API_KEY}`;
+
+        try {
+            const now = new Date();
+            document.getElementById('current-time').textContent = `Current Time: ${now.toLocaleTimeString()}`;
+            console.log("🚀 Fetching outbound train departures from MBTA API at:", now.toLocaleTimeString());
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            console.log("✅ Full API Response:", data);
+            console.log(`🔎 Total Trains in API Response: ${data.data.length}`);
+            
+            const departureTimesContainer = document.getElementById('departure-times');
+            const statusMessageContainer = document.getElementById('status-message');
+
+            departureTimesContainer.innerHTML = ''; 
+
+            if (!data.data || data.data.length === 0) {
+                console.log("⚠️ No train departures found.");
+                statusMessageContainer.textContent = "No train departures available at this time.";
+                return;
+            }
+
+            statusMessageContainer.textContent = "Fetching successful. Processing departures...";
+
+            // Process train departures
+            const upcomingTrains = data.data
+                .map(prediction => {
+                    if (prediction.attributes.direction_id !== 0) return null; // Only outbound trains
+                    const rawDepartureTime = prediction.attributes.departure_time;
+                    if (!rawDepartureTime || isNaN(Date.parse(rawDepartureTime))) return null;
+
+                    let departureTimeLocal = new Date(rawDepartureTime);
+
+                    if (departureTimeLocal < now) return null; // Ignore past departures
+
+                    const routeId = prediction.relationships.route?.data?.id || "Unknown Route";
+                    const routeData = data.included.find(route => route.id === routeId);
+                    const trainName = routeData?.attributes?.long_name || "Unknown Train";
+
+                    return { trainName, departureTimeLocal };
+                })
+                .filter(train => train !== null)
+                .sort((a, b) => a.departureTimeLocal - b.departureTimeLocal);
+
+            if (upcomingTrains.length === 0) {
+                console.log("⚠️ No valid outbound trains found.");
+                statusMessageContainer.textContent = "No outbound train departures found.";
+                return;
+            }
+
+            // Display departures
+            upcomingTrains.forEach(({ trainName, departureTimeLocal }) => {
+                const formattedTime = departureTimeLocal.toLocaleTimeString();
+                const departureElement = document.createElement('div');
+                departureElement.className = 'departure-time';
+                departureElement.textContent = `${trainName} departs at ${formattedTime}`;
+                departureTimesContainer.appendChild(departureElement);
+            });
+
+        } catch (error) {
+            console.error('❌ Error fetching train departures:', error);
+            document.getElementById('status-message').textContent = 'Error fetching data.';
+        }
+    }
+
+    window.onload = fetchTrainDepartures;
+    </script>
+
+</body>
+</html>
