@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commuter Rail Departures (Debug Mode)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .departure-time {
+            font-size: 18px;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .red {
+            background-color: #ff4c4c;
+            color: white;
+        }
+        .yellow {
+            background-color: #ffcc00;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Commuter Rail Departures (Debug Mode)</h1>
+    <button onclick="fetchTrainDepartures()">Refresh</button>
+    <div id="departure-times"></div>
+
+    <script>
+    async function fetchTrainDepartures() {
+        const API_KEY = "d51c0048255e4bc0b5566d25c619a8a4"; 
+        const url = `https://api-v3.mbta.com/predictions?filter[stop]=place-north&filter[route]=CR-Lowell,CR-Fitchburg,CR-Wachusett&sort=departure_time&include=stop,route&api_key=${API_KEY}`;
+
+        try {
+            console.log("🚀 Fetching outbound train departures from MBTA API...");
+            
+            const response = await fetch(url);
+            const data = await response.json();
+
+            console.log("✅ Full API Response:", data);
+            console.log(`🔎 Total Trains in API Response: ${data.data.length}`);
+            console.log("🔍 Full Train List:", data.data);
+
+            const departureTimesContainer = document.getElementById('departure-times');
+            departureTimesContainer.innerHTML = '';
+
+            if (!data.data || data.data.length === 0) {
+                console.log("⚠️ No train departures found.");
+                departureTimesContainer.textContent = 'No departures available';
+                return;
+            }
+
+            const now = new Date();
+            console.log(`📅 Current Time (Local): ${now}`);
+
+            // Process train departures
+            const upcomingTrains = data.data
+                .map(prediction => {
+                    console.log(`🔍 Train ID: ${prediction.id}, Route: ${prediction.relationships.route.data.id}, Direction: ${prediction.attributes.direction_id}`);
+
+                    // ✅ Ensure this is an outbound train (direction_id = 0)
+                    if (prediction.attributes.direction_id !== 0) {
+                        console.warn(`⚠️ Skipping inbound train: ${prediction.id}`);
+                        return null;
+                    }
+
+                    // ✅ Only use `departure_time`
+                    const rawDepartureTime = prediction.attributes.departure_time;
+                    console.log(`🔍 Raw Departure Time from API: ${rawDepartureTime}`);
+
+                    // 🚨 Ignore trains without a valid `departure_time`
+                    if (!rawDepartureTime || isNaN(Date.parse(rawDepartureTime))) {
+                        console.warn(`⚠️ Skipping train with missing departure time: ${prediction.id}`);
+                        return null;
+                    }
+
+                    let departureTimeUTC = new Date(rawDepartureTime);
+                    let departureTimeLocal = new Date(departureTimeUTC.toLocaleString("en-US", { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+
+                    console.log(`🔍 Processing Train: ${prediction.id} - Departure at (UTC) ${departureTimeUTC}, (Local) ${departureTimeLocal}`);
+
+                    // 🚨 Skip past departures
+                    if (departureTimeLocal < now) {
+                        console.log(`⏭️ Skipping past departure: ${departureTimeLocal}`);
+                        return null;
+                    }
+
+                    const routeId = prediction.relationships.route?.data?.id || "Unknown Route";
+                    const routeData = data.included.find(route => route.id === routeId);
+                    const trainName = routeData?.attributes?.long_name || "Unknown Train";
+
+                    // Get platform information
+                    const stopId = prediction.relationships.stop?.data?.id || "Unknown Stop";
+                    const stopData = data.included.find(stop => stop.id === stopId);
+                    const platform = stopData?.attributes?.platform_code || "N/A"; // Show "N/A" if missing
+
+                    console.log(`🛤️ Platform for ${trainName}: ${platform}`);
+
+                    return { trainName, departureTimeLocal, platform };
+                })
+                .filter(train => train !== null) // ✅ Remove invalid trains
+                .sort((a, b) => a.departureTimeLocal - b.departureTimeLocal); // ✅ Sort by time
+
+            if (upcomingTrains.length === 0) {
+                console.log("⚠️ No valid outbound trains found.");
+                departureTimesContainer.textContent = "No outbound train departures found.";
+                return;
+            }
+
+            // Display departures
+            upcomingTrains.forEach(({ trainName, departureTimeLocal, platform }) => {
+                const timeDifferenceInMs = departureTimeLocal - now;
+                const timeDifferenceMinutes = Math.floor(timeDifferenceInMs / 60000);
+                const timeDifferenceSeconds = Math.floor((timeDifferenceInMs % 60000) / 1000);
+                const formattedTime = `${String(departureTimeLocal.getHours()).padStart(2, '0')}:${String(departureTimeLocal.getMinutes()).padStart(2, '0')}`;
+
+                console.log(`📢 Displaying: ${trainName} at ${formattedTime} - Platform ${platform} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec)`);
+
+                const departureElement = document.createElement('div');
+                departureElement.className = 'departure-time';
+
+                // Assign colors based on the time difference
+                if (timeDifferenceMinutes < 5) {
+                    departureElement.classList.add('red');
+                } else if (timeDifferenceMinutes < 10) {
+                    departureElement.classList.add('yellow');
+                }
+
+                departureElement.textContent = `${trainName} departs at ${formattedTime} (${timeDifferenceMinutes} min ${timeDifferenceSeconds} sec) - Platform: ${platform}`;
+                departureTimesContainer.appendChild(departureElement);
+            });
+
+        } catch (error) {
+            console.error('❌ Error fetching train departures:', error);
+            document.getElementById('departure-times').textContent = 'Error fetching data';
+        }
+    }
+
+
+
+        // Auto-fetch on page load
+        window.onload = fetchTrainDepartures;
+    </script>
+
+</body>
+</html>
