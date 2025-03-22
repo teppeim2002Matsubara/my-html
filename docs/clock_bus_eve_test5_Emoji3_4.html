@@ -518,7 +518,7 @@
       let routes = [];
 
       if (currentDay >= 1 && currentDay <= 5) { // Mon-Fri
-          if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 30)) {
+          if ((currentHour === 7 && currentMinutes >= 0) || (currentHour === 8 && currentMinutes < 00)) {
               // 7:00 AM - 8:30 AM → Show only Route 77 @ 2282
               routes = [{ route: "77", stop: "2282", symbol: "⭐" }];
           } else if ((currentHour === 8 && currentMinutes >= 0) || (currentHour >= 9 && currentHour < 15)) {
