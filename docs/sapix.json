@@ -1,0 +1,2986 @@
+[
+  {
+    "word2": "刻む",
+    "english": "きざむ — carve"
+  },
+  {
+    "word2": "奮う",
+    "english": "ふるう — wield"
+  },
+  {
+    "word2": "穀物",
+    "english": "こくもつ — grain"
+  },
+  {
+    "word2": "清潔",
+    "english": "せいけつ — cleanliness"
+  },
+  {
+    "word2": "拝む",
+    "english": "おがむ — worship"
+  },
+  {
+    "word2": "朗らか",
+    "english": "ほがらか — Cheerful"
+  },
+  {
+    "word2": "垂らす",
+    "english": "たらす — drip"
+  },
+  {
+    "word2": "専念",
+    "english": "せんねん — dedicated"
+  },
+  {
+    "word2": "補う",
+    "english": "おぎなう — compensate"
+  },
+  {
+    "word2": "縦断",
+    "english": "じゅうだん — longitudinal section"
+  },
+  {
+    "word2": "展覧",
+    "english": "てんらん — exhibition"
+  },
+  {
+    "word2": "潔い",
+    "english": "いさぎよい — clean"
+  },
+  {
+    "word2": "慣れる",
+    "english": "なれる — get used to it"
+  },
+  {
+    "word2": "厳かに",
+    "english": "おごそかに — solemnly"
+  },
+  {
+    "word2": "済ます",
+    "english": "すます — finish"
+  },
+  {
+    "word2": "設ける",
+    "english": "もうける — establish"
+  },
+  {
+    "word2": "就職",
+    "english": "しゅうしょく — find work"
+  },
+  {
+    "word2": "看病",
+    "english": "かんびょう — nursing"
+  },
+  {
+    "word2": "勤める",
+    "english": "つとめる — serve"
+  },
+  {
+    "word2": "構える",
+    "english": "かまえる — take a stand"
+  },
+  {
+    "word2": "発芽",
+    "english": "はつが — germination"
+  },
+  {
+    "word2": "預金",
+    "english": "よきん — deposit"
+  },
+  {
+    "word2": "署名",
+    "english": "しょめい — signature"
+  },
+  {
+    "word2": "朗報",
+    "english": "ろうほう — good news"
+  },
+  {
+    "word2": "将来",
+    "english": "しょうらい — future"
+  },
+  {
+    "word2": "操縦",
+    "english": "そうじゅう — maneuver"
+  },
+  {
+    "word2": "脳裏",
+    "english": "のうり — mind"
+  },
+  {
+    "word2": "発展",
+    "english": "はってん — development"
+  },
+  {
+    "word2": "盛る",
+    "english": "もる — Serve"
+  },
+  {
+    "word2": "養蚕",
+    "english": "ようさん — sericulture"
+  },
+  {
+    "word2": "安否",
+    "english": "あんぴ — safety"
+  },
+  {
+    "word2": "車窓",
+    "english": "しゃそう — car window"
+  },
+  {
+    "word2": "奏でる",
+    "english": "かなでる — play"
+  },
+  {
+    "word2": "蒸発",
+    "english": "じょうはつ — evaporation"
+  },
+  {
+    "word2": "尊重",
+    "english": "そんちょう — respect"
+  },
+  {
+    "word2": "領域",
+    "english": "りょういき — region"
+  },
+  {
+    "word2": "候補",
+    "english": "こうほ — candidate"
+  },
+  {
+    "word2": "派手",
+    "english": "はで — flashy"
+  },
+  {
+    "word2": "破損",
+    "english": "はそん — Damage"
+  },
+  {
+    "word2": "訪問",
+    "english": "ほうもん — visit"
+  },
+  {
+    "word2": "率直",
+    "english": "そっちょく — frankness"
+  },
+  {
+    "word2": "潔白",
+    "english": "けっぱく — innocence"
+  },
+  {
+    "word2": "厳密",
+    "english": "げんみつ — strict"
+  },
+  {
+    "word2": "樹立",
+    "english": "じゅりつ — establishment"
+  },
+  {
+    "word2": "宣伝",
+    "english": "せんでん — Advertisement"
+  },
+  {
+    "word2": "存在",
+    "english": "そんざい — existence"
+  },
+  {
+    "word2": "報いる",
+    "english": "むくいる — reward"
+  },
+  {
+    "word2": "無難",
+    "english": "ぶなん — Safe"
+  },
+  {
+    "word2": "降参",
+    "english": "こうさん — Surrender"
+  },
+  {
+    "word2": "勇んで",
+    "english": "いさんで — be brave"
+  },
+  {
+    "word2": "裁判",
+    "english": "さいばん — trial"
+  },
+  {
+    "word2": "責任",
+    "english": "せきにん — responsibility"
+  },
+  {
+    "word2": "宣言",
+    "english": "せんげん — declaration"
+  },
+  {
+    "word2": "博識",
+    "english": "はくしき — knowledgeable"
+  },
+  {
+    "word2": "現象",
+    "english": "げんしょう — phenomenon"
+  },
+  {
+    "word2": "粉末",
+    "english": "ふんまつ — powder"
+  },
+  {
+    "word2": "蒸す",
+    "english": "むす — steam"
+  },
+  {
+    "word2": "改革",
+    "english": "かいかく — reform"
+  },
+  {
+    "word2": "改札",
+    "english": "かいさつ — ticket gate"
+  },
+  {
+    "word2": "済む",
+    "english": "すむ — Finished"
+  },
+  {
+    "word2": "傷",
+    "english": "きず — scratch"
+  },
+  {
+    "word2": "混乱",
+    "english": "こんらん — confusion"
+  },
+  {
+    "word2": "策略",
+    "english": "さくりゃく — trick"
+  },
+  {
+    "word2": "資源",
+    "english": "しげん — resource"
+  },
+  {
+    "word2": "熟れ",
+    "english": "むれ — Ripe"
+  },
+  {
+    "word2": "神秘",
+    "english": "しんぴ — mystery"
+  },
+  {
+    "word2": "態度",
+    "english": "たいど — attitude"
+  },
+  {
+    "word2": "熱湯",
+    "english": "ねっとう — boiling water"
+  },
+  {
+    "word2": "有頂天",
+    "english": "うちょうてん — ecstatic"
+  },
+  {
+    "word2": "乱暴",
+    "english": "らんぼう — violent"
+  },
+  {
+    "word2": "率先",
+    "english": "そっせん — initiative"
+  },
+  {
+    "word2": "温厚",
+    "english": "おんこう — Gentle"
+  },
+  {
+    "word2": "巻頭",
+    "english": "かんとう — Opening page"
+  },
+  {
+    "word2": "境目",
+    "english": "さかいめ — border"
+  },
+  {
+    "word2": "厳格",
+    "english": "げんかく — strict"
+  },
+  {
+    "word2": "厳重",
+    "english": "げんじゅう — strict"
+  },
+  {
+    "word2": "採用",
+    "english": "さいよう — Recruitment"
+  },
+  {
+    "word2": "参拝",
+    "english": "さんぱい — worship"
+  },
+  {
+    "word2": "取捨",
+    "english": "しゅしゃ — disposal"
+  },
+  {
+    "word2": "収縮",
+    "english": "しゅうしゅく — contraction"
+  },
+  {
+    "word2": "純真",
+    "english": "じゅんしん — Innocence"
+  },
+  {
+    "word2": "就任",
+    "english": "しゅうにん — Appointment"
+  },
+  {
+    "word2": "組織",
+    "english": "そしき — organization"
+  },
+  {
+    "word2": "尊ぶ",
+    "english": "とうとぶ — respect"
+  },
+  {
+    "word2": "調達",
+    "english": "ちょうたつ — procurement"
+  },
+  {
+    "word2": "湯気",
+    "english": "ゆげ — steam"
+  },
+  {
+    "word2": "貯金",
+    "english": "ちょきん — saving"
+  },
+  {
+    "word2": "燃焼",
+    "english": "ねんしょう — combustion"
+  },
+  {
+    "word2": "拝見",
+    "english": "はいけん — View"
+  },
+  {
+    "word2": "優れた",
+    "english": "すぐれた — excellent"
+  },
+  {
+    "word2": "奮起",
+    "english": "ふんき — inspiration"
+  },
+  {
+    "word2": "圧巻",
+    "english": "あっかん — The best part"
+  },
+  {
+    "word2": "郵送",
+    "english": "ゆうそう — mail"
+  },
+  {
+    "word2": "延長",
+    "english": "えんちょう — extension"
+  },
+  {
+    "word2": "絹",
+    "english": "きぬ — silk"
+  },
+  {
+    "word2": "困り",
+    "english": "こまり — trouble"
+  },
+  {
+    "word2": "銭湯",
+    "english": "せんとう — public bath"
+  },
+  {
+    "word2": "沿革",
+    "english": "えんかく — History"
+  },
+  {
+    "word2": "芽生え",
+    "english": "めばえ — budding"
+  },
+  {
+    "word2": "改善",
+    "english": "かいぜん — improvement"
+  },
+  {
+    "word2": "究極",
+    "english": "きゅうきょく — ultimate"
+  },
+  {
+    "word2": "軽率",
+    "english": "けいそつ — imprudence"
+  },
+  {
+    "word2": "穀倉",
+    "english": "こくそう — granary"
+  },
+  {
+    "word2": "散策",
+    "english": "さんさく — Strolling around"
+  },
+  {
+    "word2": "授受",
+    "english": "じゅじゅ — giving and receiving"
+  },
+  {
+    "word2": "平易",
+    "english": "へいい — plain"
+  },
+  {
+    "word2": "務め",
+    "english": "つとめる — duty"
+  },
+  {
+    "word2": "類推",
+    "english": "るいすい — analogy"
+  },
+  {
+    "word2": "視野",
+    "english": "しや — field of view"
+  },
+  {
+    "word2": "伝授",
+    "english": "でんじゅ — Initiation"
+  },
+  {
+    "word2": "宣告",
+    "english": "せんこく — declaration"
+  },
+  {
+    "word2": "尊大",
+    "english": "そんだい — arrogant"
+  },
+  {
+    "word2": "損得",
+    "english": "そんとく — Profit and loss"
+  },
+  {
+    "word2": "対策",
+    "english": "たいさく — countermeasure"
+  },
+  {
+    "word2": "貸借",
+    "english": "たいしゃく — loan/borrow"
+  },
+  {
+    "word2": "鉄則",
+    "english": "てっそく — golden rule"
+  },
+  {
+    "word2": "導入",
+    "english": "どうにゅう — introduction"
+  },
+  {
+    "word2": "否定",
+    "english": "ひてい — denial"
+  },
+  {
+    "word2": "服装",
+    "english": "ふくそう — clothing"
+  },
+  {
+    "word2": "奮発",
+    "english": "ふんぱつ — inspiration"
+  },
+  {
+    "word2": "補給",
+    "english": "ほきゅう — supply"
+  },
+  {
+    "word2": "筋書き",
+    "english": "すじがき — plot"
+  },
+  {
+    "word2": "優先",
+    "english": "ゆうせん — priority"
+  },
+  {
+    "word2": "圧勝",
+    "english": "あっしょう — overwhelming victory"
+  },
+  {
+    "word2": "沿岸",
+    "english": "えんがん — coast"
+  },
+  {
+    "word2": "独自",
+    "english": "どくじ — unique"
+  },
+  {
+    "word2": "悪寒",
+    "english": "おかん — chills"
+  },
+  {
+    "word2": "仮装",
+    "english": "かそう — disguise"
+  },
+  {
+    "word2": "解除",
+    "english": "かいじょ — Cancellation"
+  },
+  {
+    "word2": "議論",
+    "english": "ぎろん — discussion"
+  },
+  {
+    "word2": "給湯",
+    "english": "きゅうとう — Hot water supply"
+  },
+  {
+    "word2": "許容",
+    "english": "きょよう — permissible"
+  },
+  {
+    "word2": "観衆",
+    "english": "かんしゅう — audience"
+  },
+  {
+    "word2": "以降",
+    "english": "いこう — onwards"
+  },
+  {
+    "word2": "警告",
+    "english": "けいこく — caveat"
+  },
+  {
+    "word2": "現像",
+    "english": "げんぞう — developing"
+  },
+  {
+    "word2": "誤報",
+    "english": "ごほう — false alarm"
+  },
+  {
+    "word2": "考案",
+    "english": "こうあん — invention"
+  },
+  {
+    "word2": "支配",
+    "english": "しはい — control"
+  },
+  {
+    "word2": "自尊",
+    "english": "じそん — self-respect"
+  },
+  {
+    "word2": "祝賀",
+    "english": "しゅくが — celebration"
+  },
+  {
+    "word2": "消防",
+    "english": "しょうぼう — fire department"
+  },
+  {
+    "word2": "身構える",
+    "english": "みがまえる — prepare yourself"
+  },
+  {
+    "word2": "生誕",
+    "english": "せいたん — birth"
+  },
+  {
+    "word2": "専用",
+    "english": "せんよう — exclusive"
+  },
+  {
+    "word2": "善悪",
+    "english": "ぜんあく — Good and evil"
+  },
+  {
+    "word2": "善処",
+    "english": "ぜんしょ — Good place"
+  },
+  {
+    "word2": "祖父",
+    "english": "そふ — grandfather"
+  },
+  {
+    "word2": "尊厳",
+    "english": "そんげん — dignity"
+  },
+  {
+    "word2": "仲裁",
+    "english": "ちゅうさい — arbitration"
+  },
+  {
+    "word2": "転勤",
+    "english": "てんきん — transfer"
+  },
+  {
+    "word2": "拝借",
+    "english": "はいしゃく — Borrowing"
+  },
+  {
+    "word2": "補欠",
+    "english": "ほけつ — Substitute"
+  },
+  {
+    "word2": "包帯",
+    "english": "ほうたい — bandage"
+  },
+  {
+    "word2": "裏側",
+    "english": "うらがわ — back side"
+  },
+  {
+    "word2": "因果",
+    "english": "いんが — cause and effect"
+  },
+  {
+    "word2": "永遠",
+    "english": "えいえん — eternity"
+  },
+  {
+    "word2": "寄付",
+    "english": "きふ — Donation"
+  },
+  {
+    "word2": "漁業",
+    "english": "ぎょぎょう — fishing"
+  },
+  {
+    "word2": "苦痛",
+    "english": "くつう — pain"
+  },
+  {
+    "word2": "芸術",
+    "english": "げいじゅつ — art"
+  },
+  {
+    "word2": "厳守",
+    "english": "げんしゅ — Strict observance"
+  },
+  {
+    "word2": "構図",
+    "english": "こうず — composition"
+  },
+  {
+    "word2": "混雑",
+    "english": "こんざつ — congestion"
+  },
+  {
+    "word2": "鋼鉄",
+    "english": "こうてつ — steel"
+  },
+  {
+    "word2": "樹木",
+    "english": "じゅもく — tree"
+  },
+  {
+    "word2": "熟読",
+    "english": "じゅくどく — thorough reading"
+  },
+  {
+    "word2": "出勤",
+    "english": "しゅっきん — attendance at work"
+  },
+  {
+    "word2": "勝手",
+    "english": "かって — selfishness"
+  },
+  {
+    "word2": "新芽",
+    "english": "しんめ — Sprout"
+  },
+  {
+    "word2": "神聖",
+    "english": "しんせい — sacred"
+  },
+  {
+    "word2": "制限",
+    "english": "せいげん — limit"
+  },
+  {
+    "word2": "責務",
+    "english": "せきむ — responsibility"
+  },
+  {
+    "word2": "祝い",
+    "english": "いわい — celebration"
+  },
+  {
+    "word2": "先祖",
+    "english": "せんぞ — ancestor"
+  },
+  {
+    "word2": "盛り",
+    "english": "ざかり — portion"
+  },
+  {
+    "word2": "節",
+    "english": "ふし — section"
+  },
+  {
+    "word2": "達者",
+    "english": "たっしゃ — expert"
+  },
+  {
+    "word2": "損失",
+    "english": "そんしつ — loss"
+  },
+  {
+    "word2": "探訪",
+    "english": "たんぼう — exploration"
+  },
+  {
+    "word2": "短冊",
+    "english": "たんざく — strip of paper"
+  },
+  {
+    "word2": "地層",
+    "english": "ちそう — strata"
+  },
+  {
+    "word2": "潮風",
+    "english": "しおかぜ — sea ​​breeze"
+  },
+  {
+    "word2": "湯冷まし",
+    "english": "ゆざまし — Cooling water"
+  },
+  {
+    "word2": "当然",
+    "english": "とうぜん — Naturally"
+  },
+  {
+    "word2": "悲喜",
+    "english": "ひき — sadness and joy"
+  },
+  {
+    "word2": "物議",
+    "english": "ぶつぎ — controversial"
+  },
+  {
+    "word2": "編集",
+    "english": "へんしゅう — edit"
+  },
+  {
+    "word2": "保存",
+    "english": "ほぞん — keep"
+  },
+  {
+    "word2": "補助",
+    "english": "ほじょ — auxiliary"
+  },
+  {
+    "word2": "密閉",
+    "english": "みっぺい — Sealed"
+  },
+  {
+    "word2": "民衆",
+    "english": "みんしゅう — people"
+  },
+  {
+    "word2": "遺伝",
+    "english": "いでん — genetics"
+  },
+  {
+    "word2": "一覧",
+    "english": "いちらん — List"
+  },
+  {
+    "word2": "沿道",
+    "english": "えんどう — roadside"
+  },
+  {
+    "word2": "解任",
+    "english": "かいにん — dismissal"
+  },
+  {
+    "word2": "閣議",
+    "english": "かくぎ — cabinet meeting"
+  },
+  {
+    "word2": "記述",
+    "english": "きじゅつ — description"
+  },
+  {
+    "word2": "急務",
+    "english": "きゅうむ — Urgent task"
+  },
+  {
+    "word2": "鏡台",
+    "english": "きょうだい — dressing table"
+  },
+  {
+    "word2": "警報",
+    "english": "けいほう — alarm"
+  },
+  {
+    "word2": "建設",
+    "english": "けんせつ — construction"
+  },
+  {
+    "word2": "絹糸",
+    "english": "きぬいと — silk thread"
+  },
+  {
+    "word2": "元祖",
+    "english": "がんそ — Ancestor"
+  },
+  {
+    "word2": "厳然",
+    "english": "げんぜん — solemnly"
+  },
+  {
+    "word2": "後片付け",
+    "english": "あとかたづけ — Cleaning up after yourself"
+  },
+  {
+    "word2": "幸運",
+    "english": "こううん — good luck"
+  },
+  {
+    "word2": "構築",
+    "english": "こうちく — construction"
+  },
+  {
+    "word2": "混合",
+    "english": "こんごう — mixture"
+  },
+  {
+    "word2": "裁断",
+    "english": "さいだん — cutting"
+  },
+  {
+    "word2": "際立った",
+    "english": "きわだった — outstanding"
+  },
+  {
+    "word2": "似顔",
+    "english": "にがお — portrait"
+  },
+  {
+    "word2": "手提げ",
+    "english": "てさげ — handbag"
+  },
+  {
+    "word2": "重視",
+    "english": "じゅうし — emphasis"
+  },
+  {
+    "word2": "出演",
+    "english": "しゅつえん — Appearance"
+  },
+  {
+    "word2": "初夏",
+    "english": "しょか — early summer"
+  },
+  {
+    "word2": "得体",
+    "english": "えたい — Existence"
+  },
+  {
+    "word2": "破竹",
+    "english": "はちく — broken bamboo"
+  },
+  {
+    "word2": "負傷",
+    "english": "ふしょう — injury"
+  },
+  {
+    "word2": "勇ましい",
+    "english": "いさましい — Brave"
+  },
+  {
+    "word2": "危うい",
+    "english": "あやうい — Dangerous"
+  },
+  {
+    "word2": "喜ばしい",
+    "english": "よろこばしい — happy"
+  },
+  {
+    "word2": "基づく",
+    "english": "もとづく — based on"
+  },
+  {
+    "word2": "傷口",
+    "english": "きずぐち — wound"
+  },
+  {
+    "word2": "勝因",
+    "english": "しょういん — Cause of victory"
+  },
+  {
+    "word2": "静脈",
+    "english": "じょうみゃく — vein"
+  },
+  {
+    "word2": "設置",
+    "english": "せっち — Installation"
+  },
+  {
+    "word2": "節穴",
+    "english": "ふしあな — knot hole"
+  },
+  {
+    "word2": "祖先",
+    "english": "そせん — ancestor"
+  },
+  {
+    "word2": "生身",
+    "english": "なまみ — flesh and blood"
+  },
+  {
+    "word2": "奏する",
+    "english": "そうする — play"
+  },
+  {
+    "word2": "博す",
+    "english": "はくす — Expand"
+  },
+  {
+    "word2": "筆",
+    "english": "ふで — brush"
+  },
+  {
+    "word2": "冷える",
+    "english": "ひえる — get cold"
+  },
+  {
+    "word2": "創刊",
+    "english": "そうかん — First issue"
+  },
+  {
+    "word2": "装置",
+    "english": "そうち — Device"
+  },
+  {
+    "word2": "属",
+    "english": "ぞく — genus"
+  },
+  {
+    "word2": "賃貸",
+    "english": "ちんたい — rental"
+  },
+  {
+    "word2": "大衆",
+    "english": "たいしゅう — masses"
+  },
+  {
+    "word2": "著述",
+    "english": "ちょじゅつ — writing"
+  },
+  {
+    "word2": "帳消し",
+    "english": "ちょうけし — write off"
+  },
+  {
+    "word2": "通帳",
+    "english": "つうちょう — passbook"
+  },
+  {
+    "word2": "鉄橋",
+    "english": "てっきょう — iron bridge"
+  },
+  {
+    "word2": "日誌",
+    "english": "にっし — diary"
+  },
+  {
+    "word2": "日照り",
+    "english": "ひでり — drought"
+  },
+  {
+    "word2": "年配",
+    "english": "ねんぱい — elderly"
+  },
+  {
+    "word2": "派生",
+    "english": "はせい — derivative"
+  },
+  {
+    "word2": "破片",
+    "english": "はへん — debris"
+  },
+  {
+    "word2": "配属",
+    "english": "はいぞく — Assignment"
+  },
+  {
+    "word2": "不潔",
+    "english": "ふけつ — filthiness"
+  },
+  {
+    "word2": "不測",
+    "english": "ふそく — unexpected"
+  },
+  {
+    "word2": "服従",
+    "english": "ふくじゅう — obedience"
+  },
+  {
+    "word2": "陛下",
+    "english": "へいか — His Majesty"
+  },
+  {
+    "word2": "片側",
+    "english": "かたがわ — one side"
+  },
+  {
+    "word2": "返済",
+    "english": "へんさい — repayment"
+  },
+  {
+    "word2": "包囲",
+    "english": "ほうい — siege"
+  },
+  {
+    "word2": "包装",
+    "english": "ほうそう — packaging"
+  },
+  {
+    "word2": "幕末",
+    "english": "ばくまつ — end of the Edo period"
+  },
+  {
+    "word2": "未然",
+    "english": "みぜん — unforeseen"
+  },
+  {
+    "word2": "密着",
+    "english": "みっちゃく — close contact"
+  },
+  {
+    "word2": "無限",
+    "english": "むげん — infinite"
+  },
+  {
+    "word2": "優待",
+    "english": "ゆうたい — preferential treatment"
+  },
+  {
+    "word2": "裕福",
+    "english": "ゆうふく — wealthy"
+  },
+  {
+    "word2": "幼少",
+    "english": "ようしょう — childhood"
+  },
+  {
+    "word2": "旅客",
+    "english": "りょかく — passenger"
+  },
+  {
+    "word2": "悪夢",
+    "english": "あくむ — nightmare"
+  },
+  {
+    "word2": "極寒",
+    "english": "ごっかん — Extremely cold"
+  },
+  {
+    "word2": "厳寒",
+    "english": "げんかん — bitter cold"
+  },
+  {
+    "word2": "巻末",
+    "english": "かんまつ — End of book"
+  },
+  {
+    "word2": "安価",
+    "english": "あんか — cheap"
+  },
+  {
+    "word2": "留任",
+    "english": "りゅうにん — Remaining in office"
+  },
+  {
+    "word2": "無性",
+    "english": "むしょう — asexual"
+  },
+  {
+    "word2": "脈絡",
+    "english": "みゃくらく — context"
+  },
+  {
+    "word2": "防衛策",
+    "english": "ぼうえいさく — defense measures"
+  },
+  {
+    "word2": "富裕",
+    "english": "ふゆう — Wealth"
+  },
+  {
+    "word2": "突飛",
+    "english": "とっぴ — Outlandish"
+  },
+  {
+    "word2": "得策",
+    "english": "とくさく — good idea"
+  },
+  {
+    "word2": "同窓",
+    "english": "どうそう — Alumni"
+  },
+  {
+    "word2": "党派",
+    "english": "とうは — faction"
+  },
+  {
+    "word2": "常設",
+    "english": "じょうせつ — Permanently installed"
+  },
+  {
+    "word2": "純情",
+    "english": "じゅんじょう — Pure love"
+  },
+  {
+    "word2": "卵白",
+    "english": "らんぱく — egg white"
+  },
+  {
+    "word2": "背景",
+    "english": "はいけい — background"
+  },
+  {
+    "word2": "解毒",
+    "english": "げどく — detoxification"
+  },
+  {
+    "word2": "臣下",
+    "english": "しんか — vassal"
+  },
+  {
+    "word2": "混迷",
+    "english": "こんめい — confusion"
+  },
+  {
+    "word2": "乗降",
+    "english": "じょうこう — Getting on and off"
+  },
+  {
+    "word2": "諸君",
+    "english": "しょくん — Gentlemen"
+  },
+  {
+    "word2": "現像",
+    "english": "げんぞう — developing"
+  },
+  {
+    "word2": "誤報",
+    "english": "ごほう — false alarm"
+  },
+  {
+    "word2": "考案",
+    "english": "こうあん — invention"
+  },
+  {
+    "word2": "支配",
+    "english": "しはい — control"
+  },
+  {
+    "word2": "自尊",
+    "english": "じそん — self-respect"
+  },
+  {
+    "word2": "祝賀",
+    "english": "しゅくが — celebration"
+  },
+  {
+    "word2": "消防",
+    "english": "しょうぼう — fire department"
+  },
+  {
+    "word2": "身構える",
+    "english": "みがまえる — prepare yourself"
+  },
+  {
+    "word2": "生誕",
+    "english": "せいたん — birth"
+  },
+  {
+    "word2": "専用",
+    "english": "せんよう — exclusive"
+  },
+  {
+    "word2": "善悪",
+    "english": "ぜんあく — Good and evil"
+  },
+  {
+    "word2": "善処",
+    "english": "ぜんしょ — Good place"
+  },
+  {
+    "word2": "祖父",
+    "english": "そふ — grandfather"
+  },
+  {
+    "word2": "尊厳",
+    "english": "そんげん — dignity"
+  },
+  {
+    "word2": "仲裁",
+    "english": "ちゅうさい — arbitration"
+  },
+  {
+    "word2": "転勤",
+    "english": "てんきん — transfer"
+  },
+  {
+    "word2": "拝借",
+    "english": "はいしゃく — Borrowing"
+  },
+  {
+    "word2": "補欠",
+    "english": "ほけつ — Substitute"
+  },
+  {
+    "word2": "営む",
+    "english": "いとなむ — operate"
+  },
+  {
+    "word2": "省ける",
+    "english": "はぶける — can be omitted"
+  },
+  {
+    "word2": "頂",
+    "english": "いただき — top"
+  },
+  {
+    "word2": "直ちに",
+    "english": "ただちに — right away"
+  },
+  {
+    "word2": "著しい",
+    "english": "いちじるしい — remarkable"
+  },
+  {
+    "word2": "幼い",
+    "english": "おさない — young"
+  },
+  {
+    "word2": "厳かに",
+    "english": "おごそかに — solemnly"
+  },
+  {
+    "word2": "逆らって",
+    "english": "さからって — against"
+  },
+  {
+    "word2": "健やかな",
+    "english": "すこやかな — healthy"
+  },
+  {
+    "word2": "至る",
+    "english": "いたる — reach"
+  },
+  {
+    "word2": "従って",
+    "english": "したがって — Therefore"
+  },
+  {
+    "word2": "速やかに",
+    "english": "すみやかに — promptly"
+  },
+  {
+    "word2": "注ぐ",
+    "english": "そそぐ — pour"
+  },
+  {
+    "word2": "半ば",
+    "english": "なかば — middle"
+  },
+  {
+    "word2": "費やす",
+    "english": "ついやす — spend"
+  },
+  {
+    "word2": "操る",
+    "english": "あやつる — manipulate"
+  },
+  {
+    "word2": "築く",
+    "english": "きずく — build"
+  },
+  {
+    "word2": "背いて",
+    "english": "そむいて — Disobey"
+  },
+  {
+    "word2": "背ける",
+    "english": "そむける — turn away"
+  },
+  {
+    "word2": "反らせて",
+    "english": "そらせて — Warp it"
+  },
+  {
+    "word2": "試みる",
+    "english": "こころみる — try"
+  },
+  {
+    "word2": "退く",
+    "english": "しりぞく — retreat"
+  },
+  {
+    "word2": "担う",
+    "english": "になう — take charge"
+  },
+  {
+    "word2": "養う",
+    "english": "やしなう — feed"
+  },
+  {
+    "word2": "訪れる",
+    "english": "おとずれる — visit"
+  },
+  {
+    "word2": "連なり",
+    "english": "つらなり — series"
+  },
+  {
+    "word2": "和らぐ",
+    "english": "やわらぐ — Relax"
+  },
+  {
+    "word2": "群がる",
+    "english": "むらがる — flock together"
+  },
+  {
+    "word2": "承って",
+    "english": "うけたまわって — Accept it"
+  },
+  {
+    "word2": "専ら",
+    "english": "もっぱら — solely"
+  },
+  {
+    "word2": "退けて",
+    "english": "しりぞけて — Get rid of it"
+  },
+  {
+    "word2": "報いた",
+    "english": "むくいた — rewarded"
+  },
+  {
+    "word2": "目の当たり",
+    "english": "まのあたり — in sight"
+  },
+  {
+    "word2": "勇み",
+    "english": "いさみ — Courage"
+  },
+  {
+    "word2": "目す",
+    "english": "もくす — Eyes"
+  },
+  {
+    "word2": "営み",
+    "english": "いとなみ — business"
+  },
+  {
+    "word2": "割いて",
+    "english": "さいて — Split it"
+  },
+  {
+    "word2": "研いで",
+    "english": "といで — sharpen"
+  },
+  {
+    "word2": "刷る",
+    "english": "する — print"
+  },
+  {
+    "word2": "障り",
+    "english": "さわり — Obstacle"
+  },
+  {
+    "word2": "染める",
+    "english": "そめる — dye"
+  },
+  {
+    "word2": "損なう",
+    "english": "そこなう — spoil"
+  },
+  {
+    "word2": "断る",
+    "english": "ことわる — turn down"
+  },
+  {
+    "word2": "記す",
+    "english": "しるす — write down"
+  },
+  {
+    "word2": "強いる",
+    "english": "しいる — force"
+  },
+  {
+    "word2": "筋",
+    "english": "すじ — logic"
+  },
+  {
+    "word2": "授け",
+    "english": "さず — Bestow"
+  },
+  {
+    "word2": "縦",
+    "english": "たて — vertical"
+  },
+  {
+    "word2": "縮む",
+    "english": "たて — shrink"
+  },
+  {
+    "word2": "傷",
+    "english": "きずく — scratch"
+  },
+  {
+    "word2": "装い",
+    "english": "よそおい — Attire"
+  },
+  {
+    "word2": "兆し",
+    "english": "きざし — signs"
+  },
+  {
+    "word2": "交わす",
+    "english": "かわす — dodge"
+  },
+  {
+    "word2": "災い",
+    "english": "わざわい — disaster"
+  },
+  {
+    "word2": "省みる",
+    "english": "かえりみる — reflect on"
+  },
+  {
+    "word2": "積む",
+    "english": "つむ — pile up"
+  },
+  {
+    "word2": "尊ぶ",
+    "english": "とうとぶ — respect"
+  },
+  {
+    "word2": "優れた",
+    "english": "すぐれた — excellent"
+  },
+  {
+    "word2": "預かる",
+    "english": "あずかる — look after"
+  },
+  {
+    "word2": "栄えた",
+    "english": "さかえた — prospered"
+  },
+  {
+    "word2": "外れる",
+    "english": "はずれる — Comes off"
+  },
+  {
+    "word2": "干す",
+    "english": "ほす — dry"
+  },
+  {
+    "word2": "絹",
+    "english": "きぬ — silk"
+  },
+  {
+    "word2": "察する",
+    "english": "さっする — guess"
+  },
+  {
+    "word2": "笛",
+    "english": "ふえ — whistle"
+  },
+  {
+    "word2": "辺り",
+    "english": "あたり — Around"
+  },
+  {
+    "word2": "放つ",
+    "english": "はなつ — release"
+  },
+  {
+    "word2": "興じる",
+    "english": "きょうじる — have fun"
+  },
+  {
+    "word2": "興ずる",
+    "english": "きょうずる — be excited"
+  },
+  {
+    "word2": "源",
+    "english": "みなもと — source"
+  },
+  {
+    "word2": "鋼",
+    "english": "はがね — steel"
+  },
+  {
+    "word2": "試す",
+    "english": "ためす — try"
+  },
+  {
+    "word2": "自ら",
+    "english": "みずから — oneself"
+  },
+  {
+    "word2": "集い",
+    "english": "つどい — gathering"
+  },
+  {
+    "word2": "集う",
+    "english": "つどう — gather together"
+  },
+  {
+    "word2": "縮まる",
+    "english": "ちぢまる — shrink"
+  },
+  {
+    "word2": "商う",
+    "english": "あきなう — trade"
+  },
+  {
+    "word2": "焼いて",
+    "english": "やいて — Bake it"
+  },
+  {
+    "word2": "担いで",
+    "english": "かついで — Carry it on your shoulders"
+  },
+  {
+    "word2": "独り",
+    "english": "ひとり — alone"
+  },
+  {
+    "word2": "肥える",
+    "english": "こえる — get fat"
+  },
+  {
+    "word2": "俵",
+    "english": "たわら — bales"
+  },
+  {
+    "word2": "訳",
+    "english": "わけ — reason"
+  },
+  {
+    "word2": "和む",
+    "english": "なごむ — Soothe"
+  },
+  {
+    "word2": "委ねる",
+    "english": "ゆだねる — entrust"
+  },
+  {
+    "word2": "過ち",
+    "english": "あやまち — mistake"
+  },
+  {
+    "word2": "疑う",
+    "english": "うたがう — doubt"
+  },
+  {
+    "word2": "逆なで",
+    "english": "さかなで — Reverse stroke"
+  },
+  {
+    "word2": "訳す",
+    "english": "やくす — translate"
+  },
+  {
+    "word2": "競う",
+    "english": "きそう — compete"
+  },
+  {
+    "word2": "競る",
+    "english": "せる — compete"
+  },
+  {
+    "word2": "空き家",
+    "english": "あきや — empty house"
+  },
+  {
+    "word2": "計らう",
+    "english": "はからう — plan"
+  },
+  {
+    "word2": "欠く",
+    "english": "かく — lack"
+  },
+  {
+    "word2": "幸い",
+    "english": "さいわい — fortunately"
+  },
+  {
+    "word2": "講じる",
+    "english": "こうじる — take lessons"
+  },
+  {
+    "word2": "際",
+    "english": "きわ — edge"
+  },
+  {
+    "word2": "示す",
+    "english": "しめす — show"
+  },
+  {
+    "word2": "社",
+    "english": "やしろ — company"
+  },
+  {
+    "word2": "宿す",
+    "english": "やどす — stay"
+  },
+  {
+    "word2": "縮めて",
+    "english": "ちぢめて — Shrink it"
+  },
+  {
+    "word2": "盛り",
+    "english": "さかり — portion"
+  },
+  {
+    "word2": "節",
+    "english": "ふし — section"
+  },
+  {
+    "word2": "損ねる",
+    "english": "そこねる — damage"
+  },
+  {
+    "word2": "反る",
+    "english": "そる — warp"
+  },
+  {
+    "word2": "肥ゆる",
+    "english": "こゆる — thicken"
+  },
+  {
+    "word2": "満たす",
+    "english": "みたす — satisfy"
+  },
+  {
+    "word2": "明らか",
+    "english": "あきらか — clear"
+  },
+  {
+    "word2": "勇ましい",
+    "english": "いさましい — Brave"
+  },
+  {
+    "word2": "幼なじみ",
+    "english": "おさななじみ — childhood friend"
+  },
+  {
+    "word2": "連れ",
+    "english": "つれ — Companion"
+  },
+  {
+    "word2": "和やか",
+    "english": "なごやか — Peaceful"
+  },
+  {
+    "word2": "育んだ",
+    "english": "はぐくんだ — nurtured"
+  },
+  {
+    "word2": "危うい",
+    "english": "あやうい — Dangerous"
+  },
+  {
+    "word2": "器",
+    "english": "うつわ — vessel"
+  },
+  {
+    "word2": "基づく",
+    "english": "もとづく — based on"
+  },
+  {
+    "word2": "逆立て",
+    "english": "さかだて — handstand"
+  },
+  {
+    "word2": "競る",
+    "english": "せる — compete"
+  },
+  {
+    "word2": "空",
+    "english": "から — sky"
+  },
+  {
+    "word2": "結う",
+    "english": "ゆう — tie"
+  },
+  {
+    "word2": "己",
+    "english": "おのれ — Self"
+  },
+  {
+    "word2": "交えて",
+    "english": "まじえて — together with"
+  },
+  {
+    "word2": "散らかった",
+    "english": "ちらかった — messy"
+  },
+  {
+    "word2": "辞した",
+    "english": "じした — resigned"
+  },
+  {
+    "word2": "尺",
+    "english": "しゃく — shaku"
+  },
+  {
+    "word2": "老いる",
+    "english": "おいる — getting old"
+  },
+  {
+    "word2": "常",
+    "english": "つね — always"
+  },
+  {
+    "word2": "蒸らした",
+    "english": "むらした — steamed"
+  },
+  {
+    "word2": "積もる",
+    "english": "つもる — accumulate"
+  },
+  {
+    "word2": "絶やす",
+    "english": "たやす — eradicate"
+  },
+  {
+    "word2": "奏する",
+    "english": "そうする — play"
+  },
+  {
+    "word2": "尊い",
+    "english": "とうとい — precious"
+  },
+  {
+    "word2": "値",
+    "english": "あたい — value"
+  },
+  {
+    "word2": "度",
+    "english": "たび — degree"
+  },
+  {
+    "word2": "秘める",
+    "english": "ひめる — hide"
+  },
+  {
+    "word2": "富む",
+    "english": "とむ — rich"
+  },
+  {
+    "word2": "業",
+    "english": "ごう — business"
+  },
+  {
+    "word2": "典型",
+    "english": "てんけい — typical"
+  },
+  {
+    "word2": "車窓",
+    "english": "しゃそう — car window"
+  },
+  {
+    "word2": "綿密",
+    "english": "めんみつ — meticulous"
+  },
+  {
+    "word2": "意図",
+    "english": "いと — intention"
+  },
+  {
+    "word2": "刷新",
+    "english": "さっしん — renewal"
+  },
+  {
+    "word2": "折半",
+    "english": "せっぱん — half"
+  },
+  {
+    "word2": "従事",
+    "english": "じゅうじ — engaged"
+  },
+  {
+    "word2": "重宝",
+    "english": "ちょうほう — Useful"
+  },
+  {
+    "word2": "察知",
+    "english": "さっち — Perception"
+  },
+  {
+    "word2": "治安",
+    "english": "ちあん — Public order"
+  },
+  {
+    "word2": "格好",
+    "english": "かっこう — cool"
+  },
+  {
+    "word2": "誠実",
+    "english": "せいじつ — sincerity"
+  },
+  {
+    "word2": "由来",
+    "english": "ゆらい — Origin"
+  },
+  {
+    "word2": "臨時",
+    "english": "りんじ — temporary"
+  },
+  {
+    "word2": "前提",
+    "english": "ぜんてい — premise"
+  },
+  {
+    "word2": "至急",
+    "english": "しきゅう — urgent"
+  },
+  {
+    "word2": "経由",
+    "english": "けいゆ — via"
+  },
+  {
+    "word2": "余念",
+    "english": "よねん — regret"
+  },
+  {
+    "word2": "生息",
+    "english": "せいそく — Habitat"
+  },
+  {
+    "word2": "推測",
+    "english": "すいそく — guess"
+  },
+  {
+    "word2": "修復",
+    "english": "しゅうふく — repair"
+  },
+  {
+    "word2": "向上",
+    "english": "こうじょう — improvement"
+  },
+  {
+    "word2": "机上",
+    "english": "きじょう — on desk"
+  },
+  {
+    "word2": "密接",
+    "english": "みっせつ — close"
+  },
+  {
+    "word2": "引責",
+    "english": "いんせき — responsibility"
+  },
+  {
+    "word2": "圧巻",
+    "english": "あっかん — The best part"
+  },
+  {
+    "word2": "快挙",
+    "english": "かいきょ — A great achievement"
+  },
+  {
+    "word2": "次第",
+    "english": "しだい — depend on"
+  },
+  {
+    "word2": "持久",
+    "english": "じきゅう — endurance"
+  },
+  {
+    "word2": "去就",
+    "english": "きょしゅう — departure"
+  },
+  {
+    "word2": "借用",
+    "english": "しゃくよう — borrowing"
+  },
+  {
+    "word2": "消息",
+    "english": "しょうそく — news"
+  },
+  {
+    "word2": "順応",
+    "english": "じゅんのう — adaptation"
+  },
+  {
+    "word2": "除外",
+    "english": "じょがい — exclusion"
+  },
+  {
+    "word2": "処置",
+    "english": "しょち — treatment"
+  },
+  {
+    "word2": "兆候",
+    "english": "ちょうこう — signs"
+  },
+  {
+    "word2": "念願",
+    "english": "ねんがん — Desire"
+  },
+  {
+    "word2": "点呼",
+    "english": "てんこ — roll call"
+  },
+  {
+    "word2": "頭角",
+    "english": "とうかく — prominence"
+  },
+  {
+    "word2": "必然",
+    "english": "ひつぜん — inevitable"
+  },
+  {
+    "word2": "万全",
+    "english": "ばんぜん — Everything is perfect"
+  },
+  {
+    "word2": "貧困",
+    "english": "ひんこん — poverty"
+  },
+  {
+    "word2": "一丸",
+    "english": "いちがん — Ichimaru"
+  },
+  {
+    "word2": "丸薬",
+    "english": "がんやく — pills"
+  },
+  {
+    "word2": "一対",
+    "english": "いっつい — pair"
+  },
+  {
+    "word2": "横行",
+    "english": "おうこう — rampant"
+  },
+  {
+    "word2": "旗手",
+    "english": "きしゅ — standard bearer"
+  },
+  {
+    "word2": "居住",
+    "english": "きょじゅう — residence"
+  },
+  {
+    "word2": "従順",
+    "english": "じゅうじゅん — obedience"
+  },
+  {
+    "word2": "賛否",
+    "english": "さんぴ — pros and cons"
+  },
+  {
+    "word2": "質素",
+    "english": "しっそ — frugal"
+  },
+  {
+    "word2": "質疑",
+    "english": "しつぎ — Q&A"
+  },
+  {
+    "word2": "切実",
+    "english": "せつじつ — earnestness"
+  },
+  {
+    "word2": "順延",
+    "english": "じゅんえん — postponement"
+  },
+  {
+    "word2": "真意",
+    "english": "しんい — true intention"
+  },
+  {
+    "word2": "潮時",
+    "english": "しおどき — tide time"
+  },
+  {
+    "word2": "徒労",
+    "english": "とろう — effort in vain"
+  },
+  {
+    "word2": "痛快",
+    "english": "つうかい — Exhilarating"
+  },
+  {
+    "word2": "伝承",
+    "english": "でんしょう — tradition"
+  },
+  {
+    "word2": "痛切",
+    "english": "つうせつ — painful feeling"
+  },
+  {
+    "word2": "武者",
+    "english": "むしゃ — warrior"
+  },
+  {
+    "word2": "皮革",
+    "english": "ひかく — leather"
+  },
+  {
+    "word2": "平然",
+    "english": "へいぜん — calmly"
+  },
+  {
+    "word2": "異存",
+    "english": "いぞん — disagreement"
+  },
+  {
+    "word2": "容姿",
+    "english": "ようし — appearance"
+  },
+  {
+    "word2": "一因",
+    "english": "いちいん — cause"
+  },
+  {
+    "word2": "過言",
+    "english": "かごん — exaggeration"
+  },
+  {
+    "word2": "間近",
+    "english": "まぢか — Close up"
+  },
+  {
+    "word2": "至極",
+    "english": "しごく — Extremely"
+  },
+  {
+    "word2": "血眼",
+    "english": "ちまなこ — bloody eyes"
+  },
+  {
+    "word2": "心底",
+    "english": "しんそこ — from the bottom of my heart"
+  },
+  {
+    "word2": "人気",
+    "english": "ひとけ — Popularity"
+  },
+  {
+    "word2": "寸断",
+    "english": "すんだん — Shredded"
+  },
+  {
+    "word2": "節目",
+    "english": "ふしめ — milestone"
+  },
+  {
+    "word2": "寸法",
+    "english": "すんぽう — size"
+  },
+  {
+    "word2": "対処",
+    "english": "たいしょ — handle"
+  },
+  {
+    "word2": "断続",
+    "english": "だんぞく — intermittent"
+  },
+  {
+    "word2": "徒党",
+    "english": "ととう — clique"
+  },
+  {
+    "word2": "文武",
+    "english": "ぶんぶ — Literature and martial arts"
+  },
+  {
+    "word2": "納入",
+    "english": "のうにゅう — Delivery"
+  },
+  {
+    "word2": "表札",
+    "english": "ひょうさつ — nameplate"
+  },
+  {
+    "word2": "反映",
+    "english": "はんえい — reflection"
+  },
+  {
+    "word2": "余興",
+    "english": "よきょう — entertainment"
+  },
+  {
+    "word2": "密閉",
+    "english": "みっぺい — Sealed"
+  },
+  {
+    "word2": "意欲",
+    "english": "いよく — Willingness"
+  },
+  {
+    "word2": "遠浅",
+    "english": "とおあさ — Shallow distance"
+  },
+  {
+    "word2": "快活",
+    "english": "かいかつ — Cheerful"
+  },
+  {
+    "word2": "各人",
+    "english": "かくじん — each person"
+  },
+  {
+    "word2": "加担",
+    "english": "かたん — complicity"
+  },
+  {
+    "word2": "関連",
+    "english": "かんれん — connection"
+  },
+  {
+    "word2": "干満",
+    "english": "かんまん — ebb and flow"
+  },
+  {
+    "word2": "気高さ",
+    "english": "けだかさ — nobility"
+  },
+  {
+    "word2": "旗色",
+    "english": "はたいろ — flag color"
+  },
+  {
+    "word2": "揮発",
+    "english": "きはつ — Volatile"
+  },
+  {
+    "word2": "研修",
+    "english": "けんしゅう — training"
+  },
+  {
+    "word2": "気骨",
+    "english": "きこつ — grit"
+  },
+  {
+    "word2": "曲解",
+    "english": "きょっかい — distortion"
+  },
+  {
+    "word2": "権限",
+    "english": "けんげん — authority"
+  },
+  {
+    "word2": "紅潮",
+    "english": "こうちょう — flushing"
+  },
+  {
+    "word2": "採寸",
+    "english": "さいすん — Measuring"
+  },
+  {
+    "word2": "行楽",
+    "english": "こうらく — Excursion"
+  },
+  {
+    "word2": "参画",
+    "english": "さんかく — Participation"
+  },
+  {
+    "word2": "産物",
+    "english": "さんぶつ — product"
+  },
+  {
+    "word2": "時折",
+    "english": "ときおり — sometimes"
+  },
+  {
+    "word2": "辞職",
+    "english": "じしょく — Resignation"
+  },
+  {
+    "word2": "自責",
+    "english": "じせき — self-blame"
+  },
+  {
+    "word2": "手間",
+    "english": "てま — time and effort"
+  },
+  {
+    "word2": "主眼",
+    "english": "しゅがん — Main focus"
+  },
+  {
+    "word2": "縮刷",
+    "english": "しゅくさつ — Reduced printing"
+  },
+  {
+    "word2": "除去",
+    "english": "じょきょ — removal"
+  },
+  {
+    "word2": "仁術",
+    "english": "じんじゅつ — benevolence"
+  },
+  {
+    "word2": "承服",
+    "english": "しょうふく — compliance"
+  },
+  {
+    "word2": "植樹",
+    "english": "しょくじゅ — tree planting"
+  },
+  {
+    "word2": "象徴",
+    "english": "しょうちょう — symbol"
+  },
+  {
+    "word2": "精根",
+    "english": "せいこん — seminal root"
+  },
+  {
+    "word2": "制御",
+    "english": "せいぎょ — control"
+  },
+  {
+    "word2": "誠意",
+    "english": "せいい — sincerity"
+  },
+  {
+    "word2": "戦略",
+    "english": "せんりゃく — strategy"
+  },
+  {
+    "word2": "絶賛",
+    "english": "ぜっさん — High praise"
+  },
+  {
+    "word2": "絶頂",
+    "english": "ぜっちょう — Climax"
+  },
+  {
+    "word2": "染色",
+    "english": "せんしょく — staining"
+  },
+  {
+    "word2": "船旅",
+    "english": "ふなたび — boat trip"
+  },
+  {
+    "word2": "選出",
+    "english": "せんしゅつ — election"
+  },
+  {
+    "word2": "貸与",
+    "english": "たいよ — loan"
+  },
+  {
+    "word2": "増益",
+    "english": "ぞうえき — Increase in profits"
+  },
+  {
+    "word2": "対比",
+    "english": "たいひ — contrast"
+  },
+  {
+    "word2": "造成",
+    "english": "ぞうせい — creation"
+  },
+  {
+    "word2": "大枚",
+    "english": "たいまい — large piece"
+  },
+  {
+    "word2": "低迷",
+    "english": "ていめい — slump"
+  },
+  {
+    "word2": "忠誠",
+    "english": "ちゅうせい — loyalty"
+  },
+  {
+    "word2": "渡航",
+    "english": "とこう — Traveling"
+  },
+  {
+    "word2": "同居",
+    "english": "どうきょ — Living together"
+  },
+  {
+    "word2": "得手",
+    "english": "えて — good at"
+  },
+  {
+    "word2": "悲痛",
+    "english": "ひつぜん — heartbreak"
+  },
+  {
+    "word2": "反物",
+    "english": "たんもの — cloth"
+  },
+  {
+    "word2": "貧弱",
+    "english": "ひんじゃく — poor"
+  },
+  {
+    "word2": "明晩",
+    "english": "みょうばん — Tomorrow night"
+  },
+  {
+    "word2": "亡命",
+    "english": "ぼうめい — exile"
+  },
+  {
+    "word2": "暴挙",
+    "english": "ぼうきょ — outrage"
+  },
+  {
+    "word2": "無下",
+    "english": "むげ — No subordinate"
+  },
+  {
+    "word2": "余白",
+    "english": "よはく — margin"
+  },
+  {
+    "word2": "迷宮",
+    "english": "めいきゅう — labyrinth"
+  },
+  {
+    "word2": "綿毛",
+    "english": "わたげ — fluff"
+  },
+  {
+    "word2": "門戸",
+    "english": "もんこ — door"
+  },
+  {
+    "word2": "力量",
+    "english": "りきりょう — competence"
+  },
+  {
+    "word2": "歴任",
+    "english": "れきにん — Successive positions"
+  },
+  {
+    "word2": "列挙",
+    "english": "れっきょ — enumeration"
+  },
+  {
+    "word2": "一矢",
+    "english": "いっし — Kazuya"
+  },
+  {
+    "word2": "一糸",
+    "english": "いっし — one thread"
+  },
+  {
+    "word2": "委細",
+    "english": "いさい — details"
+  },
+  {
+    "word2": "委任",
+    "english": "いにん — delegation"
+  },
+  {
+    "word2": "委曲",
+    "english": "いきょく — commission"
+  },
+  {
+    "word2": "羽目",
+    "english": "はめ — trouble"
+  },
+  {
+    "word2": "可否",
+    "english": "かひ — Possibility"
+  },
+  {
+    "word2": "呼応",
+    "english": "こおう — response"
+  },
+  {
+    "word2": "希求",
+    "english": "ききゅう — desire"
+  },
+  {
+    "word2": "血相",
+    "english": "けっそう — blood phase"
+  },
+  {
+    "word2": "子細",
+    "english": "しさい — details"
+  },
+  {
+    "word2": "自重",
+    "english": "じちょう — own weight"
+  },
+  {
+    "word2": "耳目",
+    "english": "じもく — attention"
+  },
+  {
+    "word2": "縦走",
+    "english": "じゅうそう — Traverse"
+  },
+  {
+    "word2": "出色",
+    "english": "しゅっしょく — Outstanding"
+  },
+  {
+    "word2": "情操",
+    "english": "じょうそう — emotion"
+  },
+  {
+    "word2": "助長",
+    "english": "じょちょう — encouragement"
+  },
+  {
+    "word2": "度量",
+    "english": "どりょう — measure"
+  },
+  {
+    "word2": "丁重",
+    "english": "ていちょう — Courtesy"
+  },
+  {
+    "word2": "性急",
+    "english": "せいきゅう — hasty"
+  },
+  {
+    "word2": "中傷",
+    "english": "ちゅうしょう — slander"
+  },
+  {
+    "word2": "物色",
+    "english": "ぶっしょく — Searching for things"
+  },
+  {
+    "word2": "背徳",
+    "english": "はいとく — immorality"
+  },
+  {
+    "word2": "毛頭",
+    "english": "もうとう — hair head"
+  },
+  {
+    "word2": "面長",
+    "english": "おもなが — long face"
+  },
+  {
+    "word2": "命名",
+    "english": "めいめい — naming"
+  },
+  {
+    "word2": "予兆",
+    "english": "よちょう — omen"
+  },
+  {
+    "word2": "口述",
+    "english": "こうじゅつ — dictation"
+  },
+  {
+    "word2": "納得",
+    "english": "なっとく — Consent"
+  },
+  {
+    "word2": "形相",
+    "english": "ぎょうそう — form"
+  },
+  {
+    "word2": "境内",
+    "english": "けいだい — Precinct"
+  },
+  {
+    "word2": "雑木林",
+    "english": "ぞうきばやし — copse of trees"
+  },
+  {
+    "word2": "規模",
+    "english": "きぼ — scale"
+  },
+  {
+    "word2": "分別",
+    "english": "ふんべつ — sorting"
+  },
+  {
+    "word2": "成就",
+    "english": "じょうじゅ — fulfillment"
+  },
+  {
+    "word2": "若干",
+    "english": "じゃっかん — Somewhat"
+  },
+  {
+    "word2": "本音",
+    "english": "ほんね — true feelings"
+  },
+  {
+    "word2": "工面",
+    "english": "くめん — construction surface"
+  },
+  {
+    "word2": "早速",
+    "english": "さっそく — right away"
+  },
+  {
+    "word2": "体裁",
+    "english": "ていさい — Appearance"
+  },
+  {
+    "word2": "河川",
+    "english": "かせん — river"
+  },
+  {
+    "word2": "発作",
+    "english": "ほっさ — seizure"
+  },
+  {
+    "word2": "往生",
+    "english": "おうじょう — Rebirth"
+  },
+  {
+    "word2": "会得",
+    "english": "えとく — acquisition"
+  },
+  {
+    "word2": "行方",
+    "english": "ゆくえ — whereabouts"
+  },
+  {
+    "word2": "心地",
+    "english": "ここち — Comfort"
+  },
+  {
+    "word2": "精進",
+    "english": "しょうじん — Devotion"
+  },
+  {
+    "word2": "素足",
+    "english": "すあし — barefoot"
+  },
+  {
+    "word2": "直筆",
+    "english": "じきひつ — Handwritten"
+  },
+  {
+    "word2": "幕間",
+    "english": "まくあい — interlude"
+  },
+  {
+    "word2": "養生",
+    "english": "ようじょう — Health care"
+  },
+  {
+    "word2": "流布",
+    "english": "るふ — dissemination"
+  },
+  {
+    "word2": "見聞",
+    "english": "けんぶん — Observations"
+  },
+  {
+    "word2": "合点",
+    "english": "がてん — total score"
+  },
+  {
+    "word2": "砂利",
+    "english": "じゃり — gravel"
+  },
+  {
+    "word2": "支度",
+    "english": "したく — Preparation"
+  },
+  {
+    "word2": "出納",
+    "english": "すいとう — Treasurer"
+  },
+  {
+    "word2": "日和",
+    "english": "ひより — Weather"
+  },
+  {
+    "word2": "平生",
+    "english": "へいぜい — lifetime"
+  },
+  {
+    "word2": "布団",
+    "english": "ふとん — futon"
+  },
+  {
+    "word2": "名残",
+    "english": "なごり — Remains"
+  },
+  {
+    "word2": "木立",
+    "english": "こだち — grove of trees"
+  },
+  {
+    "word2": "遊説",
+    "english": "ゆうぜい — Campaign"
+  },
+  {
+    "word2": "遺言",
+    "english": "ゆいごん — will"
+  },
+  {
+    "word2": "河原",
+    "english": "かわら — riverbed"
+  },
+  {
+    "word2": "解熱",
+    "english": "げねつ — fever reduction"
+  },
+  {
+    "word2": "眼鏡",
+    "english": "めがね — glasses"
+  },
+  {
+    "word2": "戸外",
+    "english": "こがい — outdoors"
+  },
+  {
+    "word2": "工夫",
+    "english": "くふう — Ingenuity"
+  },
+  {
+    "word2": "細工",
+    "english": "さいく — Craftsmanship"
+  },
+  {
+    "word2": "昨今",
+    "english": "さっこん — These days"
+  },
+  {
+    "word2": "真紅",
+    "english": "しんく — crimson"
+  },
+  {
+    "word2": "素性",
+    "english": "すじょう — identity"
+  },
+  {
+    "word2": "定石",
+    "english": "じょうせき — joseki"
+  },
+  {
+    "word2": "分割",
+    "english": "ぶんかつ — division"
+  },
+  {
+    "word2": "無愛想",
+    "english": "ぶあいそう — unfriendly"
+  },
+  {
+    "word2": "浴衣",
+    "english": "ゆかた — yukata"
+  },
+  {
+    "word2": "老若",
+    "english": "ろうにゃく — old and young"
+  },
+  {
+    "word2": "悪寒",
+    "english": "おかん — chills"
+  },
+  {
+    "word2": "意気地",
+    "english": "いくじ — strong willed"
+  },
+  {
+    "word2": "一切",
+    "english": "いっさい — Nothing"
+  },
+  {
+    "word2": "格子戸",
+    "english": "こうしど — lattice door"
+  },
+  {
+    "word2": "割愛",
+    "english": "かつあい — Omitted"
+  },
+  {
+    "word2": "強引",
+    "english": "ごういん — Forcible"
+  },
+  {
+    "word2": "号泣",
+    "english": "ごうきゅう — Crying"
+  },
+  {
+    "word2": "合戦",
+    "english": "かっせん — battle"
+  },
+  {
+    "word2": "最寄り",
+    "english": "もより — nearest"
+  },
+  {
+    "word2": "紙一重",
+    "english": "かみひとえ — fine line"
+  },
+  {
+    "word2": "七夕",
+    "english": "たなばた — Tanabata"
+  },
+  {
+    "word2": "重複",
+    "english": "ちょうふく — Duplication"
+  },
+  {
+    "word2": "石灰",
+    "english": "せっかい — lime"
+  },
+  {
+    "word2": "全う",
+    "english": "まっとう — fulfill"
+  },
+  {
+    "word2": "田舎",
+    "english": "いなか — countryside"
+  },
+  {
+    "word2": "土俵際",
+    "english": "どひょうぎわ — The edge of the ring"
+  },
+  {
+    "word2": "日和見",
+    "english": "ひよりみ — opportunistic"
+  },
+  {
+    "word2": "歩合",
+    "english": "ぶあいそう — commission"
+  },
+  {
+    "word2": "本望",
+    "english": "ほんもう — desire"
+  },
+  {
+    "word2": "木綿",
+    "english": "もめん — cotton"
+  },
+  {
+    "word2": "愛想",
+    "english": "あいそ — affection"
+  },
+  {
+    "word2": "仮病",
+    "english": "けびょう — fake illness"
+  },
+  {
+    "word2": "非業",
+    "english": "ひごう — Unprofessional"
+  },
+  {
+    "word2": "感泣",
+    "english": "かんきゅう — moved to tears"
+  },
+  {
+    "word2": "眼差し",
+    "english": "まなざし — look"
+  },
+  {
+    "word2": "句読点",
+    "english": "くとうてん — punctuation mark"
+  },
+  {
+    "word2": "群青",
+    "english": "ぐんじょう — Gunjo"
+  },
+  {
+    "word2": "御利益",
+    "english": "ごりやく — divine benefit"
+  },
+  {
+    "word2": "行司",
+    "english": "ぎょうじ — Gyoji"
+  },
+  {
+    "word2": "座右",
+    "english": "ざゆう — sitting right"
+  },
+  {
+    "word2": "山車",
+    "english": "だし — Dashi"
+  },
+  {
+    "word2": "詩歌",
+    "english": "しいか — poetry"
+  },
+  {
+    "word2": "手際",
+    "english": "てぎわ — dexterity"
+  },
+  {
+    "word2": "修行",
+    "english": "しゅぎょう — training"
+  },
+  {
+    "word2": "春雨",
+    "english": "はるさめ — Vermicelli"
+  },
+  {
+    "word2": "所作",
+    "english": "しょさ — behavior"
+  },
+  {
+    "word2": "小雨",
+    "english": "こさめ — light rain"
+  },
+  {
+    "word2": "野暮",
+    "english": "やぼ — Uncouth"
+  },
+  {
+    "word2": "生糸",
+    "english": "きいと — raw silk"
+  },
+  {
+    "word2": "声音",
+    "english": "こわね — voice sound"
+  },
+  {
+    "word2": "声色",
+    "english": "こわいろ — tone of voice"
+  },
+  {
+    "word2": "昔日",
+    "english": "せきじつ — old days"
+  },
+  {
+    "word2": "川面",
+    "english": "かわも — river surface"
+  },
+  {
+    "word2": "早業",
+    "english": "はやわざ — sleight of hand"
+  },
+  {
+    "word2": "早合点",
+    "english": "はやがてん — quick match"
+  },
+  {
+    "word2": "相殺",
+    "english": "そうさい — offset"
+  },
+  {
+    "word2": "相似",
+    "english": "そうじ — Similarity"
+  },
+  {
+    "word2": "太刀",
+    "english": "たち — long sword"
+  },
+  {
+    "word2": "断食",
+    "english": "だんじき — fasting"
+  },
+  {
+    "word2": "知己",
+    "english": "ちき — acquaintance"
+  },
+  {
+    "word2": "竹刀",
+    "english": "しない — bamboo sword"
+  },
+  {
+    "word2": "追従",
+    "english": "ついしょう — Follow"
+  },
+  {
+    "word2": "納屋",
+    "english": "なや — barn"
+  },
+  {
+    "word2": "麦芽",
+    "english": "ばくが — malt"
+  },
+  {
+    "word2": "八百屋",
+    "english": "やおや — greengrocer"
+  },
+  {
+    "word2": "風情",
+    "english": "ふぜい — Elegance"
+  },
+  {
+    "word2": "面目",
+    "english": "めんぼく — face"
+  },
+  {
+    "word2": "流行る",
+    "english": "はやる — popular"
+  },
+  {
+    "word2": "旅客",
+    "english": "りょかく — passenger"
+  },
+  {
+    "word2": "軽業",
+    "english": "かるわざ — acrobatics"
+  },
+  {
+    "word2": "権化",
+    "english": "ごんげ — incarnation"
+  },
+  {
+    "word2": "好事家",
+    "english": "こうずか — dilettante"
+  },
+  {
+    "word2": "行脚",
+    "english": "あんぎゃ — pilgrimage"
+  },
+  {
+    "word2": "今昔",
+    "english": "こんじゃく — past and present"
+  },
+  {
+    "word2": "師走",
+    "english": "しわす — December"
+  },
+  {
+    "word2": "所望",
+    "english": "しょもう — desired"
+  },
+  {
+    "word2": "神業",
+    "english": "かみわざ — Divine work"
+  },
+  {
+    "word2": "図星",
+    "english": "ずぼし — hit the mark"
+  },
+  {
+    "word2": "造作",
+    "english": "ぞうさ — Features"
+  },
+  {
+    "word2": "発起人",
+    "english": "ほっきにん — promoter"
+  },
+  {
+    "word2": "茶飯",
+    "english": "さはん — Tea rice"
+  },
+  {
+    "word2": "土産",
+    "english": "みやげ — souvenir"
+  },
+  {
+    "word2": "土筆",
+    "english": "つくし — horsetail"
+  },
+  {
+    "word2": "読点",
+    "english": "とうてん — commas"
+  },
+  {
+    "word2": "読本",
+    "english": "とくほん — reader"
+  },
+  {
+    "word2": "乳母車",
+    "english": "うばぐるま — baby carriage"
+  },
+  {
+    "word2": "梅雨",
+    "english": "つゆ — rainy season"
+  },
+  {
+    "word2": "博士",
+    "english": "はかせ — doctor"
+  }
+]
