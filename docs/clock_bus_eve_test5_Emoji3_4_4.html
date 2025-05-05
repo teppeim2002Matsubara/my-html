@@ -636,7 +636,7 @@
     }
     const randomIndex = Math.floor(Math.random() * words.length);
     const pair = words[randomIndex];
-    document.getElementById('kanji-word').textContent = `${pair.word2}     ${pair.english}`;
+    document.getElementById('kanji-word').textContent = `${pair.word2}<br>${pair.english}`;
   }
 
   async function loadWords() {
