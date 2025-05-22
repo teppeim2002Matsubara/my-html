@@ -362,6 +362,7 @@
 
       <div class="digital-clock" id="digital-clock"></div>
       <div class="bus-arrival" id="arrival-times"></div>
+        <img id="kanji-image" src="" alt="" style="max-height: 100px; display: none;" />
     </div>
     <div class="date" id="date"></div>
 
@@ -638,12 +639,13 @@
   const randomIndex = Math.floor(Math.random() * words.length);
   const pair = words[randomIndex];
   const english = pair.english
-    .normalize('NFKC')                   // Normalize Unicode
-    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width and special chars
-    .trim()                              // Remove all leading/trailing spaces
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')            // Remove punctuation
-    .replace(/\s+/g, ' ');               // Normalize internal spaces
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()  // ✅ move to the end
+    .toLowerCase();
+
   const imageUrl = `sapix_picuture/${english}.png`;
   console.log(`✅ Cleaned English: '${english}' → Image: ${imageUrl}`);
 
