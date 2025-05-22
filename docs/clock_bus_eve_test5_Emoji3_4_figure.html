@@ -637,10 +637,10 @@
 
   const randomIndex = Math.floor(Math.random() * words.length);
   const pair = words[randomIndex];
-  const english = pair.english.trim().toLowerCase();  // 🔧 Just use English part
+  const english = pair.english.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, ' ');
   const imageUrl = `sapix_picuture/${english}.png`;
 
-  console.log(`🔍 Trying image: ${imageUrl}`);
+  console.log(`🔍 Kanji: ${pair.word2}, English: ${pair.english} → Trying image: ${imageUrl}`);
 
   // Update the Kanji + English text
   document.getElementById('kanji-word').innerHTML = `${pair.word2}<br>${pair.english}`;
