@@ -628,43 +628,40 @@
   }
 
   let words = [];
-
+  
   function pickRandomWord() {
     if (words.length === 0) {
       document.getElementById('kanji-word').textContent = "No words available.";
       return;
     }
-
+  
     const randomIndex = Math.floor(Math.random() * words.length);
     const pair = words[randomIndex];
     const english = pair.english.trim().toLowerCase();
     const imageUrl = `sapix_picuture/${english}.png`;
-
+  
+    // Update Kanji and English display
     document.getElementById('kanji-word').innerHTML = `${pair.word2}<br>${pair.english}`;
-
-    const now = new Date();
-    const currentHour = now.getHours();
-
+  
+    // Get the image container
     const imageElement = document.getElementById('kanji-image');
-
-    if (currentHour >= 15) {
-      fetch(imageUrl, { method: 'HEAD' })
-        .then(response => {
-          if (response.ok) {
-            imageElement.src = imageUrl;
-            imageElement.alt = pair.english;
-            imageElement.style.display = 'block';
-          } else {
-            imageElement.style.display = 'none';
-          }
-        })
-        .catch(() => {
+  
+    // Try to load the image
+    fetch(imageUrl, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          imageElement.src = imageUrl;
+          imageElement.alt = pair.english;
+          imageElement.style.display = 'block';
+        } else {
           imageElement.style.display = 'none';
-        });
-    } else {
-      imageElement.style.display = 'none';
-    }
+        }
+      })
+      .catch(() => {
+        imageElement.style.display = 'none';
+      });
   }
+
 
 
   async function loadWords() {
