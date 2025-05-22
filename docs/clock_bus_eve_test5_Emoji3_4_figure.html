@@ -637,11 +637,16 @@
 
   const randomIndex = Math.floor(Math.random() * words.length);
   const pair = words[randomIndex];
-  const english = pair.english.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, ' ');
+  const english = pair.english
+    .normalize('NFKC')                   // Normalize Unicode
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove zero-width and special chars
+    .trim()                              // Remove all leading/trailing spaces
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')            // Remove punctuation
+    .replace(/\s+/g, ' ');               // Normalize internal spaces
   const imageUrl = `sapix_picuture/${english}.png`;
+  console.log(`✅ Cleaned English: '${english}' → Image: ${imageUrl}`);
 
-
-  console.log(`🔍 Kanji: ${pair.word2}, English: ${pair.english} → Trying image: ${imageUrl}`);
 
   // Update the Kanji + English text
   document.getElementById('kanji-word').innerHTML = `${pair.word2}<br>${pair.english}`;
