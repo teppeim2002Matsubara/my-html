@@ -637,8 +637,9 @@
 
   const randomIndex = Math.floor(Math.random() * words.length);
   const pair = words[randomIndex];
-  const english = pair.english.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, ' ');
+  const english = pair.english.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, ' ');
   const imageUrl = `sapix_picuture/${english}.png`;
+
 
   console.log(`🔍 Kanji: ${pair.word2}, English: ${pair.english} → Trying image: ${imageUrl}`);
 
