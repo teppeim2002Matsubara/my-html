@@ -629,7 +629,7 @@
 
   let words = [];
   
-  function pickRandomWord() {
+ function pickRandomWord() {
   if (words.length === 0) {
     document.getElementById('kanji-word').textContent = "No words available.";
     return;
@@ -637,28 +637,28 @@
 
   const randomIndex = Math.floor(Math.random() * words.length);
   const pair = words[randomIndex];
-  const english = pair.english.trim().toLowerCase();
+  const english = pair.english.trim().toLowerCase();  // 🔧 Just use English part
   const imageUrl = `sapix_picuture/${english}.png`;
 
-  console.log(`Trying to load image: ${imageUrl}`); // ✅ Log the image path
+  console.log(`🔍 Trying image: ${imageUrl}`);
 
-  // Update text
+  // Update the Kanji + English text
   document.getElementById('kanji-word').innerHTML = `${pair.word2}<br>${pair.english}`;
 
   const imageElement = document.getElementById('kanji-image');
   if (!imageElement) {
-    console.warn("Image element with id 'kanji-image' not found in the HTML.");
+    console.warn("⚠️ Missing <img id='kanji-image'> element in HTML.");
     return;
   }
 
-  // Try to load the image using HEAD request
+  // Check image existence and show/hide accordingly
   fetch(imageUrl, { method: 'HEAD' })
     .then(response => {
       if (response.ok) {
         imageElement.src = imageUrl;
         imageElement.alt = pair.english;
         imageElement.style.display = 'block';
-        console.log(`✅ Image found and displayed: ${imageUrl}`);
+        console.log(`✅ Image displayed: ${imageUrl}`);
       } else {
         imageElement.style.display = 'none';
         console.log(`❌ Image not found (404): ${imageUrl}`);
@@ -666,7 +666,7 @@
     })
     .catch(error => {
       imageElement.style.display = 'none';
-      console.error(`⚠️ Error checking image: ${imageUrl}`, error);
+      console.error(`🚫 Error checking image (${imageUrl}):`, error);
     });
 }
 
