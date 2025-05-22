@@ -630,37 +630,46 @@
   let words = [];
   
   function pickRandomWord() {
-    if (words.length === 0) {
-      document.getElementById('kanji-word').textContent = "No words available.";
-      return;
-    }
-  
-    const randomIndex = Math.floor(Math.random() * words.length);
-    const pair = words[randomIndex];
-    const english = pair.english.trim().toLowerCase();
-    const imageUrl = `sapix_picuture/${english}.png`;
-  
-    // Update Kanji and English display
-    document.getElementById('kanji-word').innerHTML = `${pair.word2}<br>${pair.english}`;
-  
-    // Get the image container
-    const imageElement = document.getElementById('kanji-image');
-  
-    // Try to load the image
-    fetch(imageUrl, { method: 'HEAD' })
-      .then(response => {
-        if (response.ok) {
-          imageElement.src = imageUrl;
-          imageElement.alt = pair.english;
-          imageElement.style.display = 'block';
-        } else {
-          imageElement.style.display = 'none';
-        }
-      })
-      .catch(() => {
-        imageElement.style.display = 'none';
-      });
+  if (words.length === 0) {
+    document.getElementById('kanji-word').textContent = "No words available.";
+    return;
   }
+
+  const randomIndex = Math.floor(Math.random() * words.length);
+  const pair = words[randomIndex];
+  const english = pair.english.trim().toLowerCase();
+  const imageUrl = `sapix_picuture/${english}.png`;
+
+  console.log(`Trying to load image: ${imageUrl}`); // ✅ Log the image path
+
+  // Update text
+  document.getElementById('kanji-word').innerHTML = `${pair.word2}<br>${pair.english}`;
+
+  const imageElement = document.getElementById('kanji-image');
+  if (!imageElement) {
+    console.warn("Image element with id 'kanji-image' not found in the HTML.");
+    return;
+  }
+
+  // Try to load the image using HEAD request
+  fetch(imageUrl, { method: 'HEAD' })
+    .then(response => {
+      if (response.ok) {
+        imageElement.src = imageUrl;
+        imageElement.alt = pair.english;
+        imageElement.style.display = 'block';
+        console.log(`✅ Image found and displayed: ${imageUrl}`);
+      } else {
+        imageElement.style.display = 'none';
+        console.log(`❌ Image not found (404): ${imageUrl}`);
+      }
+    })
+    .catch(error => {
+      imageElement.style.display = 'none';
+      console.error(`⚠️ Error checking image: ${imageUrl}`, error);
+    });
+}
+
 
 
 
