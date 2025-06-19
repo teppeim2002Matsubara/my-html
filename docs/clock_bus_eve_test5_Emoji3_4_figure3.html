@@ -645,7 +645,7 @@
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, ' ')
       .trim()
-      .toLowerCase();
+      //.toLowerCase();
 
     const basePath = `sapix_picture/${cleanedEnglish}`;
     const imageElement = document.getElementById('kanji-image');
