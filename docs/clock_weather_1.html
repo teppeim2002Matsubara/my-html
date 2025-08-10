@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>分目盛りつきアナログ時計 (SVG) + 天気</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background:#0b0b0f; color:#f5f5f7;
+    min-height:100vh; display:grid; grid-template-rows:auto 1fr;
+  }
+  header{padding:12px 14px; display:grid; place-items:center}
+  .row{display:flex; gap:16px; flex-wrap:wrap; align-items:center; justify-content:center}
+  .card{background:#14141a; border-radius:16px; padding:14px}
+  .label{color:#b8b8c2; font-size:.85rem}
+  .digital{font-size:2.1rem; font-weight:800}
+  .note{color:#b8b8c2; font-size:.85rem}
+
+  /* Clock container */
+  .clock-box{position:relative; width:320px; height:320px}
+  .bezel{
+    position:absolute; inset:0;
+    border-radius:50%;
+    border:12px solid #000;   /* solid black bezel */
+    background:#fff;
+    overflow:hidden;
+  }
+  svg#face{position:absolute; inset:0; display:block}
+
+  /* Weather */
+  .grid{display:grid; gap:14px; padding:14px}
+  .cols{grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))}
+  .wx-head{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .pill{padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.08); font-size:.9rem; font-weight:700}
+  .list{display:grid; grid-auto-rows:minmax(34px,auto); gap:6px; max-height:320px; overflow:auto; padding-right:6px}
+  .rowline{display:grid; grid-template-columns:64px 1fr auto; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.05)}
+  .wx{display:inline-flex; align-items:center; gap:8px}
+  .emoji{font-size:1.15rem}
+</style>
+</head>
+<body>
+  <header>
+    <div class="row">
+      <div class="card">
+        <div class="label">Analog (Local)</div>
+        <div class="clock-box">
+          <div class="bezel"></div>
+          <svg id="face" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- ticks & numerals will be inserted by JS -->
+            <!-- hands -->
+            <line id="hHand" x1="160" y1="160" x2="160" y2="95" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+            <line id="mHand" x1="160" y1="160" x2="160" y2="70" stroke="#000" stroke-width="6"  stroke-linecap="round"/>
+            <line id="sHand" x1="160" y1="160" x2="160" y2="60" stroke="#e00000" stroke-width="2" stroke-linecap="round"/>
+            <!-- hub: red ring with white center -->
+            <circle cx="160" cy="160" r="8" fill="#fff" stroke="#e00000" stroke-width="3"/>
+          </svg>
+        </div>
+      </div>
+      <div class="card">
+        <div class="label">Digital (Local)</div>
+        <div class="digital" id="digitalLocal">--:--</div>
+        <div class="note" id="dateLocal"></div>
+      </div>
+      <div class="card">
+        <div class="label">Digital (Japan)</div>
+        <div class="digital" id="digitalJP">--:--</div>
+        <div class="note" id="dateJP"></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="grid cols">
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">Next 12 hours (Boston)</div>
+        <div class="pill" id="minmaxToday">Today: -- / -- °C</div>
+      </div>
+      <div class="list" id="hourly12"></div>
+      <div class="note">Open-Meteo, °C. Updates every 15 min.</div>
+    </div>
+
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">Tomorrow (Boston)</div>
+        <div class="pill" id="minmaxTomorrow">-- / -- °C</div>
+      </div>
+      <div class="list" id="tomorrowKey"></div>
+      <div class="note">Every 3 hours (00–21).</div>
+    </div>
+  </section>
+
+<script>
+  // --------- Build SVG ticks + numerals (precise geometry) ----------
+  (function(){
+    const svg = document.getElementById('face');
+    const size = 320, c = size/2;
+    const bezel = 12;
+    const rOuter = c - bezel - 6; // a little margin from the inner bezel
+    const lenMin = 10, lenHour = 18;
+    const thickMin = 2, thickHour = 3;
+    const rNum = rOuter - lenHour - 16;
+
+    // 60 ticks
+    for(let i=0;i<60;i++){
+      const ang = (i*Math.PI/30); // 0..2π
+      const isHour = i%5===0;
+      const r1 = rOuter - (isHour? lenHour : lenMin);
+      const r2 = rOuter;
+      const x1 = c + Math.cos(ang)*r1;
+      const y1 = c + Math.sin(ang)*r1;
+      const x2 = c + Math.cos(ang)*r2;
+      const y2 = c + Math.sin(ang)*r2;
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      line.setAttribute('stroke', '#000');
+      line.setAttribute('stroke-width', isHour? thickHour : thickMin);
+      line.setAttribute('stroke-linecap', 'butt');
+      svg.insertBefore(line, document.getElementById('hHand')); // place behind hands
+    }
+
+    // Numerals 1..12
+    for (let i=1; i<=12; i++){
+      const ang = (i-3) * (Math.PI/6);
+      const x = c + Math.cos(ang)*rNum;
+      const y = c + Math.sin(ang)*rNum;
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y+1); // subtle baseline adjust
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', '800');
+      text.setAttribute('font-size', '20');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.textContent = i;
+      svg.insertBefore(text, document.getElementById('hHand'));
+    }
+  })();
+
+  // --------- Clock movement (update SVG hand endpoints) ----------
+  const pad=n=>String(n).padStart(2,'0');
+  const fmtDate=(d,loc='en-US',tz)=>d.toLocaleString(loc,{weekday:'short',month:'short',day:'numeric',timeZone:tz});
+
+  function setHand(id, angleDeg, length){
+    const svg = document.getElementById('face');
+    const size = 320, c = size/2;
+    const rad = (angleDeg-90) * Math.PI/180; // -90 to start at 12 o'clock
+    const x2 = c + Math.cos(rad)*length;
+    const y2 = c + Math.sin(rad)*length;
+    const line = document.getElementById(id);
+    line.setAttribute('x1', c); line.setAttribute('y1', c);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+  }
+
+  function tick(){
+    const now = new Date();
+    const h = now.getHours()%12, m = now.getMinutes(), s = now.getSeconds();
+
+    // lengths tuned to the dial
+    setHand('hHand', (h + m/60)*30, 78);
+    setHand('mHand', m*6, 102);
+    setHand('sHand', s*6, 116);
+
+    document.getElementById('digitalLocal').textContent = `${pad(now.getHours())}:${pad(m)}`;
+    document.getElementById('dateLocal').textContent = fmtDate(now);
+    const jp = new Date(now.toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
+    document.getElementById('digitalJP').textContent = `${pad(jp.getHours())}:${pad(jp.getMinutes())}`;
+    document.getElementById('dateJP').textContent = fmtDate(jp,'en-US','Asia/Tokyo');
+  }
+  tick(); setInterval(tick, 1000);
+
+  // --------- Weather (unchanged: next 12h + tomorrow 3h) ----------
+  const LAT=42.3601, LON=-71.0589;
+  const URL=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m,precipitation,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&temperature_unit=celsius`;
+  const codeToEmoji=(code)=>{
+    if ([0].includes(code)) return "☀️ Clear";
+    if ([1].includes(code)) return "🌤 Mostly clear";
+    if ([2].includes(code)) return "⛅️ Partly cloudy";
+    if ([3].includes(code)) return "☁️ Cloudy";
+    if ([45,48].includes(code)) return "🌫 Fog";
+    if ([51,53,55].includes(code)) return "🌦 Drizzle";
+    if ([56,57].includes(code)) return "🌧 Freezing drizzle";
+    if ([61,63,65].includes(code)) return "🌧 Rain";
+    if ([66,67].includes(code)) return "🌧 Freezing rain";
+    if ([71,73,75,77].includes(code)) return "🌨 Snow";
+    if ([80,81,82].includes(code)) return "🌧 Showers";
+    if ([85,86].includes(code)) return "🌨 Snow showers";
+    if ([95].includes(code)) return "⛈ Thunderstorm";
+    if ([96,99].includes(code)) return "⛈ Thunderstorm (hail)";
+    return "🌡️ Weather";
+  };
+  async function loadWeather(){
+    try{
+      const r=await fetch(URL);
+      if(!r.ok) throw new Error('weather '+r.status);
+      const j=await r.json();
+
+      const daily=j.daily;
+      const todayMin=daily.temperature_2m_min?.[0];
+      const todayMax=daily.temperature_2m_max?.[0];
+      const tomorrowMin=daily.temperature_2m_min?.[1];
+      const tomorrowMax=daily.temperature_2m_max?.[1];
+      document.getElementById('minmaxToday').textContent=`Today: ${Math.round(todayMin)} / ${Math.round(todayMax)} °C`;
+      document.getElementById('minmaxTomorrow').textContent=`${Math.round(tomorrowMin)} / ${Math.round(tomorrowMax)} °C`;
+
+      const times=j.hourly.time||[];
+      const temps=j.hourly.temperature_2m||[];
+      const codes=j.hourly.weathercode||[];
+      const precip=j.hourly.precipitation||[];
+
+      // Next 12 hours
+      const base=new Date();
+      let idx=times.findIndex(t=>new Date(t)>=base);
+      if(idx<0) idx=times.length-12;
+      const twelve=[];
+      for(let i=idx;i<Math.min(idx+12,times.length);i++){
+        twelve.push({dt:new Date(times[i]), temp:temps[i], code:codes[i], pr:(precip?.[i]??0)});
+      }
+      const hourly12=document.getElementById('hourly12'); hourly12.innerHTML='';
+      twelve.forEach(x=>{
+        const line=document.createElement('div'); line.className='rowline';
+        const hh=String(x.dt.getHours()).padStart(2,'0')+':00';
+        const left=document.createElement('div'); left.className='note'; left.textContent=hh;
+        const mid=document.createElement('div'); mid.className='wx';
+        const e=document.createElement('span'); e.className='emoji'; e.textContent=codeToEmoji(x.code).split(' ')[0];
+        const l=document.createElement('span'); l.textContent=codeToEmoji(x.code);
+        mid.appendChild(e); mid.appendChild(l);
+        const right=document.createElement('div'); right.innerHTML=`<strong>${Math.round(x.temp)}°C</strong>${x.pr>0?` • ${x.pr} mm`:''}`;
+        line.appendChild(left); line.appendChild(mid); line.appendChild(right);
+        hourly12.appendChild(line);
+      });
+
+      // Tomorrow every 3h (00–21)
+      const tomorrowList=document.getElementById('tomorrowKey'); tomorrowList.innerHTML='';
+      const tmr=new Date(base); tmr.setDate(base.getDate()+1);
+      const y=tmr.getFullYear(), m=tmr.getMonth(), d=tmr.getDate();
+      [0,3,6,9,12,15,18,21].forEach(h=>{
+        const target=new Date(y,m,d,h,0,0);
+        let bestI=-1, bestDiff=Infinity;
+        for(let i=0;i<times.length;i++){
+          const dt=new Date(times[i]);
+          if(dt.getDate()!==d) continue;
+          const diff=Math.abs(dt-target);
+          if(diff<bestDiff){bestDiff=diff; bestI=i;}
+        }
+        if(bestI>=0){
+          const dt=new Date(times[bestI]);
+          const line=document.createElement('div'); line.className='rowline';
+          const left=document.createElement('div'); left.className='note'; left.textContent=String(dt.getHours()).padStart(2,'0')+':00';
+          const mid=document.createElement('div'); mid.className='wx';
+          const e=document.createElement('span'); e.className='emoji'; e.textContent=codeToEmoji(codes[bestI]).split(' ')[0];
+          const l=document.createElement('span'); l.textContent=codeToEmoji(codes[bestI]);
+          mid.appendChild(e); mid.appendChild(l);
+          const right=document.createElement('div'); right.innerHTML=`<strong>${Math.round(temps[bestI])}°C</strong>${(precip?.[bestI]??0)>0?` • ${precip[bestI]} mm`:''}`;
+          line.appendChild(left); line.appendChild(mid); line.appendChild(right);
+          tomorrowList.appendChild(line);
+        }
+      });
+    }catch(e){
+      document.getElementById('hourly12').innerHTML='<div class="note">Failed to load weather.</div>';
+      console.error(e);
+    }
+  }
+  loadWeather(); setInterval(loadWeather, 15*60*1000);
+</script>
+</body>
+</html>
