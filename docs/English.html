@@ -40,7 +40,7 @@ const SETTINGS_KEY='eikaiwa_harada_settings_v1';
 // GitHubに置くデータのURL（?src=... で上書き可能）
 const DEFAULT_DATA_URL =
   new URLSearchParams(location.search).get('src') ||
-  'https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/data/phrases_vol1.json';
+  'https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/data/phrases.json';
 let phrases = loadData() || [];
 
 function showRandomPhrase(){
