@@ -66,9 +66,8 @@ async function fetchDirect(url){
       rows = arr;
     }else{
       const text = await res.text();
-      const lines = text.split(/
-?
-/).map(s=>s.trim()).filter(Boolean);
+      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
       rows = lines.map(line=>{ const [ja='',en='',ex=''] = splitCSVorTSV(line); return {ja,en,ex}; });
     }
     rows = rows.map(normalizeRow).filter(r=>r.en||r.ja);
