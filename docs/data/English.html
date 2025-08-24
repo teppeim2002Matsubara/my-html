@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>英会話フレーズ自動表示</title>
+<style>
+  body{margin:0; font-family: system-ui, sans-serif; background:#0b0b0f; color:#f5f5f7; display:flex; align-items:center; justify-content:center; height:100vh;}
+  .card{background:#15151b; padding:20px; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.25); text-align:center; max-width:600px;}
+  .ja{font-size:22px; margin-bottom:12px;}
+  .en{font-size:28px; font-weight:bold; margin-bottom:12px;}
+  .ex{font-size:20px; color:#a1a1aa;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn{appearance:none;border:none;padding:9px 12px;border-radius:12px;background:#15151b;color:#f5f5f7;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);font-weight:600}
+  .btn.primary{background:linear-gradient(135deg,#60a5fa,#8b5cf6);border:none}
+  .range{display:flex;align-items:center;gap:6px;background:#15151b;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.06)}
+  .range input[type=number]{width:70px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#f5f5f7;padding:4px 6px}
+</style>
+</head>
+<body>
+  <div style="position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:center;z-index:1">
+    <div class="toolbar">
+      <button class="btn" id="btnFetch">取り込み</button>
+      <label class="range"><span style="opacity:.8">間隔</span><input id="intervalSec" type="number" min="3" max="120" value="10" step="1"/>秒</label>
+      <button class="btn primary" id="btnStart">開始</button>
+      <button class="btn" id="btnStop">停止</button>
+      <button class="btn" id="btnExport">JSONエクスポート</button>
+      <button class="btn" id="btnReset">初期化</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ja" id="ja"></div>
+    <div class="en" id="en"></div>
+    <div class="ex" id="ex"></div>
+  </div>
+
+<script>
+const STORAGE_KEY='eikaiwa_harada_v1';
+const SETTINGS_KEY='eikaiwa_harada_settings_v1';
+// GitHubに置くデータのURL（?src=... で上書き可能）
+const DEFAULT_DATA_URL =
+  new URLSearchParams(location.search).get('src') ||
+  'https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/data/phrases_vol1.json';
+let phrases = loadData() || [
+$1
+];
+
+function showRandomPhrase(){
+  if(!phrases.length){ document.getElementById('ja').textContent='データがありません'; document.getElementById('en').textContent=''; document.getElementById('ex').textContent=''; return; }
+  const p = phrases[Math.floor(Math.random()*phrases.length)];
+  document.getElementById('ja').textContent = p.ja||'';
+  document.getElementById('en').textContent = p.en||'';
+  document.getElementById('ex').textContent = p.ex||'';
+}
+
+// ---- 取り込み（プロキシJSON or CSV/TSV） ----
+async function fetchDirect(url){
+  try{
+    const res = await fetch(url,{cache:'no-store'});
+    if(!res.ok) throw new Error(res.status+' '+res.statusText);
+    const ctype = res.headers.get('content-type')||'';
+    let rows=[];
+    if(ctype.includes('application/json') || url.endsWith('.json')){
+      const arr = await res.json();
+      if(!Array.isArray(arr)) throw new Error('JSONは配列ではありません');
+      rows = arr;
+    }else{
+      const text = await res.text();
+      const lines = text.split(/
+?
+/).map(s=>s.trim()).filter(Boolean);
+      rows = lines.map(line=>{ const [ja='',en='',ex=''] = splitCSVorTSV(line); return {ja,en,ex}; });
+    }
+    rows = rows.map(normalizeRow).filter(r=>r.en||r.ja);
+    if(!rows.length) throw new Error('有効な行がありません');
+    phrases = rows; saveData(); renderList(); showRandomPhrase();
+  }catch(e){ alert('取得失敗: '+e.message); throw e; }
+}
+
+async function autoFetchIfConfigured(){
+  if(!DEFAULT_DATA_URL || DEFAULT_DATA_URL.includes('<YOUR_GH_USER>')) return Promise.resolve();
+  return fetchDirect(DEFAULT_DATA_URL);
+}
+
+async function fetchFromUrl(){
+  const url = prompt('データURL（JSON/CSV/TSV）を入力
+（GitHub Raw / GitHub Pages 推奨）');
+  if(!url) return;
+  await fetchDirect(url);
+}
+
+function splitCSVorTSV(line){
+  if(line.includes('	')) return line.split('	');
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else { inQ=!inQ; } }
+    else if(ch===',' && !inQ){ out.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  out.push(cur); return out.map(s=>s.trim());
+}
+
+function loadData(){ try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)&&arr.length) return arr; } }catch(_){} return null; }
+function saveData(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(phrases)); }catch(_){} }
+
+// 初回表示
+showRandomPhrase();
+// 10秒ごとに切り替え
+let timer=null; const intervalInput=document.getElementById('intervalSec');
+function start(){ stop(); const sec=Math.max(3, Math.min(120, parseInt(intervalInput.value)||10)); intervalInput.value=sec; timer=setInterval(showRandomPhrase, sec*1000); showRandomPhrase(); saveSettings(); }
+function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+function saveSettings(){ localStorage.setItem(SETTINGS_KEY, JSON.stringify({intervalSec: parseInt(intervalInput.value)||10})); }
+function loadSettings(){ try{ const raw=localStorage.getItem(SETTINGS_KEY); if(raw){ const s=JSON.parse(raw); if(s.intervalSec){ intervalInput.value=s.intervalSec; } } }catch(_){} }
+
+// ボタン
+loadSettings();
+document.getElementById('btnFetch').addEventListener('click', fetchFromUrl);
+document.getElementById('btnStart').addEventListener('click', start);
+document.getElementById('btnStop').addEventListener('click', stop);
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(phrases,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='phrases.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('btnReset').addEventListener('click', ()=>{ if(confirm('サンプルに戻しますか？')){ localStorage.removeItem(STORAGE_KEY); location.reload(); }});
+
+// 自動取得 → 完了後に開始（URL未設定なら即開始）
+autoFetchIfConfigured().finally(start);
+</script>
+</body>
+</html>
