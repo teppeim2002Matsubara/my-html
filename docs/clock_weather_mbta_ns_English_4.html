@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clock + Weather + MBTA + English</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background:#0b0b0f; color:#f5f5f7;
+    min-height:100vh; display:grid; grid-template-rows:auto 1fr; gap:16px;
+  }
+  header{padding:12px 14px;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:flex-start}
+  .left-col{display:flex; flex-direction:column; align-items:center; gap:12px}
+  .clock-and-digital{display:flex; gap:12px; justify-content:center; margin-top:12px}
+  .card{background:#14141a; border-radius:16px; padding:14px}
+  .label  { font-size: 1.2rem }   /* サイズ調整 */
+  .digital{ font-size: 3.5rem; font-weight:800 }
+  .note   { font-size: 1.6rem }
+  .small  { font-size: 1.0rem }
+
+  .cd{font-weight:bold}
+  .cd.gray{color:#aaa}
+  .cd.red{color:#ff6b6b}
+  .cd.yellow{color:#ffd166}
+  .cd.white{color:#fff}
+
+  .clock-box{position:relative; width:320px; height:320px}
+  .bezel{position:absolute; inset:0; border-radius:50%; border:12px solid #000; background:#fff; overflow:hidden}
+  svg#face{position:absolute; inset:0; display:block}
+
+  .grid{display:grid; gap:14px; padding:0 14px 18px}
+  .cols{grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))}
+  .wx-head{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .pill{
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    font-size:1.3rem;   /* 0.9rem → 1.1rem にアップ */
+    font-weight:700;
+  }
+
+  .list{
+    display:grid;
+    grid-auto-rows:minmax(34px,auto);
+    gap:6px;
+    max-height:none;
+    overflow:visible;
+    padding-right:6px;
+    font-size:1.0rem;   /* フォント拡大を追加 */
+  }
+
+  .rowline{display:grid; grid-template-columns:64px 1fr auto; align-items:center; gap:10px; padding:4px 6px; border-radius:10px; background:rgba(255,255,255,.05)}
+  .rowline.active{background:rgba(128,128,128,0.35)}
+
+  .next-box{min-width:320px}
+
+  /* ===== English block ===== */
+  .eng-card{grid-column:1 / -1}
+  .eng-wrap{display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center}
+  .eng-en{font-size:clamp(38px,6vw,56px); font-weight:900; letter-spacing:.01em}
+  .eng-ja{font-size:clamp(28px,5vw,40px); color:#e5e7eb}
+  .eng-ex{font-size:clamp(18px,2.5vw,24px); color:#a1a1aa}
+
+  /* ===== MBTA block (表全体の文字を大きく) ===== */
+  #next3 table {
+    font-size: 1.8rem;   /* お好みで 1.2rem〜1.6rem に調整 */
+  }
+
+  #next3 th, 
+  #next3 td {
+    padding: 10px 14px;  /* 余白も広げると見やすい */
+  }
+
+  @media (max-width: 820px){
+    .row{grid-template-columns:1fr;}
+    .clock-and-digital{flex-direction:column;}
+  }
+
+
+/* ===== Weather compact overrides ===== */
+.grid { gap: 10px; }  /* 14px → 10px に詰める:contentReference[oaicite:0]{index=0} */
+
+.cols{
+  /* 最小幅 300px → 220px にしてカード幅を細くする:contentReference[oaicite:1]{index=1} */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* 英語カード(.eng-card)以外＝Weather 2枚のカードだけ詰める */
+.grid .card:not(.eng-card){
+  padding: 10px 12px;   /* 既定 14px から縮小:contentReference[oaicite:2]{index=2} */
+}
+
+/* 見出し行（Today/Tomorrow とピル）を小さめに */
+.grid .card:not(.eng-card) .wx-head .label{ font-size: 1.0rem; }
+.grid .card:not(.eng-card) .pill{
+  font-size: 1.0rem;    /* 1.3rem 相当から縮小:contentReference[oaicite:3]{index=3} */
+  padding: 4px 8px;
+}
+
+/* 各行（時間ごとの行）の密度を上げる */
+.list{
+  grid-auto-rows: minmax(28px, auto); /* 34px → 28px に圧縮:contentReference[oaicite:4]{index=4} */
+  gap: 4px;                            /* 行間 6px → 4px:contentReference[oaicite:5]{index=5} */
+  font-size: 1.0rem;                   /* 1.3rem → 1.0rem:contentReference[oaicite:6]{index=6} */
+  padding-right: 4px;                  /* 余白を少し削る */
+}
+
+.rowline{
+  padding: 4px 6px;    /* 8px 10px → 4px 6px:contentReference[oaicite:7]{index=7} */
+  gap: 8px;            /* 情報列の間隔を少し詰める */
+}
+
+
+</style>
+</head>
+<body>
+  <header>
+    <div class="row">
+      <div class="left-col">
+        <div class="card">
+          <div class="clock-box">
+            <div class="bezel"></div>
+            <svg id="face" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <line id="hHand" x1="160" y1="160" x2="160" y2="95" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+              <line id="mHand" x1="160" y1="160" x2="160" y2="70" stroke="#000" stroke-width="6"  stroke-linecap="round"/>
+              <line id="sHand" x1="160" y1="160" x2="160" y2="60" stroke="#e00000" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="160" cy="160" r="8" fill="#fff" stroke="#e00000" stroke-width="3"/>
+            </svg>
+          </div>
+        </div>
+        <div class="clock-and-digital">
+          <div class="card">
+            <div class="digital" id="digitalLocal">--:--</div>
+            <div class="note" id="dateLocal"></div>
+            <div class="small" id="tzLabel">America/New_York</div>
+          </div>
+          <div class="card">
+            <div class="digital" id="digitalJP">--:--</div>
+            <div class="note" id="dateJP"></div>
+            <div class="small">Asia/Tokyo</div>
+          </div>
+        </div>
+      </div>
+      <div class="right-col">
+        <div class="card next-box">
+          <div id="next3">
+            <div class="small">Loading trains…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="grid cols">
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">Today (Boston)</div>
+        <div class="pill" id="minmaxToday">Today: -- / -- °C</div>
+      </div>
+      <div class="list" id="hourly12"></div>
+    </div>
+
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">Tomorrow (Boston)</div>
+        <div class="pill" id="minmaxTomorrow">-- / -- °C</div>
+      </div>
+      <div class="list" id="tomorrowKey"></div>
+    </div>
+
+    <!-- ===== 英語フレーズ（最下段・全幅） ===== -->
+    <div class="card eng-card" id="engCard">
+      <div class="eng-wrap">
+        <div class="eng-en" id="engEn">Loading…</div>
+        <div class="eng-ja" id="engJa"></div>
+        <div class="eng-ex" id="engEx"></div>
+      </div>
+    </div>
+  </section>
+
+<script>
+/* ========= CLOCK ========= */
+(function(){
+  const svg = document.getElementById('face');
+  const size = 320, c = size/2;
+  const bezel = 12;
+  const rOuter = c - bezel - 6;
+  const lenMin = 10, lenHour = 18;
+  const thickMin = 2, thickHour = 3;
+  const rNum = rOuter - lenHour - 16;
+
+  for(let i=0;i<60;i++){
+    const ang = (i*Math.PI/30);
+    const isHour = i%5===0;
+    const r1 = rOuter - (isHour? lenHour : lenMin);
+    const r2 = rOuter;
+    const x1 = c + Math.cos(ang)*r1;
+    const y1 = c + Math.sin(ang)*r1;
+    const x2 = c + Math.cos(ang)*r2;
+    const y2 = c + Math.sin(ang)*r2;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', '#000');
+    line.setAttribute('stroke-width', isHour? thickHour : thickMin);
+    line.setAttribute('stroke-linecap', 'butt');
+    svg.insertBefore(line, document.getElementById('hHand'));
+  }
+  for (let i=1; i<=12; i++){
+    const ang = (i-3) * (Math.PI/6);
+    const x = c + Math.cos(ang)*rNum;
+    const y = c + Math.sin(ang)*rNum;
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', x);
+    text.setAttribute('y', y+1);
+    text.setAttribute('fill', '#000');
+    text.setAttribute('font-weight', '800');
+    text.setAttribute('font-size', '20');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.textContent = i;
+    svg.insertBefore(text, document.getElementById('hHand'));
+  }
+})();
+function pad(n){return String(n).padStart(2,'0');}
+function setHand(id, angleDeg, length){
+  const c=160; const rad=(angleDeg-90)*Math.PI/180;
+  const x2=c+Math.cos(rad)*length; const y2=c+Math.sin(rad)*length;
+  const line=document.getElementById(id);
+  line.setAttribute('x1',c); line.setAttribute('y1',c); line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+}
+function tick(){
+  const now=new Date();
+  const h=now.getHours()%12, m=now.getMinutes(), s=now.getSeconds();
+  setHand('hHand',(h+m/60)*30,78); setHand('mHand',m*6,102); setHand('sHand',s*6,116);
+
+  const bTime=new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'}).format(now);
+  const bDate=new Intl.DateTimeFormat('en-US',{weekday:'short',month:'numeric',day:'numeric',timeZone:'America/New_York'}).format(now);
+  document.getElementById('digitalLocal').textContent=bTime;
+  document.getElementById('dateLocal').textContent=bDate;
+
+  const jTime=new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(now);
+  const jDate=new Intl.DateTimeFormat('en-US',{weekday:'short',month:'numeric',day:'numeric',timeZone:'Asia/Tokyo'}).format(now);
+  document.getElementById('digitalJP').textContent=jTime;
+  document.getElementById('dateJP').textContent=jDate;
+}
+setInterval(tick,1000); tick();
+
+/* ========= WEATHER ========= */
+const LAT=42.3601, LON=-71.0589;
+const WX_URL=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m,precipitation,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&temperature_unit=celsius`;
+function codeToEmoji(code){
+  if ([0].includes(code)) return "☀️ Clear";
+  if ([1].includes(code)) return "🌤 Mostly clear";
+  if ([2].includes(code)) return "⛅️ Partly cloudy";
+  if ([3].includes(code)) return "☁️ Cloudy";
+  if ([45,48].includes(code)) return "🌫 Fog";
+  if ([51,53,55].includes(code)) return "🌦 Drizzle";
+  if ([56,57].includes(code)) return "🌧 Freezing drizzle";
+  if ([61,63,65].includes(code)) return "🌧 Rain";
+  if ([66,67].includes(code)) return "🌧 Freezing rain";
+  if ([71,73,75,77].includes(code)) return "🌨 Snow";
+  if ([80,81,82].includes(code)) return "🌧 Showers";
+  if ([85,86].includes(code)) return "🌨 Snow showers";
+  if ([95].includes(code)) return "⛈ Thunderstorm";
+  if ([96,99].includes(code)) return "⛈ Thunderstorm (hail)";
+  return "🌡️ Weather";
+}
+async function loadWeather(){
+  try{
+    const r=await fetch(WX_URL); if(!r.ok) throw new Error('weather '+r.status);
+    const j=await r.json();
+    const daily=j.daily;
+    const todayMin=daily.temperature_2m_min?.[0];
+    const todayMax=daily.temperature_2m_max?.[0];
+    const tomorrowMin=daily.temperature_2m_min?.[1];
+    const tomorrowMax=daily.temperature_2m_max?.[1];
+    document.getElementById('minmaxToday').textContent=`Today: ${Math.round(todayMin)} / ${Math.round(todayMax)} °C`;
+    document.getElementById('minmaxTomorrow').textContent=`${Math.round(tomorrowMin)} / ${Math.round(tomorrowMax)} °C`;
+
+    const times=j.hourly.time||[];
+    const temps=j.hourly.temperature_2m||[];
+    const codes=j.hourly.weathercode||[];
+    const precip=j.hourly.precipitation||[];
+    const base=new Date();
+
+    const todayList=document.getElementById('hourly12'); todayList.innerHTML='';
+    const today=new Date(base); const y0=today.getFullYear(), m0=today.getMonth(), d0=today.getDate();
+    ;[6,9,12,15,18,21].forEach(h=>{
+      const target=new Date(y0,m0,d0,h,0,0); let bestI=-1, bestDiff=Infinity;
+      for(let i=0;i<times.length;i++){ const dt=new Date(times[i]); if(dt.getDate()!==d0) continue; const diff=Math.abs(dt-target); if(diff<bestDiff){bestDiff=diff; bestI=i;} }
+      if(bestI>=0){ const dt=new Date(times[bestI]); const line=document.createElement('div'); line.className='rowline'; const hour=dt.getHours(); if([9,12,15,18].includes(hour)) line.classList.add('active');
+        const left=document.createElement('div'); left.className='note'; left.textContent=String(hour).padStart(2,'0')+':00';
+        const mid=document.createElement('div'); mid.className='wx'; mid.textContent=codeToEmoji(codes[bestI]);
+        const right=document.createElement('div'); right.innerHTML=`<strong>${Math.round(temps[bestI])}°C</strong>${(precip?.[bestI]??0)>0?` • ${precip[bestI]} mm`:''}`;
+        line.appendChild(left); line.appendChild(mid); line.appendChild(right); todayList.appendChild(line);
+      }
+    });
+
+    const tomorrowList=document.getElementById('tomorrowKey'); tomorrowList.innerHTML='';
+    const tmr=new Date(base); tmr.setDate(base.getDate()+1); const y=tmr.getFullYear(), m=tmr.getMonth(), d=tmr.getDate();
+    ;[6,9,12,15,18,21].forEach(h=>{
+      const target=new Date(y,m,d,h,0,0); let bestI=-1, bestDiff=Infinity;
+      for(let i=0;i<times.length;i++){ const dt=new Date(times[i]); if(dt.getDate()!==d) continue; const diff=Math.abs(dt-target); if(diff<bestDiff){bestDiff=diff; bestI=i;} }
+      if(bestI>=0){ const dt=new Date(times[bestI]); const line=document.createElement('div'); line.className='rowline'; const hour=dt.getHours(); if([9,12,15,18].includes(hour)) line.classList.add('active');
+        const left=document.createElement('div'); left.className='note'; left.textContent=String(hour).padStart(2,'0')+':00';
+        const mid=document.createElement('div'); mid.className='wx'; mid.textContent=codeToEmoji(codes[bestI]);
+        const right=document.createElement('div'); right.innerHTML=`<strong>${Math.round(temps[bestI])}°C</strong>${(precip?.[bestI]??0)>0?` • ${precip[bestI]} mm`:''}`;
+        line.appendChild(left); line.appendChild(mid); line.appendChild(right); tomorrowList.appendChild(line);
+      }
+    });
+  }catch(e){ document.getElementById('hourly12').innerHTML='<div class="note">Failed to load weather.</div>'; console.error(e); }
+}
+setInterval(loadWeather, 15*60*1000); loadWeather();
+
+/* ========= MBTA ========= */
+const MBTA_BASE='https://api-v3.mbta.com';
+const DEFAULT_KEY='d51c0048255e4bc0b5566d25c619a8a4';
+let API_KEY=localStorage.getItem('mbta_api_key')||DEFAULT_KEY;
+function setApiKey(k){ API_KEY=k||''; localStorage.setItem('mbta_api_key', API_KEY); }
+async function api(path){ const headers = API_KEY ? { 'x-api-key': API_KEY } : {}; const r = await fetch(`${MBTA_BASE}${path}`, { headers }); if(!r.ok){ const txt=await r.text().catch(()=> ''); throw new Error(`MBTA API ${r.status} ${r.statusText} ${txt}`);} return r.json(); }
+function nyNow(){ return new Date(new Date().toLocaleString('en-US',{ timeZone:'America/New_York' })); }
+function todayYMD(){ const d=nyNow(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+async function getInboundDirId(routeId){ try{ const r=await api(`/routes/${encodeURIComponent(routeId)}`); const names=r?.data?.attributes?.direction_names||[]; const idx=names.findIndex(s=>String(s).toLowerCase()==='inbound'); if(idx===0||idx===1) return idx; }catch(e){} return 1; }
+async function findStopIdForRoute(routeId, aliases){
+  const data=await api(`/stops?filter[route]=${encodeURIComponent(routeId)}&page[limit]=400`);
+  const list=data.data||[]; const childFirst=(a,b)=>((a.attributes?.parent_station?0:1)-(b.attributes?.parent_station?0:1));
+  for(const nm of aliases){ const hit=list.filter(s=>s.attributes?.name===nm).sort(childFirst)[0]; if(hit) return hit.id; }
+  for(const nm of aliases){ const hit=list.filter(s=>(s.attributes?.name||'').toLowerCase().includes(nm.toLowerCase())).sort(childFirst)[0]; if(hit) return hit.id; }
+  const all=await api(`/stops?filter[route_type]=2&page[limit]=800`); const allList=all.data||[];
+  for(const nm of aliases){ const hit=allList.filter(s=>s.attributes?.name===nm).sort(childFirst)[0]; if(hit) return hit.id; }
+  for(const nm of aliases){ const hit=allList.filter(s=>(s.attributes?.name||'').toLowerCase().includes(nm.toLowerCase())).sort(childFirst)[0]; if(hit) return hit.id; }
+  throw new Error('stop not found');
+}
+async function fetchInboundRows(stopId, routeId){
+  const date=todayYMD(); const inbound=await getInboundDirId(routeId); const tryDirs=[inbound, inbound===0?1:0]; let rows=[];
+  for(const dir of tryDirs){
+    const json=await api(`/schedules?filter[stop]=${encodeURIComponent(stopId)}&filter[route]=${encodeURIComponent(routeId)}&filter[direction_id]=${dir}&filter[date]=${date}&include=trip,route&sort=departure_time&page[limit]=300`);
+    const trips=new Map(); const routes=new Map(); (json.included||[]).forEach(it=>{ if(it.type==='trip') trips.set(it.id,it.attributes); if(it.type==='route') routes.set(it.id,it.attributes); });
+    const cand=(json.data||[]).filter(r=>r.attributes?.departure_time).map(r=>{ const tripId=r.relationships?.trip?.data?.id; const routeId2=r.relationships?.route?.data?.id; const trip=trips.get(tripId)||{}; return { fromStop: stopId, trip_id: tripId, route: routes.get(routeId2)?.long_name || routeId2 || '-', headsign: trip.headsign || '-', departure_time: r.attributes.departure_time, direction_id: trip.direction_id }; }).filter(o=>/north station/i.test(o.headsign||''));
+    if(cand.length){ rows=cand; break; }
+  }
+  return rows;
+}
+async function fetchNorthArrivals(tripIds){ if(!tripIds.length) return {}; const ids=tripIds.slice(0,50).join(','); const j=await api(`/schedules?filter[trip]=${ids}&filter[stop]=place-north&page[limit]=300`); const map={}; (j.data||[]).forEach(r=>{ const tid=r.relationships?.trip?.data?.id; map[tid]=r.attributes?.arrival_time||r.attributes?.departure_time||null; }); return map; }
+function toNY(d){ return new Date(new Date(d).toLocaleString('en-US',{timeZone:'America/New_York'})); }
+function hhmmNY(iso){ if(!iso) return '-'; const dt=toNY(iso); return `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`; }
+function renderTable(title, rows, arrMap){
+  const head = `<div class="label" style="margin:6px 0 8px"><strong>${title}</strong></div>`;
+  if(!rows || !rows.length){ return head + `<div class="small">No upcoming trains.</div>`; }
+  const trs = rows.map(r=>{
+    const arr = arrMap[r.trip_id];
+    return `<tr>
+      <td style="padding:6px 8px">${hhmmNY(r.departure_time)}</td>
+      <td style="padding:6px 8px">${arr ? hhmmNY(arr) : '-'}</td>
+      <td style="padding:6px 8px"><span class="cd" data-dep="${r.departure_time}"></span></td>
+    </tr>`;
+  }).join('');
+  return head + `<table class="small" style="width:100%; border-collapse:collapse">
+    <thead><tr>
+      <th style="text-align:left; padding:6px 8px">Departure</th>
+      <th style="text-align:left; padding:6px 8px">Arrive</th>
+      <th style="text-align:left; padding:6px 8px">In</th>
+    </tr></thead>
+    <tbody>${trs}</tbody></table>`;
+}
+function updateCountdowns(){
+  const els = document.querySelectorAll('#next3 .cd');
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  els.forEach(el=>{
+    const iso = el.getAttribute('data-dep');
+    if(!iso){ el.textContent='-'; return; }
+    const dep = new Date(new Date(iso).toLocaleString('en-US',{timeZone:'America/New_York'}));
+    const diffMs = dep - now;
+    if(diffMs <= 0){ el.textContent = 'now'; el.className='cd gray'; return; }
+    const min = Math.floor(diffMs/60000);
+    el.textContent = `${min}m`;
+    if(min<=10){ el.className='cd gray'; }
+    else if(min<=15){ el.className='cd red'; }
+    else if(min<=20){ el.className='cd yellow'; }
+    else{ el.className='cd white'; }
+  });
+}
+async function refreshNext3_v2(){
+  try{
+    const [wmStop, porterStop] = await Promise.all([
+      findStopIdForRoute('CR-Lowell', ['West Medford']),
+      findStopIdForRoute('CR-Fitchburg', ['Porter','Porter Square'])
+    ]);
+    const [wmRowsAll, porterRowsAll] = await Promise.all([
+      fetchInboundRows(wmStop, 'CR-Lowell'),
+      fetchInboundRows(porterStop, 'CR-Fitchburg')
+    ]);
+
+    const now = nyNow();
+    const wmUpcoming = wmRowsAll
+      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+      .slice(0,3);
+    const porterUpcoming = porterRowsAll
+      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+      .slice(0,3);
+
+    const needTrips = [...wmUpcoming, ...porterUpcoming].map(r=>r.trip_id);
+    const arrMap = await fetchNorthArrivals(needTrips);
+
+    const box = document.getElementById('next3');
+    if(!box) return;
+    box.innerHTML = [
+      renderTable('Lowell Line (West Medford)', wmUpcoming, arrMap),
+      renderTable('Fitchburg Line (Porter)', porterUpcoming, arrMap)
+    ].join('');
+    updateCountdowns();
+  }catch(e){
+    console.error(e);
+    const box = document.getElementById('next3');
+    if(box) box.innerHTML = `<div class="small bad">Failed to load trains: ${e.message||e}</div>`;
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  refreshNext3_v2();
+  setInterval(refreshNext3_v2, 60*1000);
+  setInterval(updateCountdowns, 1000);
+});
+
+/* ========= ENGLISH (GitHub JSONを読み、10秒ごと更新) ========= */
+/* 参照データURL: ?src= で上書き可能。デフォルトはあなたのGitHubを指します。 */
+const ENG_DEFAULT_DATA_URL =
+  new URLSearchParams(location.search).get('src') ||
+  'https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/data/phrases.json';
+
+let ENG_DATA = [];
+let ENG_TIMER = null;
+let ENG_LAST = -1;
+
+function ENG_normalizeRow(r){
+  return {
+    ja: String((r&&r.ja)||'').trim(),
+    en: String((r&&r.en)||'').trim(),
+    ex: String((r&&r.ex)||'').trim()
+  };
+}
+function ENG_showRandom(){
+  const enEl = document.getElementById('engEn');
+  const jaEl = document.getElementById('engJa');
+  const exEl = document.getElementById('engEx');
+  if(!ENG_DATA.length){
+    enEl.textContent = 'No data';
+    jaEl.textContent = '';
+    exEl.textContent = '';
+    return;
+  }
+  let idx=0;
+  if(ENG_DATA.length>1){
+    do{ idx = Math.floor(Math.random()*ENG_DATA.length); } while(idx===ENG_LAST);
+  }
+  ENG_LAST = idx;
+  const it = ENG_DATA[idx];
+  enEl.textContent = it.en || '';
+  jaEl.textContent = it.ja || '';
+  exEl.textContent = it.ex || '';
+  document.getElementById('engCard')?.animate([{opacity:.6},{opacity:1}],{duration:220});
+}
+async function ENG_fetch(){
+  try{
+    const r = await fetch(ENG_DEFAULT_DATA_URL, {cache:'no-store'});
+    if(!r.ok) throw new Error('fetch '+r.status);
+    const ct = r.headers.get('content-type')||'';
+    let rows=[];
+    if(ct.includes('application/json') || ENG_DEFAULT_DATA_URL.endsWith('.json')){
+      const arr = await r.json();
+      if(!Array.isArray(arr)) throw new Error('JSON array expected');
+      rows = arr;
+    }else{
+      // CSV/TSV fallback
+      const txt = await r.text();
+      const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      rows = lines.map(line=>{
+        const cols = line.includes('\t') ? line.split('\t') : parseCsvLine(line);
+        const [ja='',en='',ex=''] = cols;
+        return {ja,en,ex};
+      });
+    }
+    ENG_DATA = rows.map(ENG_normalizeRow).filter(r=>r.en||r.ja);
+    if(!ENG_DATA.length) throw new Error('no rows');
+    ENG_showRandom();
+  }catch(e){
+    console.error(e);
+    document.getElementById('engEn').textContent='Load failed';
+    document.getElementById('engJa').textContent=String(e&&e.message||e);
+    document.getElementById('engEx').textContent='';
+  }
+}
+function parseCsvLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else { inQ=!inQ; } }
+    else if(ch===',' && !inQ){ out.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  out.push(cur); return out.map(s=>s.trim());
+}
+function ENG_start(){
+  if(ENG_TIMER){ clearInterval(ENG_TIMER); ENG_TIMER=null; }
+  ENG_TIMER = setInterval(ENG_showRandom, 10*1000); // 10秒
+  ENG_showRandom();
+}
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await ENG_fetch();
+  ENG_start();
+});
+</script>
+</body>
+</html>
