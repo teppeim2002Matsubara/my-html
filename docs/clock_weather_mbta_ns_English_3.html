@@ -254,7 +254,7 @@ async function loadWeather(){
 
     const todayList=document.getElementById('hourly12'); todayList.innerHTML='';
     const today=new Date(base); const y0=today.getFullYear(), m0=today.getMonth(), d0=today.getDate();
-    ;[0,3,6,9,12,15,18,21].forEach(h=>{
+    ;[6,9,12,15,18,21].forEach(h=>{
       const target=new Date(y0,m0,d0,h,0,0); let bestI=-1, bestDiff=Infinity;
       for(let i=0;i<times.length;i++){ const dt=new Date(times[i]); if(dt.getDate()!==d0) continue; const diff=Math.abs(dt-target); if(diff<bestDiff){bestDiff=diff; bestI=i;} }
       if(bestI>=0){ const dt=new Date(times[bestI]); const line=document.createElement('div'); line.className='rowline'; const hour=dt.getHours(); if([9,12,15,18].includes(hour)) line.classList.add('active');
