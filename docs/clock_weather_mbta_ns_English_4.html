@@ -51,6 +51,8 @@
     overflow:visible;
     padding-right:6px;
     font-size:1.0rem;   /* フォント拡大を追加 */
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
   .rowline{display:grid; grid-template-columns:64px 1fr auto; align-items:center; gap:10px; padding:4px 6px; border-radius:10px; background:rgba(255,255,255,.05)}
@@ -79,40 +81,9 @@
     .row{grid-template-columns:1fr;}
     .clock-and-digital{flex-direction:column;}
   }
+.pill-btn{ cursor:pointer; border:none; outline:none }
+.pill-btn.active{ background:rgba(255,255,255,.20) }
 
-
-/* ===== Weather compact overrides ===== */
-.grid { gap: 10px; }  /* 14px → 10px に詰める:contentReference[oaicite:0]{index=0} */
-
-.cols{
-  /* 最小幅 300px → 220px にしてカード幅を細くする:contentReference[oaicite:1]{index=1} */
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-/* 英語カード(.eng-card)以外＝Weather 2枚のカードだけ詰める */
-.grid .card:not(.eng-card){
-  padding: 10px 12px;   /* 既定 14px から縮小:contentReference[oaicite:2]{index=2} */
-}
-
-/* 見出し行（Today/Tomorrow とピル）を小さめに */
-.grid .card:not(.eng-card) .wx-head .label{ font-size: 1.0rem; }
-.grid .card:not(.eng-card) .pill{
-  font-size: 1.0rem;    /* 1.3rem 相当から縮小:contentReference[oaicite:3]{index=3} */
-  padding: 4px 8px;
-}
-
-/* 各行（時間ごとの行）の密度を上げる */
-.list{
-  grid-auto-rows: minmax(28px, auto); /* 34px → 28px に圧縮:contentReference[oaicite:4]{index=4} */
-  gap: 4px;                            /* 行間 6px → 4px:contentReference[oaicite:5]{index=5} */
-  font-size: 1.0rem;                   /* 1.3rem → 1.0rem:contentReference[oaicite:6]{index=6} */
-  padding-right: 4px;                  /* 余白を少し削る */
-}
-
-.rowline{
-  padding: 4px 6px;    /* 8px 10px → 4px 6px:contentReference[oaicite:7]{index=7} */
-  gap: 8px;            /* 情報列の間隔を少し詰める */
-}
 
 
 </style>
@@ -147,6 +118,18 @@
       </div>
       <div class="right-col">
         <div class="card next-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+            <div class="label"><strong>Commuter Rail</strong></div>
+            <div>
+              <button id="btnToNorth"  class="pill pill-btn active">→ North Station</button>
+              <button id="btnFromNorth" class="pill pill-btn">← From North Station</button>
+              <button id="ttsToggle" class="pill pill-btn" style="margin-left:8px">🔊 Read aloud: OFF</button>
+              <select id="voiceSelect" class="pill" style="margin-left:8px"></select>
+
+
+            </div>
+          </div>
+
           <div id="next3">
             <div class="small">Loading trains…</div>
           </div>
@@ -183,6 +166,9 @@
   </section>
 
 <script>
+const NORTH_STATION_STOP_ID = 'place-north';
+let DIR_MODE = 'to'; // 'to' = →North Station（既定）, 'from' = ←From North Station
+
 /* ========= CLOCK ========= */
 (function(){
   const svg = document.getElementById('face');
@@ -368,6 +354,47 @@ function renderTable(title, rows, arrMap){
     </tr></thead>
     <tbody>${trs}</tbody></table>`;
 }
+async function fetchDeparturesFromNorth(routeId){
+  const date=todayYMD();
+  const json=await api(`/schedules?filter[stop]=${NORTH_STATION_STOP_ID}&filter[route]=${encodeURIComponent(routeId)}&filter[date]=${date}&include=trip,route&sort=departure_time&page[limit]=300`);
+  const trips=new Map(); const routes=new Map();
+  (json.included||[]).forEach(it=>{
+    if(it.type==='trip')  trips.set(it.id,it.attributes);
+    if(it.type==='route') routes.set(it.id,it.attributes);
+  });
+  const rows=(json.data||[])
+    .filter(r=>r.attributes?.departure_time)
+    .map(r=>{
+      const tripId=r.relationships?.trip?.data?.id;
+      const routeId2=r.relationships?.route?.data?.id;
+      const trip=trips.get(tripId)||{};
+      return {
+        fromStop: NORTH_STATION_STOP_ID,
+        trip_id: tripId,
+        route: routes.get(routeId2)?.long_name || routeId2 || '-',
+        headsign: trip.headsign || '-',           // （例）Lowell, Wachusett, South Acton など
+        departure_time: r.attributes.departure_time,
+        direction_id: trip.direction_id
+      };
+    });
+  return rows;
+}
+
+
+async function fetchArrivalsAtStop(tripIds, stopId){
+  if(!tripIds.length) return {};
+  const ids=tripIds.slice(0,50).join(',');
+  const j=await api(`/schedules?filter[trip]=${ids}&filter[stop]=${encodeURIComponent(stopId)}&page[limit]=300`);
+  const map={};
+  (j.data||[]).forEach(r=>{
+    const tid=r.relationships?.trip?.data?.id;
+    // その駅での到着が無ければ出発を代用
+    map[tid]=r.attributes?.arrival_time||r.attributes?.departure_time||null;
+  });
+  return map;
+}
+
+
 function updateCountdowns(){
   const els = document.querySelectorAll('#next3 .cd');
   const now = new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
@@ -388,45 +415,101 @@ function updateCountdowns(){
 async function refreshNext3_v2(){
   try{
     const [wmStop, porterStop] = await Promise.all([
-      findStopIdForRoute('CR-Lowell', ['West Medford']),
-      findStopIdForRoute('CR-Fitchburg', ['Porter','Porter Square'])
-    ]);
-    const [wmRowsAll, porterRowsAll] = await Promise.all([
-      fetchInboundRows(wmStop, 'CR-Lowell'),
-      fetchInboundRows(porterStop, 'CR-Fitchburg')
+      findStopIdForRoute('CR-Lowell',   ['West Medford']),
+      findStopIdForRoute('CR-Fitchburg',['Porter','Porter Square'])
     ]);
 
     const now = nyNow();
-    const wmUpcoming = wmRowsAll
-      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
-      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
-      .slice(0,3);
-    const porterUpcoming = porterRowsAll
-      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
-      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
-      .slice(0,3);
-
-    const needTrips = [...wmUpcoming, ...porterUpcoming].map(r=>r.trip_id);
-    const arrMap = await fetchNorthArrivals(needTrips);
-
     const box = document.getElementById('next3');
     if(!box) return;
+
+    if(DIR_MODE === 'to'){
+      // これまで通り：郊外→North Station
+      const [wmRowsAll, porterRowsAll] = await Promise.all([
+        fetchInboundRows(wmStop, 'CR-Lowell'),       // 既存関数を再利用
+        fetchInboundRows(porterStop, 'CR-Fitchburg') // 既存関数を再利用
+      ]);
+
+      const wmUpcoming = wmRowsAll
+        .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+        .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+        .slice(0,3);
+
+      const porterUpcoming = porterRowsAll
+        .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+        .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+        .slice(0,3);
+
+      const needTrips = [...wmUpcoming, ...porterUpcoming].map(r=>r.trip_id);
+      const arrMap = await fetchArrivalsAtStop(needTrips, NORTH_STATION_STOP_ID);
+
+      box.innerHTML = [
+        renderTable('Lowell Line (West Medford → North Station)', wmUpcoming, arrMap),
+        renderTable('Fitchburg Line (Porter → North Station)',    porterUpcoming, arrMap)
+      ].join('');
+      updateCountdowns();
+      return;
+    }
+
+    // ← From North Station：North Station → 郊外
+    const [lowFromNorth, fitchFromNorth] = await Promise.all([
+      fetchDeparturesFromNorth('CR-Lowell'),
+      fetchDeparturesFromNorth('CR-Fitchburg')
+    ]);
+
+    // まず North 出発の将来列車を時刻順に取り、各目的地駅で到着が存在するものに限定
+    // West Medford 行きに停まる Lowell ライン列車
+    const lowFuture = lowFromNorth
+      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+      .slice(0,12); // 余裕を持って拾ってから到着有無で絞る
+
+    const lowArrMap = await fetchArrivalsAtStop(lowFuture.map(r=>r.trip_id), wmStop);
+    const lowUpcoming = lowFuture.filter(r=> lowArrMap[r.trip_id]).slice(0,3);
+
+    // Porter に停まる Fitchburg ライン列車
+    const fitchFuture = fitchFromNorth
+      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+      .slice(0,12);
+
+    const fitchArrMap = await fetchArrivalsAtStop(fitchFuture.map(r=>r.trip_id), porterStop);
+    const fitchUpcoming = fitchFuture.filter(r=> fitchArrMap[r.trip_id]).slice(0,3);
+
     box.innerHTML = [
-      renderTable('Lowell Line (West Medford)', wmUpcoming, arrMap),
-      renderTable('Fitchburg Line (Porter)', porterUpcoming, arrMap)
+      renderTable('Lowell Line (North Station → West Medford)', lowUpcoming, lowArrMap),
+      renderTable('Fitchburg Line (North Station → Porter)',     fitchUpcoming, fitchArrMap)
     ].join('');
     updateCountdowns();
+
   }catch(e){
     console.error(e);
     const box = document.getElementById('next3');
     if(box) box.innerHTML = `<div class="small bad">Failed to load trains: ${e.message||e}</div>`;
   }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
-  refreshNext3_v2();
+  // トグルのボタン
+  const toBtn   = document.getElementById('btnToNorth');
+  const fromBtn = document.getElementById('btnFromNorth');
+  function setDir(mode){
+    DIR_MODE = mode;               // 'to' or 'from'
+    toBtn.classList.toggle('active',   mode==='to');
+    fromBtn.classList.toggle('active', mode==='from');
+    refreshNext3_v2();
+  }
+  toBtn?.addEventListener('click',   ()=> setDir('to'));
+  fromBtn?.addEventListener('click', ()=> setDir('from'));
+
+  // 初期表示は 'to'（これまで通り）
+  setDir('to');
+
+  // 周期更新
   setInterval(refreshNext3_v2, 60*1000);
   setInterval(updateCountdowns, 1000);
 });
+
 
 /* ========= ENGLISH (GitHub JSONを読み、10秒ごと更新) ========= */
 /* 参照データURL: ?src= で上書き可能。デフォルトはあなたのGitHubを指します。 */
@@ -511,6 +594,135 @@ function ENG_start(){
   ENG_TIMER = setInterval(ENG_showRandom, 10*1000); // 10秒
   ENG_showRandom();
 }
+
+/* ====== TTS（英語の自動読み上げ）====== */
+let TTS_ENABLED = false;
+let TTS_VOICE = null;
+let TTS_RATE = 1.0;
+let TTS_PITCH = 1.0;
+
+// 音声リストを埋める
+function populateVoiceList() {
+  const voices = speechSynthesis.getVoices();
+  const select = document.getElementById("voiceSelect");
+  if (!select) return;
+
+  select.innerHTML = "";
+  voices
+    .filter(v => v.lang.startsWith("en"))  // 英語のみ表示
+    .forEach((voice, i) => {
+      const opt = document.createElement("option");
+      opt.value = voice.name;
+      opt.textContent = `${voice.name} (${voice.lang})`;
+      select.appendChild(opt);
+    });
+
+  // デフォルト選択
+  if (voices.length > 0 && !TTS_VOICE) {
+    TTS_VOICE = voices.find(v => v.lang.startsWith("en-US")) || voices[0];
+    select.value = TTS_VOICE.name;
+  }
+}
+
+// 音声変更イベント
+document.getElementById("voiceSelect")?.addEventListener("change", e => {
+  const name = e.target.value;
+  const voices = speechSynthesis.getVoices();
+  TTS_VOICE = voices.find(v => v.name === name) || null;
+});
+
+if ('onvoiceschanged' in speechSynthesis) {
+  speechSynthesis.onvoiceschanged = populateVoiceList;
+}
+populateVoiceList();
+
+// iOSのため：必ずユーザー操作で最初の speak を発火させる
+function ttsInitVoices() {
+  const voices = speechSynthesis.getVoices() || [];
+  // 英語の自然な声を優先選択（iOSは "Samantha", "Alex" など）
+  const prefer = ["en-US", "en-GB", "en-AU", "en-CA"];
+  TTS_VOICE =
+    voices.find(v => prefer.includes(v.lang)) ||
+    voices.find(v => v.lang && v.lang.startsWith("en")) ||
+    null;
+}
+// iOSでは getVoices が非同期で遅れることがある
+if ('onvoiceschanged' in speechSynthesis) {
+  speechSynthesis.onvoiceschanged = () => { if (!TTS_VOICE) ttsInitVoices(); };
+}
+// 初期化（同期で取れたらすぐ）
+ttsInitVoices();
+
+function ttsSpeak(text) {
+  if (!TTS_ENABLED || !text) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  if (TTS_VOICE) utt.voice = TTS_VOICE;
+  utt.lang = (TTS_VOICE && TTS_VOICE.lang) || "en-US";
+  utt.rate = TTS_RATE;
+  utt.pitch = TTS_PITCH;
+  speechSynthesis.speak(utt);
+}
+
+// トグルボタン（最初のタップが「ユーザー操作」になる）
+document.getElementById('ttsToggle')?.addEventListener('click', () => {
+  TTS_ENABLED = !TTS_ENABLED;
+  const btn = document.getElementById('ttsToggle');
+  btn.textContent = TTS_ENABLED ? "🔊 Read aloud: ON" : "🔇 Read aloud: OFF";
+  btn.classList.toggle('active', TTS_ENABLED);
+  // ONにした直後に現在表示中の英語を一度読む
+  if (TTS_ENABLED) {
+    const current = document.getElementById('engEn')?.textContent || "";
+    // iOSで確実に初回発話を通すため、ユーザー操作直後に呼ぶ
+    ttsSpeak(current);
+  } else {
+    speechSynthesis.cancel();
+  }
+});
+let lastSpoken = null;
+
+function getEngText() {
+  return (document.getElementById('engEn')?.textContent || "").trim();
+}
+
+// 監視セットアップ（英語テキストのDOMに対して）
+function setupEngObserver() {
+  const target = document.getElementById('engEn');
+  if (!target) return; // 初期化順でまだ無い場合は後で再試行してもOK
+
+  const obs = new MutationObserver(() => {
+    if (!TTS_ENABLED) return;
+    const txt = getEngText();
+    if (!txt) return;
+
+    // 前回と同じ文ならスキップ（重複読み上げ防止）
+    if (txt === lastSpoken) return;
+
+    // 前の発話を止めてから新しい文を読む
+    try { if (speechSynthesis.speaking) speechSynthesis.cancel(); } catch(e) {}
+    // DOM反映直後の読み上げを安定させるために極短遅延
+    setTimeout(() => { ttsSpeak(txt); lastSpoken = txt; }, 0);
+  });
+
+  obs.observe(target, { childList: true, characterData: true, subtree: true });
+}
+
+// DOMができたら監視開始
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupEngObserver);
+} else {
+  setupEngObserver();
+}
+
+// トグルON時に現在文も一度読む（初回の“ユーザー操作”で許可取得）
+document.getElementById('ttsToggle')?.addEventListener('click', () => {
+  if (TTS_ENABLED) { // いまONに切り替わった直後
+    const cur = getEngText();
+    if (cur) { ttsSpeak(cur); lastSpoken = cur; }
+  } else {
+    lastSpoken = null; // OFFにしたらリセット
+  }
+});
 document.addEventListener('DOMContentLoaded', async ()=>{
   await ENG_fetch();
   ENG_start();
