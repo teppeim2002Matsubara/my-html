@@ -594,135 +594,126 @@ function ENG_start(){
   ENG_TIMER = setInterval(ENG_showRandom, 10*1000); // 10秒
   ENG_showRandom();
 }
-
+</script>
+<script>
 /* ====== TTS（英語の自動読み上げ）====== */
 let TTS_ENABLED = false;
 let TTS_VOICE = null;
 let TTS_RATE = 1.0;
 let TTS_PITCH = 1.0;
 
-// 音声リストを埋める
-function populateVoiceList() {
+/* --- Samantha (en-US) を最優先で選択 --- */
+function selectDefaultVoice() {
   const voices = speechSynthesis.getVoices();
-  const select = document.getElementById("voiceSelect");
-  if (!select) return;
-
-  select.innerHTML = "";
-  voices
-    .filter(v => v.lang.startsWith("en"))  // 英語のみ表示
-    .forEach((voice, i) => {
-      const opt = document.createElement("option");
-      opt.value = voice.name;
-      opt.textContent = `${voice.name} (${voice.lang})`;
-      select.appendChild(opt);
-    });
-
-  // デフォルト選択
-  if (voices.length > 0 && !TTS_VOICE) {
-    TTS_VOICE = voices.find(v => v.lang.startsWith("en-US")) || voices[0];
-    select.value = TTS_VOICE.name;
-  }
-}
-
-// 音声変更イベント
-document.getElementById("voiceSelect")?.addEventListener("change", e => {
-  const name = e.target.value;
-  const voices = speechSynthesis.getVoices();
-  TTS_VOICE = voices.find(v => v.name === name) || null;
-});
-
-if ('onvoiceschanged' in speechSynthesis) {
-  speechSynthesis.onvoiceschanged = populateVoiceList;
-}
-populateVoiceList();
-
-// iOSのため：必ずユーザー操作で最初の speak を発火させる
-function ttsInitVoices() {
-  const voices = speechSynthesis.getVoices() || [];
-  // 英語の自然な声を優先選択（iOSは "Samantha", "Alex" など）
-  const prefer = ["en-US", "en-GB", "en-AU", "en-CA"];
+  // Samantha 固定 → 無ければ en-US → 無ければ英語系
   TTS_VOICE =
-    voices.find(v => prefer.includes(v.lang)) ||
+    voices.find(v => v.name === "Samantha" && v.lang === "en-US") ||
+    voices.find(v => v.lang === "en-US") ||
     voices.find(v => v.lang && v.lang.startsWith("en")) ||
     null;
-}
-// iOSでは getVoices が非同期で遅れることがある
-if ('onvoiceschanged' in speechSynthesis) {
-  speechSynthesis.onvoiceschanged = () => { if (!TTS_VOICE) ttsInitVoices(); };
-}
-// 初期化（同期で取れたらすぐ）
-ttsInitVoices();
 
+  // UIに反映（必要な場合）
+  const sel = document.getElementById("voiceSelect");
+  if (sel) {
+    sel.innerHTML = "";
+    voices
+      .filter(v => v.lang?.startsWith("en"))
+      .forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.name;
+        opt.textContent = `${v.name} (${v.lang})`;
+        sel.appendChild(opt);
+      });
+    if (TTS_VOICE) sel.value = TTS_VOICE.name;
+  }
+}
+if ('onvoiceschanged' in speechSynthesis) {
+  speechSynthesis.onvoiceschanged = selectDefaultVoice;
+}
+selectDefaultVoice();
+
+/* --- Quiet Hours: 9:00–18:00 に入った瞬間だけ自動OFF --- */
+function isQuietHours() {
+  const h = new Date().getHours();
+  return h >= 9 && h < 18;
+}
+let _wasQuiet = null;
+function autoFlipOffIfEnteringQuiet() {
+  const quiet = isQuietHours();
+  if (_wasQuiet === null) { _wasQuiet = quiet; return; }
+  if (!_wasQuiet && quiet && TTS_ENABLED) {
+    TTS_ENABLED = false;
+    speechSynthesis.cancel();
+    updateTtsButtonLabel();
+  }
+  _wasQuiet = quiet;
+}
+setInterval(autoFlipOffIfEnteringQuiet, 30_000);
+autoFlipOffIfEnteringQuiet();
+
+/* --- 読み上げ --- */
 function ttsSpeak(text) {
   if (!TTS_ENABLED || !text) return;
-  speechSynthesis.cancel();
+  try { if (speechSynthesis.speaking) speechSynthesis.cancel(); } catch {}
   const utt = new SpeechSynthesisUtterance(text);
   if (TTS_VOICE) utt.voice = TTS_VOICE;
-  utt.lang = (TTS_VOICE && TTS_VOICE.lang) || "en-US";
-  utt.rate = TTS_RATE;
+  utt.lang  = (TTS_VOICE && TTS_VOICE.lang) || "en-US";
+  utt.rate  = TTS_RATE;
   utt.pitch = TTS_PITCH;
   speechSynthesis.speak(utt);
 }
 
-// トグルボタン（最初のタップが「ユーザー操作」になる）
+/* --- トグルボタン --- */
+function updateTtsButtonLabel() {
+  const btn = document.getElementById('ttsToggle');
+  if (!btn) return;
+  const suffix = isQuietHours() ? " (Quiet hours)" : "";
+  btn.textContent = TTS_ENABLED ? `🔊 Read aloud: ON${suffix}` : `🔇 Read aloud: OFF${suffix}`;
+  btn.classList.toggle('active', TTS_ENABLED);
+}
 document.getElementById('ttsToggle')?.addEventListener('click', () => {
   TTS_ENABLED = !TTS_ENABLED;
-  const btn = document.getElementById('ttsToggle');
-  btn.textContent = TTS_ENABLED ? "🔊 Read aloud: ON" : "🔇 Read aloud: OFF";
-  btn.classList.toggle('active', TTS_ENABLED);
-  // ONにした直後に現在表示中の英語を一度読む
+  updateTtsButtonLabel();
   if (TTS_ENABLED) {
-    const current = document.getElementById('engEn')?.textContent || "";
-    // iOSで確実に初回発話を通すため、ユーザー操作直後に呼ぶ
-    ttsSpeak(current);
+    const cur = (document.getElementById('engEn')?.textContent || "").trim();
+    if (cur) ttsSpeak(cur);
   } else {
     speechSynthesis.cancel();
   }
 });
-let lastSpoken = null;
+updateTtsButtonLabel();
 
+/* --- 10秒ごとの更新をフック（テキスト変化を監視） --- */
+let lastSpoken = null;
 function getEngText() {
   return (document.getElementById('engEn')?.textContent || "").trim();
 }
-
-// 監視セットアップ（英語テキストのDOMに対して）
 function setupEngObserver() {
   const target = document.getElementById('engEn');
-  if (!target) return; // 初期化順でまだ無い場合は後で再試行してもOK
-
+  if (!target) return;
   const obs = new MutationObserver(() => {
     if (!TTS_ENABLED) return;
     const txt = getEngText();
-    if (!txt) return;
-
-    // 前回と同じ文ならスキップ（重複読み上げ防止）
-    if (txt === lastSpoken) return;
-
-    // 前の発話を止めてから新しい文を読む
-    try { if (speechSynthesis.speaking) speechSynthesis.cancel(); } catch(e) {}
-    // DOM反映直後の読み上げを安定させるために極短遅延
+    if (!txt || txt === lastSpoken) return;
     setTimeout(() => { ttsSpeak(txt); lastSpoken = txt; }, 0);
   });
-
   obs.observe(target, { childList: true, characterData: true, subtree: true });
 }
-
-// DOMができたら監視開始
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupEngObserver);
 } else {
   setupEngObserver();
 }
 
-// トグルON時に現在文も一度読む（初回の“ユーザー操作”で許可取得）
-document.getElementById('ttsToggle')?.addEventListener('click', () => {
-  if (TTS_ENABLED) { // いまONに切り替わった直後
-    const cur = getEngText();
-    if (cur) { ttsSpeak(cur); lastSpoken = cur; }
-  } else {
-    lastSpoken = null; // OFFにしたらリセット
-  }
+/* --- voiceSelect での手動変更に対応（任意） --- */
+document.getElementById("voiceSelect")?.addEventListener("change", e => {
+  const name = e.target.value;
+  const voices = speechSynthesis.getVoices();
+  const v = voices.find(v => v.name === name);
+  if (v) TTS_VOICE = v;
 });
+
+
 document.addEventListener('DOMContentLoaded', async ()=>{
   await ENG_fetch();
   ENG_start();
