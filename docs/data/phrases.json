@@ -4,16 +4,7 @@
     "en": "No sweat.",
     "ex": ""
   },
-  {
-    "ja": "私のミスです。",
-    "en": "My bad.",
-    "ex": ""
-  },
-  {
-    "ja": "了解。",
-    "en": "Gotcha.",
-    "ex": ""
-  },
+
   {
     "ja": "取引成立ね。",
     "en": "It’s a deal.",
@@ -30,28 +21,13 @@
     "ex": ""
   },
   {
-    "ja": "しまった！",
-    "en": "Shoot!",
-    "ex": ""
-  },
-  {
     "ja": "もちろんさ。",
     "en": "You bet.",
     "ex": ""
   },
   {
-    "ja": "いいね。",
-    "en": "Sounds good.",
-    "ex": ""
-  },
-  {
     "ja": "乗った！",
     "en": "I’m game.",
-    "ex": ""
-  },
-  {
-    "ja": "うまくいくよう祈ってるよ。",
-    "en": "Fingers crossed.",
     "ex": ""
   },
   {
@@ -77,11 +53,6 @@
   {
     "ja": "自分らしくいればいいよ。",
     "en": "You do you.",
-    "ex": ""
-  },
-  {
-    "ja": "ノープロブレム。",
-    "en": "No worries.",
     "ex": ""
   },
   {
@@ -134,16 +105,7 @@
     "en": "Hold your horses.",
     "ex": ""
   },
-  {
-    "ja": "ウェッ！",
-    "en": "Yuck!",
-    "ex": ""
-  },
-  {
-    "ja": "カンタンだよ。",
-    "en": "Easy peasy.",
-    "ex": ""
-  },
+
   {
     "ja": "そんなに難しくないよ。",
     "en": "It’s not rocket science.",
@@ -154,16 +116,7 @@
     "en": "Don’t push your luck.",
     "ex": ""
   },
-  {
-    "ja": "しまった！",
-    "en": "Oops!",
-    "ex": ""
-  },
-  {
-    "ja": "おいしい！",
-    "en": "Yum!",
-    "ex": ""
-  },
+
   {
     "ja": "やめてよ。",
     "en": "Cut it out.",
@@ -195,11 +148,6 @@
     "ex": ""
   },
   {
-    "ja": "冗談だよ。",
-    "en": "Just kidding.",
-    "ex": ""
-  },
-  {
     "ja": "気にするな。",
     "en": "Don’t sweat it.",
     "ex": ""
@@ -215,16 +163,6 @@
     "ex": ""
   },
   {
-    "ja": "もちろん！",
-    "en": "Absolutely!",
-    "ex": ""
-  },
-  {
-    "ja": "それについて教えてよ。",
-    "en": "Tell me about it.",
-    "ex": ""
-  },
-  {
     "ja": "ドジだなぁ。",
     "en": "I’m all thumbs.",
     "ex": ""
@@ -237,11 +175,6 @@
   {
     "ja": "お手上げだ。",
     "en": "I’m stumped.",
-    "ex": ""
-  },
-  {
-    "ja": "ちくしょう！",
-    "en": "Dang it!",
     "ex": ""
   },
   {
@@ -267,16 +200,6 @@
   {
     "ja": "人数が多いほど楽しい。",
     "en": "The more the merrier.",
-    "ex": ""
-  },
-  {
-    "ja": "のんびりやろうよ。",
-    "en": "Take it easy.",
-    "ex": ""
-  },
-  {
-    "ja": "久しぶり！",
-    "en": "Long time no see.",
     "ex": ""
   },
   {
@@ -395,11 +318,6 @@
     "ex": ""
   },
   {
-    "ja": "ゆっくりいこうよ。",
-    "en": "Slow down.",
-    "ex": ""
-  },
-  {
     "ja": "最高の気分にさせてくれよ。",
     "en": "Make my day.",
     "ex": ""
@@ -435,11 +353,6 @@
     "ex": ""
   },
   {
-    "ja": "時が経つのは早いね。",
-    "en": "Time flies.",
-    "ex": ""
-  },
-  {
     "ja": "元気出してね。",
     "en": "Keep your chin up.",
     "ex": ""
@@ -459,11 +372,7 @@
     "en": "That ship has sailed.",
     "ex": ""
   },
-  {
-    "ja": "時は金なり。",
-    "en": "Time is money.",
-    "ex": ""
-  },
+
   {
     "ja": "体調不良だ。",
     "en": "Under the weather.",
@@ -597,11 +506,6 @@
   {
     "ja": "危うく。",
     "en": "By the skin of one’s teeth.",
-    "ex": ""
-  },
-  {
-    "ja": "今日はおしまい。",
-    "en": "Call it a day.",
     "ex": ""
   },
   {
@@ -959,11 +863,7 @@
     "en": "Tie the knot.",
     "ex": ""
   },
-  {
-    "ja": "時は金なり。",
-    "en": "Time is money.",
-    "ex": ""
-  },
+
   {
     "ja": "簡潔に話す。",
     "en": "To make a long story short.",
