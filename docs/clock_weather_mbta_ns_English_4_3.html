@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clock + Weather + MBTA + English</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background:#0b0b0f; color:#f5f5f7;
+    min-height:100vh; display:grid; grid-template-rows:auto 1fr; gap:16px;
+  }
+  header{padding:12px 14px;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:flex-start}
+  .left-col{display:flex; flex-direction:column; align-items:center; gap:12px}
+  .clock-and-digital{display:flex; gap:12px; justify-content:center; margin-top:12px}
+  .card{background:#14141a; border-radius:16px; padding:14px}
+  .label  { font-size: 1.2rem }   /* サイズ調整 */
+  .digital{ font-size: 3.5rem; font-weight:800 }
+  .note   { font-size: 1.6rem }
+  .small  { font-size: 1.0rem }
+
+  .cd{font-weight:bold}
+  .cd.gray{color:#aaa}
+  .cd.red{color:#ff6b6b}
+  .cd.yellow{color:#ffd166}
+  .cd.white{color:#fff}
+
+  .clock-box{position:relative; width:320px; height:320px}
+  .bezel{position:absolute; inset:0; border-radius:50%; border:12px solid #000; background:#fff; overflow:hidden}
+  svg#face{position:absolute; inset:0; display:block}
+
+  .grid{display:grid; gap:14px; padding:0 14px 18px}
+  .cols{grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))}
+  .wx-head{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .pill{
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    font-size:1.3rem;   /* 0.9rem → 1.1rem にアップ */
+    font-weight:700;
+  }
+
+  .list{
+    display:grid;
+    grid-auto-rows:minmax(34px,auto);
+    gap:6px;
+    max-height:none;
+    overflow:visible;
+    padding-right:6px;
+    font-size:1.0rem;   /* フォント拡大を追加 */
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .rowline{display:grid; grid-template-columns:64px 1fr auto; align-items:center; gap:10px; padding:4px 6px; border-radius:10px; background:rgba(255,255,255,.05)}
+  .rowline.active{background:rgba(128,128,128,0.35)}
+
+  .next-box{min-width:320px}
+
+  /* ===== English block ===== */
+  .eng-card{grid-column:1 / -1}
+  .eng-wrap{display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center}
+  .eng-en{font-size:clamp(38px,6vw,56px); font-weight:900; letter-spacing:.01em}
+  .eng-ja{font-size:clamp(28px,5vw,40px); color:#e5e7eb}
+  .eng-ex{font-size:clamp(18px,2.5vw,24px); color:#a1a1aa}
+
+  /* ===== MBTA block (表全体の文字を大きく) ===== */
+  #next3 table {
+    font-size: 1.8rem;   /* お好みで 1.2rem〜1.6rem に調整 */
+  }
+
+  #next3 th, 
+  #next3 td {
+    padding: 10px 14px;  /* 余白も広げると見やすい */
+  }
+
+  @media (max-width: 820px){
+    .row{grid-template-columns:1fr;}
+    .clock-and-digital{flex-direction:column;}
+  }
+.pill-btn{ cursor:pointer; border:none; outline:none }
+.pill-btn.active{ background:rgba(255,255,255,.20) }
+
+/* === iOS-style Today/Tomorrow and 7-day === */
+.wx-tt{ display:flex; gap:12px; margin:8px 0 10px 0; flex-wrap:wrap; }
+.wx-daycard{
+  flex:1 1 220px; background:rgba(255,255,255,.08);
+  border-radius:12px; padding:12px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.wx-daycard .left{ display:flex; flex-direction:column; gap:4px; }
+.wx-daycard .title{ font-weight:600; font-size:14px; opacity:.9; }
+.wx-daycard .cond{ font-size:13px; opacity:.85; }
+.wx-daycard .temps{ font-size:22px; font-weight:700; }
+.wx-daycard .hi{ opacity:.95; }
+.wx-daycard .lo{ opacity:.7; font-weight:600; margin-left:6px; }
+.wx-daycard .icon{ font-size:34px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.2)); }
+
+.wx-week{ background:rgba(255,255,255,.06); border-radius:12px; padding:8px 0; }
+.wx-week .row{
+  display:grid; grid-template-columns: 64px 40px 1fr 90px; align-items:center;
+  padding:8px 14px; border-bottom:1px solid rgba(255,255,255,.08);
+}
+.wx-week .row:last-child{ border-bottom:none; }
+.wx-week .dow{ opacity:.9; font-weight:600; }
+.wx-week .wicon{ font-size:20px; text-align:center; }
+.wx-week .bar{
+  height:8px; border-radius:6px; background:rgba(255,255,255,.12);
+  position:relative; margin:0 10px; overflow:hidden;
+}
+.wx-week .bar .fill{
+  position:absolute; top:0; bottom:0; left:0; background:rgba(255,255,255,.9);
+}
+.wx-week .temps{ text-align:right; font-weight:700; }
+.wx-week .temps .lo{ opacity:.7; font-weight:600; margin-left:6px; }
+
+/* ==== Weather pills & min/max bars ==== */
+.wx-pill{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:10px 14px; border-radius:16px;
+  background:rgba(255,255,255,.08); margin:8px 0 10px 0;
+}
+.wx-pill .title{ font-weight:700; }
+.wx-pill .cond{ opacity:.85; font-size:13px; }
+.wx-pill .temps{ font-weight:700; min-width:78px; text-align:right; }
+.wx-pill .lo{ opacity:.7; font-weight:600; margin-left:6px; }
+
+.wx-range{
+  position:relative; height:10px; border-radius:8px;
+  background:rgba(255,255,255,.12); flex:1 1 auto; overflow:hidden;
+  margin:0 10px;
+}
+.wx-range .fill{
+  position:absolute; top:0; bottom:0; left:0;
+  background:rgba(255,255,255,.9); border-radius:8px;
+}
+
+</style>
+</head>
+<body>
+  <header>
+    <div class="row">
+      <div class="left-col">
+        <div class="card">
+          <div class="clock-box">
+            <div class="bezel"></div>
+            <svg id="face" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <line id="hHand" x1="160" y1="160" x2="160" y2="95" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+              <line id="mHand" x1="160" y1="160" x2="160" y2="70" stroke="#000" stroke-width="6"  stroke-linecap="round"/>
+              <line id="sHand" x1="160" y1="160" x2="160" y2="60" stroke="#e00000" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="160" cy="160" r="8" fill="#fff" stroke="#e00000" stroke-width="3"/>
+            </svg>
+          </div>
+        </div>
+        <div class="clock-and-digital">
+          <div class="card">
+            <div class="digital" id="digitalLocal">--:--</div>
+            <div class="note" id="dateLocal"></div>
+            <div class="small" id="tzLabel">America/New_York</div>
+          </div>
+          <div class="card">
+            <div class="digital" id="digitalJP">--:--</div>
+            <div class="note" id="dateJP"></div>
+            <div class="small">Asia/Tokyo</div>
+          </div>
+        </div>
+      </div>
+      <div class="right-col">
+        <div class="card next-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+            <div class="label"><strong>Commuter Rail</strong></div>
+            <div>
+              <button id="btnToNorth"  class="pill pill-btn active">→ North Station</button>
+              <button id="btnFromNorth" class="pill pill-btn">← From North Station</button>
+              <button id="ttsToggle" class="pill pill-btn" style="margin-left:8px">🔊 Read aloud: OFF</button>
+              <select id="voiceSelect" class="pill" style="margin-left:8px"></select>
+              <!-- 読み上げモード：英語のみ / 英語＋日本語 -->
+              <div id="ttsModeWrap" class="pill" style="display:inline-flex; gap:8px; align-items:center; margin-left:8px; padding:4px 8px;">
+                <span style="font-size:0.9em;">Mode:</span>
+                <label style="display:inline-flex; gap:4px; align-items:center;">
+                  <input type="radio" name="ttsMode" value="en" checked>
+                  <span>English only</span>
+                </label>
+                <label style="display:inline-flex; gap:4px; align-items:center;">
+                  <input type="radio" name="ttsMode" value="enja">
+                  <span>English + 日本語</span>
+                </label>
+              </div>
+              <div id="ttsVoiceWrap" class="pill" style="display:inline-flex; gap:8px; align-items:center; margin-left:8px; padding:4px 8px;">
+                <label style="display:inline-flex; gap:6px; align-items:center;">
+                  <span style="font-size:0.9em;">EN voice:</span>
+                  <select id="enVoiceSelect"></select>
+                </label>
+                <label style="display:inline-flex; gap:6px; align-items:center;">
+                  <span style="font-size:0.9em;">JA 声:</span>
+                  <select id="jaVoiceSelect"></select>
+                </label>
+              </div>
+
+            </div>
+          </div>
+
+          <div id="next3">
+            <div class="small">Loading trains…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="grid cols">
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">Today (Boston)</div>
+        <div class="pill" id="minmaxToday">Today: -- / -- °C</div>
+      </div>
+      <!-- Today / Tomorrow summary cards -->
+
+
+      <div class="list" id="hourly12"></div>
+    </div>
+
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">Tomorrow (Boston)</div>
+        <div class="pill" id="minmaxTomorrow">-- / -- °C</div>
+      </div>
+      <div class="list" id="tomorrowKey"></div>
+    </div>
+    <div class="card">
+      <div class="wx-head">
+        <div class="label">7-day Forecast (Boston)</div>
+      </div>
+      <div id="wxWeek" class="wx-week"></div>
+    </div>
+
+    <!-- ===== 英語フレーズ（最下段・全幅） ===== -->
+    <div class="card eng-card" id="engCard">
+      <div class="eng-wrap">
+        <div class="eng-en" id="engEn">Loading…</div>
+        <div class="eng-ja" id="engJa"></div>
+        <div class="eng-ex" id="engEx"></div>
+      </div>
+    </div>
+  </section>
+
+<script>
+let WEATHER_BUSY = false;
+
+let MBTA_BUSY = false;
+
+const NORTH_STATION_STOP_ID = 'place-north';
+let DIR_MODE = 'to'; // 'to' = →North Station（既定）, 'from' = ←From North Station
+
+/* ========= CLOCK ========= */
+(function(){
+  const svg = document.getElementById('face');
+  const size = 320, c = size/2;
+  const bezel = 12;
+  const rOuter = c - bezel - 6;
+  const lenMin = 10, lenHour = 18;
+  const thickMin = 2, thickHour = 3;
+  const rNum = rOuter - lenHour - 16;
+
+  for(let i=0;i<60;i++){
+    const ang = (i*Math.PI/30);
+    const isHour = i%5===0;
+    const r1 = rOuter - (isHour? lenHour : lenMin);
+    const r2 = rOuter;
+    const x1 = c + Math.cos(ang)*r1;
+    const y1 = c + Math.sin(ang)*r1;
+    const x2 = c + Math.cos(ang)*r2;
+    const y2 = c + Math.sin(ang)*r2;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', '#000');
+    line.setAttribute('stroke-width', isHour? thickHour : thickMin);
+    line.setAttribute('stroke-linecap', 'butt');
+    svg.insertBefore(line, document.getElementById('hHand'));
+  }
+  for (let i=1; i<=12; i++){
+    const ang = (i-3) * (Math.PI/6);
+    const x = c + Math.cos(ang)*rNum;
+    const y = c + Math.sin(ang)*rNum;
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', x);
+    text.setAttribute('y', y+1);
+    text.setAttribute('fill', '#000');
+    text.setAttribute('font-weight', '800');
+    text.setAttribute('font-size', '20');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.textContent = i;
+    svg.insertBefore(text, document.getElementById('hHand'));
+  }
+})();
+function pad(n){return String(n).padStart(2,'0');}
+function setHand(id, angleDeg, length){
+  const c=160; const rad=(angleDeg-90)*Math.PI/180;
+  const x2=c+Math.cos(rad)*length; const y2=c+Math.sin(rad)*length;
+  const line=document.getElementById(id);
+  line.setAttribute('x1',c); line.setAttribute('y1',c); line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+}
+function tick(){
+  const now=new Date();
+  const h=now.getHours()%12, m=now.getMinutes(), s=now.getSeconds();
+  setHand('hHand',(h+m/60)*30,78); setHand('mHand',m*6,102); setHand('sHand',s*6,116);
+
+  const bTime=new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'}).format(now);
+  const bDate=new Intl.DateTimeFormat('en-US',{weekday:'short',month:'numeric',day:'numeric',timeZone:'America/New_York'}).format(now);
+  document.getElementById('digitalLocal').textContent=bTime;
+  document.getElementById('dateLocal').textContent=bDate;
+
+  const jTime=new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Tokyo'}).format(now);
+  const jDate=new Intl.DateTimeFormat('en-US',{weekday:'short',month:'numeric',day:'numeric',timeZone:'Asia/Tokyo'}).format(now);
+  document.getElementById('digitalJP').textContent=jTime;
+  document.getElementById('dateJP').textContent=jDate;
+}
+setInterval(tick,1000); tick();
+
+/* ========= WEATHER ========= */
+const LAT=42.3601, LON=-71.0589;
+const WX_URL=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m,precipitation,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&temperature_unit=celsius`;
+function codeToEmoji(code){
+  if ([0].includes(code)) return "☀️ Clear";
+  if ([1].includes(code)) return "🌤 Mostly clear";
+  if ([2].includes(code)) return "⛅️ Partly cloudy";
+  if ([3].includes(code)) return "☁️ Cloudy";
+  if ([45,48].includes(code)) return "🌫 Fog";
+  if ([51,53,55].includes(code)) return "🌦 Drizzle";
+  if ([56,57].includes(code)) return "🌧 Freezing drizzle";
+  if ([61,63,65].includes(code)) return "🌧 Rain";
+  if ([66,67].includes(code)) return "🌧 Freezing rain";
+  if ([71,73,75,77].includes(code)) return "🌨 Snow";
+  if ([80,81,82].includes(code)) return "🌧 Showers";
+  if ([85,86].includes(code)) return "🌨 Snow showers";
+  if ([95].includes(code)) return "⛈ Thunderstorm";
+  if ([96,99].includes(code)) return "⛈ Thunderstorm (hail)";
+  return "🌡️ Weather";
+}
+
+// ===== Weather icons/text mapping =====
+const WX_ICON = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+  45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌦️',
+  56:'🌧️', 57:'🌧️',
+  61:'🌧️', 63:'🌧️', 65:'🌧️',
+  66:'🌧️', 67:'🌧️',
+  71:'🌨️', 73:'🌨️', 75:'🌨️', 77:'🌨️',
+  80:'🌧️', 81:'🌧️', 82:'🌧️',
+  85:'🌨️', 86:'🌨️',
+  95:'⛈️', 96:'⛈️', 99:'⛈️'
+};
+const WX_TEXT = {
+  0:'Sunny', 1:'Mostly Sunny', 2:'Partly Cloudy', 3:'Cloudy',
+  45:'Fog', 48:'Fog',
+  51:'Drizzle', 53:'Drizzle', 55:'Drizzle',
+  56:'Freezing drizzle', 57:'Freezing drizzle',
+  61:'Rain', 63:'Rain', 65:'Heavy rain',
+  66:'Freezing rain', 67:'Freezing rain',
+  71:'Snow', 73:'Snow', 75:'Heavy snow', 77:'Snow',
+  80:'Showers', 81:'Showers', 82:'Showers',
+  85:'Snow showers', 86:'Snow showers',
+  95:'Thunderstorms', 96:'Thunderstorms', 99:'Thunderstorms'
+};
+function wxIcon(code){ return WX_ICON[code] ?? '🌡️'; }
+function wxText(code){ return WX_TEXT[code] ?? '—'; }
+
+function pickDay(daily, i){
+  return {
+    date: daily.time[i],
+    tmax: Math.round(daily.temperature_2m_max[i]),
+    tmin: Math.round(daily.temperature_2m_min[i]),
+    code: (daily.weathercode?.[i] ?? 3),
+    pop:  (daily.precipitation_probability_max ? Math.round(daily.precipitation_probability_max[i]) : undefined)
+  };
+}
+function dayCardHTML(title, d){
+  return `
+    <div class="left">
+      <div class="title">${title}</div>
+      <div class="cond">${wxText(d.code)}${(d.pop||d.pop===0)?` • ${d.pop}%`:''}</div>
+      <div class="temps"><span class="hi">${d.tmax}°</span><span class="lo">${d.tmin}°</span></div>
+    </div>
+    <div class="icon">${wxIcon(d.code)}</div>
+  `;
+}
+function renderTodayTomorrow(daily){
+  const t0 = pickDay(daily, 0);
+  const t1 = pickDay(daily, 1);
+  const el0 = document.getElementById('wxToday');
+  const el1 = document.getElementById('wxTomorrow');
+  if (el0) el0.innerHTML = dayCardHTML('Today', t0);
+  if (el1) el1.innerHTML = dayCardHTML('Tomorrow', t1);
+}
+function renderWeek(daily){
+  const wrap = document.getElementById('wxWeek');
+  if (!wrap) return;
+  const n = Math.min(daily.time.length, 7);
+  const tmax = daily.temperature_2m_max.slice(0,n);
+  const tmin = daily.temperature_2m_min.slice(0,n);
+  const lo = Math.min(...tmin), hi = Math.max(...tmax);
+  const span = Math.max(1, hi - lo);
+  let html = '';
+  for (let i=0;i<n;i++){
+    const d = pickDay(daily, i);
+    const dow = new Date(d.date).toLocaleDateString(undefined,{weekday:'short'});
+    const start = Math.round(((d.tmin - lo)/span)*100);
+    const width = Math.max(4, Math.round(((d.tmax - d.tmin)/span)*100));
+    html += `
+      <div class="row">
+        <div class="dow">${i===0?'Today':dow}</div>
+        <div class="wicon">${wxIcon(d.code)}</div>
+        <div class="bar"><div class="fill" style="left:${start}%;width:${width}%;"></div></div>
+        <div class="temps"><span class="hi">${d.tmax}°</span><span class="lo">${d.tmin}°</span></div>
+      </div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// ===== Min/Max をバーで可視化するピルの描画ユーティリティ =====
+
+// 週全体のスケール（min/maxの基準）を作る
+function computeWeekRange(daily, days=7){
+  const n = Math.min(daily.time.length, days);
+  const tmax = daily.temperature_2m_max.slice(0,n);
+  const tmin = daily.temperature_2m_min.slice(0,n);
+  const lo = Math.min(...tmin), hi = Math.max(...tmax);
+  return { lo, hi, span: Math.max(1, hi - lo) };
+}
+
+// 天気コード → 簡易テキスト（なければ '—'）
+const __WX_TEXT = {
+  0:'Sunny',1:'Mostly Sunny',2:'Partly Cloudy',3:'Cloudy',45:'Fog',48:'Fog',
+  51:'Light Rain',53:'Rain',55:'Rain',56:'Freezing drizzle',57:'Freezing drizzle',
+  61:'Rain',63:'Rain',65:'Heavy Rain',66:'Freezing rain',67:'Freezing rain',
+  71:'Snow',73:'Snow',75:'Heavy Snow',77:'Snow',80:'Showers',81:'Showers',82:'Showers',
+  95:'Thunderstorms',96:'Thunderstorms',99:'Thunderstorms'
+};
+function wxText(code){ return __WX_TEXT[code] ?? '—'; }
+
+// daily配列から i 日目の要約を作る
+function pickDay(d, i){
+  return {
+    date: d.time[i],
+    tmax: Math.round(d.temperature_2m_max[i]),
+    tmin: Math.round(d.temperature_2m_min[i]),
+    code: (d.weathercode?.[i] ?? 3),
+    pop:  (d.precipitation_probability_max ? Math.round(d.precipitation_probability_max[i]) : undefined)
+  };
+}
+
+// ピルDOMの中身（タイトル＋条件＋バー＋数値）
+function pillHTML(title, day, lo, hi){
+  const span  = Math.max(1, hi - lo);
+  const start = Math.round(((day.tmin - lo) / span) * 100);
+  const width = Math.max(6, Math.round(((day.tmax - day.tmin) / span) * 100));
+  return `
+    <div class="title">${title}</div>
+    <div class="cond">${wxText(day.code)}${(day.pop||day.pop===0)?` • ${day.pop}%`:''}</div>
+    <div class="wx-range"><div class="fill" style="left:${start}%;width:${width}%;"></div></div>
+    <div class="temps"><span class="hi">${day.tmax}°C</span><span class="lo">${day.tmin}°</span></div>
+  `;
+}
+
+// Today / Tomorrow のピルを、それぞれ #minmaxToday / #minmaxTomorrow へ描画
+function renderTodayPill(daily){
+  const r  = computeWeekRange(daily, 7);
+  const d0 = pickDay(daily, 0);
+  const el = document.getElementById('minmaxToday');
+  if (el){ el.classList.add('wx-pill'); el.innerHTML = pillHTML('Today', d0, r.lo, r.hi); }
+}
+function renderTomorrowPill(daily){
+  const r  = computeWeekRange(daily, 7);
+  const d1 = pickDay(daily, 1);
+  const el = document.getElementById('minmaxTomorrow');
+  if (el){ el.classList.add('wx-pill'); el.innerHTML = pillHTML('Tomorrow', d1, r.lo, r.hi); }
+}
+
+
+async function loadWeather(){
+  if (WEATHER_BUSY) return; WEATHER_BUSY = true;
+
+  try{
+    const r=await fetch(WX_URL); if(!r.ok) throw new Error('weather '+r.status);
+    const j=await r.json();
+    const daily=j.daily;
+    const todayMin=daily.temperature_2m_min?.[0];
+    const todayMax=daily.temperature_2m_max?.[0];
+    const tomorrowMin=daily.temperature_2m_min?.[1];
+    const tomorrowMax=daily.temperature_2m_max?.[1];
+    renderTodayPill(daily);
+    renderTomorrowPill(daily);
+
+
+    // ★ 今日・明日のカード + 週間予報を描画（ここが追加）
+    renderWeek(daily);
+
+    const times=j.hourly.time||[];
+    const temps=j.hourly.temperature_2m||[];
+    const codes=j.hourly.weathercode||[];
+    const precip=j.hourly.precipitation||[];
+    const base=new Date();
+
+    const todayList=document.getElementById('hourly12'); todayList.innerHTML='';
+    const today=new Date(base); const y0=today.getFullYear(), m0=today.getMonth(), d0=today.getDate();
+    ;[6,9,12,15,18,21].forEach(h=>{
+      const target=new Date(y0,m0,d0,h,0,0); let bestI=-1, bestDiff=Infinity;
+      for(let i=0;i<times.length;i++){ const dt=new Date(times[i]); if(dt.getDate()!==d0) continue; const diff=Math.abs(dt-target); if(diff<bestDiff){bestDiff=diff; bestI=i;} }
+      if(bestI>=0){ const dt=new Date(times[bestI]); const line=document.createElement('div'); line.className='rowline'; const hour=dt.getHours(); if([9,12,15,18].includes(hour)) line.classList.add('active');
+        const left=document.createElement('div'); left.className='note'; left.textContent=String(hour).padStart(2,'0')+':00';
+        const mid=document.createElement('div'); mid.className='wx'; mid.textContent=codeToEmoji(codes[bestI]);
+        const right=document.createElement('div'); right.innerHTML=`<strong>${Math.round(temps[bestI])}°C</strong>${(precip?.[bestI]??0)>0?` • ${precip[bestI]} mm`:''}`;
+        line.appendChild(left); line.appendChild(mid); line.appendChild(right); todayList.appendChild(line);
+      }
+    });
+
+    const tomorrowList=document.getElementById('tomorrowKey'); tomorrowList.innerHTML='';
+    const tmr=new Date(base); tmr.setDate(base.getDate()+1); const y=tmr.getFullYear(), m=tmr.getMonth(), d=tmr.getDate();
+    ;[6,9,12,15,18,21].forEach(h=>{
+      const target=new Date(y,m,d,h,0,0); let bestI=-1, bestDiff=Infinity;
+      for(let i=0;i<times.length;i++){ const dt=new Date(times[i]); if(dt.getDate()!==d) continue; const diff=Math.abs(dt-target); if(diff<bestDiff){bestDiff=diff; bestI=i;} }
+      if(bestI>=0){ const dt=new Date(times[bestI]); const line=document.createElement('div'); line.className='rowline'; const hour=dt.getHours(); if([9,12,15,18].includes(hour)) line.classList.add('active');
+        const left=document.createElement('div'); left.className='note'; left.textContent=String(hour).padStart(2,'0')+':00';
+        const mid=document.createElement('div'); mid.className='wx'; mid.textContent=codeToEmoji(codes[bestI]);
+        const right=document.createElement('div'); right.innerHTML=`<strong>${Math.round(temps[bestI])}°C</strong>${(precip?.[bestI]??0)>0?` • ${precip[bestI]} mm`:''}`;
+        line.appendChild(left); line.appendChild(mid); line.appendChild(right); tomorrowList.appendChild(line);
+      }
+    });
+  }catch(e){ document.getElementById('hourly12').innerHTML='<div class="note">Failed to load weather.</div>'; console.error(e); }
+  WEATHER_BUSY = false;
+}
+setInterval(loadWeather, 15*60*1000); loadWeather();
+
+
+/* ========= MBTA ========= */
+const MBTA_BASE='https://api-v3.mbta.com';
+const DEFAULT_KEY='d51c0048255e4bc0b5566d25c619a8a4';
+let API_KEY=localStorage.getItem('mbta_api_key')||DEFAULT_KEY;
+function setApiKey(k){ API_KEY=k||''; localStorage.setItem('mbta_api_key', API_KEY); }
+async function api(path){ const headers = API_KEY ? { 'x-api-key': API_KEY } : {}; const r = await fetch(`${MBTA_BASE}${path}`, { headers }); if(!r.ok){ const txt=await r.text().catch(()=> ''); throw new Error(`MBTA API ${r.status} ${r.statusText} ${txt}`);} return r.json(); }
+function nyNow(){ return new Date(new Date().toLocaleString('en-US',{ timeZone:'America/New_York' })); }
+function todayYMD(){ const d=nyNow(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+// ---- lightweight caches to avoid repeated large API fetches ----
+const CACHE = {
+  inboundDir: new Map(),  // routeId -> 0/1 (direction index)
+  stopId: new Map()       // key `${routeId}|${aliases.join('|')}` -> stopId
+};
+
+// Resolve stopId for a route + list of alias station names, with caching to avoid heavy scans
+async function findStopIdForRoute(routeId, aliases){
+  const aliasKey = aliases.join('|');
+  const key = `${routeId}|${aliasKey}`;
+  if (CACHE.stopId.has(key)) return CACHE.stopId.get(key);
+
+  // Prefer route-specific stops first (limit reasonable)
+  const data = await api(`/stops?filter[route]=${encodeURIComponent(routeId)}&page[limit]=400`);
+  const list = data.data || [];
+  const childFirst = (a,b) => ((a.attributes?.parent_station?0:1)-(b.attributes?.parent_station?0:1));
+  let hitId = null;
+
+  // exact match
+  for (const nm of aliases){
+    const hit = list.filter(s=>s.attributes?.name===nm).sort(childFirst)[0];
+    if (hit) { hitId = hit.id; break; }
+  }
+  // partial match
+  if (!hitId){
+    for (const nm of aliases){
+      const hit = list.filter(s=>(s.attributes?.name||'').toLowerCase().includes(nm.toLowerCase())).sort(childFirst)[0];
+      if (hit) { hitId = hit.id; break; }
+    }
+  }
+
+  // fallback: all commuter rail stops (route_type=2)
+  if (!hitId){
+    const all = await api(`/stops?filter[route_type]=2&page[limit]=800`);
+    const allList = all.data || [];
+    for (const nm of aliases){
+      const hit = allList.filter(s=>s.attributes?.name===nm).sort(childFirst)[0];
+      if (hit) { hitId = hit.id; break; }
+    }
+    if (!hitId){
+      for (const nm of aliases){
+        const hit = allList.filter(s=>(s.attributes?.name||'').toLowerCase().includes(nm.toLowerCase())).sort(childFirst)[0];
+        if (hit) { hitId = hit.id; break; }
+      }
+    }
+  }
+
+  if (!hitId) throw new Error(`stop not found for ${routeId}: ${aliases.join(', ')}`);
+  CACHE.stopId.set(key, hitId);
+  return hitId;
+}
+
+
+
+async function getInboundDirId(routeId){
+  if (CACHE.inboundDir.has(routeId)) return CACHE.inboundDir.get(routeId);
+  try{
+    const r = await api(`/routes/${encodeURIComponent(routeId)}`);
+    const names = r?.data?.attributes?.direction_names || [];
+    const idx = names.findIndex(s => String(s).toLowerCase() === 'inbound');
+    const val = (idx === 0 || idx === 1) ? idx : 1;
+    CACHE.inboundDir.set(routeId, val);
+    return val;
+  }catch(e){
+    return 1;
+  }
+}
+async function fetchInboundRows(stopId, routeId){
+  const date=todayYMD(); const inbound=await getInboundDirId(routeId); const tryDirs=[inbound, inbound===0?1:0]; let rows=[];
+  for(const dir of tryDirs){
+    const json=await api(`/schedules?filter[stop]=${encodeURIComponent(stopId)}&filter[route]=${encodeURIComponent(routeId)}&filter[direction_id]=${dir}&filter[date]=${date}&include=trip,route&sort=departure_time&page[limit]=300`);
+    const trips=new Map(); const routes=new Map(); (json.included||[]).forEach(it=>{ if(it.type==='trip') trips.set(it.id,it.attributes); if(it.type==='route') routes.set(it.id,it.attributes); });
+    const cand=(json.data||[]).filter(r=>r.attributes?.departure_time).map(r=>{ const tripId=r.relationships?.trip?.data?.id; const routeId2=r.relationships?.route?.data?.id; const trip=trips.get(tripId)||{}; return { fromStop: stopId, trip_id: tripId, route: routes.get(routeId2)?.long_name || routeId2 || '-', headsign: trip.headsign || '-', departure_time: r.attributes.departure_time, direction_id: trip.direction_id }; }).filter(o=>/north station/i.test(o.headsign||''));
+    if(cand.length){ rows=cand; break; }
+  }
+  return rows;
+}
+async function fetchNorthArrivals(tripIds){ if(!tripIds.length) return {}; const ids=tripIds.slice(0,50).join(','); const j=await api(`/schedules?filter[trip]=${ids}&filter[stop]=place-north&page[limit]=300`); const map={}; (j.data||[]).forEach(r=>{ const tid=r.relationships?.trip?.data?.id; map[tid]=r.attributes?.arrival_time||r.attributes?.departure_time||null; }); return map; }
+function toNY(d){ return new Date(new Date(d).toLocaleString('en-US',{timeZone:'America/New_York'})); }
+function hhmmNY(iso){ if(!iso) return '-'; const dt=toNY(iso); return `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`; }
+function renderTable(title, rows, arrMap){
+  const head = `<div class="label" style="margin:6px 0 8px"><strong>${title}</strong></div>`;
+  if(!rows || !rows.length){ return head + `<div class="small">No upcoming trains.</div>`; }
+  const trs = rows.map(r=>{
+    const arr = arrMap[r.trip_id];
+    return `<tr>
+      <td style="padding:6px 8px">${hhmmNY(r.departure_time)}</td>
+      <td style="padding:6px 8px">${arr ? hhmmNY(arr) : '-'}</td>
+      <td style="padding:6px 8px"><span class="cd" data-dep="${r.departure_time}"></span></td>
+    </tr>`;
+  }).join('');
+  return head + `<table class="small" style="width:100%; border-collapse:collapse">
+    <thead><tr>
+      <th style="text-align:left; padding:6px 8px">Departure</th>
+      <th style="text-align:left; padding:6px 8px">Arrive</th>
+      <th style="text-align:left; padding:6px 8px">In</th>
+    </tr></thead>
+    <tbody>${trs}</tbody></table>`;
+}
+async function fetchDeparturesFromNorth(routeId){
+  const date=todayYMD();
+  const json=await api(`/schedules?filter[stop]=${NORTH_STATION_STOP_ID}&filter[route]=${encodeURIComponent(routeId)}&filter[date]=${date}&include=trip,route&sort=departure_time&page[limit]=300`);
+  const trips=new Map(); const routes=new Map();
+  (json.included||[]).forEach(it=>{
+    if(it.type==='trip')  trips.set(it.id,it.attributes);
+    if(it.type==='route') routes.set(it.id,it.attributes);
+  });
+  const rows=(json.data||[])
+    .filter(r=>r.attributes?.departure_time)
+    .map(r=>{
+      const tripId=r.relationships?.trip?.data?.id;
+      const routeId2=r.relationships?.route?.data?.id;
+      const trip=trips.get(tripId)||{};
+      return {
+        fromStop: NORTH_STATION_STOP_ID,
+        trip_id: tripId,
+        route: routes.get(routeId2)?.long_name || routeId2 || '-',
+        headsign: trip.headsign || '-',           // （例）Lowell, Wachusett, South Acton など
+        departure_time: r.attributes.departure_time,
+        direction_id: trip.direction_id
+      };
+    });
+  return rows;
+}
+
+
+async function fetchArrivalsAtStop(tripIds, stopId){
+  if(!tripIds.length) return {};
+  const ids=tripIds.slice(0,50).join(',');
+  const j=await api(`/schedules?filter[trip]=${ids}&filter[stop]=${encodeURIComponent(stopId)}&page[limit]=300`);
+  const map={};
+  (j.data||[]).forEach(r=>{
+    const tid=r.relationships?.trip?.data?.id;
+    // その駅での到着が無ければ出発を代用
+    map[tid]=r.attributes?.arrival_time||r.attributes?.departure_time||null;
+  });
+  return map;
+}
+
+
+function updateCountdowns(){
+  const els = document.querySelectorAll('#next3 .cd');
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  els.forEach(el=>{
+    const iso = el.getAttribute('data-dep');
+    if(!iso){ el.textContent='-'; return; }
+    const dep = new Date(new Date(iso).toLocaleString('en-US',{timeZone:'America/New_York'}));
+    const diffMs = dep - now;
+    if(diffMs <= 0){ el.textContent = 'now'; el.className='cd gray'; return; }
+    const min = Math.floor(diffMs/60000);
+    el.textContent = `${min}m`;
+    if(min<=10){ el.className='cd gray'; }
+    else if(min<=15){ el.className='cd red'; }
+    else if(min<=20){ el.className='cd yellow'; }
+    else{ el.className='cd white'; }
+  });
+}
+async function refreshNext3_v2(){
+  if (MBTA_BUSY) return;
+  MBTA_BUSY = true;
+
+  try{
+    const [wmStop, porterStop] = await Promise.all([
+      findStopIdForRoute('CR-Lowell',   ['West Medford']),
+      findStopIdForRoute('CR-Fitchburg',['Porter','Porter Square'])
+    ]);
+
+    const now = nyNow();
+    const box = document.getElementById('next3');
+    if(!box) return;
+
+    if(DIR_MODE === 'to'){
+      // これまで通り：郊外→North Station
+      const [wmRowsAll, porterRowsAll] = await Promise.all([
+        fetchInboundRows(wmStop, 'CR-Lowell'),       // 既存関数を再利用
+        fetchInboundRows(porterStop, 'CR-Fitchburg') // 既存関数を再利用
+      ]);
+
+      const wmUpcoming = wmRowsAll
+        .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+        .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+        .slice(0,3);
+
+      const porterUpcoming = porterRowsAll
+        .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+        .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+        .slice(0,3);
+
+      const needTrips = [...wmUpcoming, ...porterUpcoming].map(r=>r.trip_id);
+      const arrMap = await fetchArrivalsAtStop(needTrips, NORTH_STATION_STOP_ID);
+
+      box.innerHTML = [
+        renderTable('Lowell Line (West Medford → North Station)', wmUpcoming, arrMap),
+        renderTable('Fitchburg Line (Porter → North Station)',    porterUpcoming, arrMap)
+      ].join('');
+      updateCountdowns();
+      return;
+    }
+
+    // ← From North Station：North Station → 郊外
+    const [lowFromNorth, fitchFromNorth] = await Promise.all([
+      fetchDeparturesFromNorth('CR-Lowell'),
+      fetchDeparturesFromNorth('CR-Fitchburg')
+    ]);
+
+    // まず North 出発の将来列車を時刻順に取り、各目的地駅で到着が存在するものに限定
+    // West Medford 行きに停まる Lowell ライン列車
+    const lowFuture = lowFromNorth
+      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+      .slice(0,12); // 余裕を持って拾ってから到着有無で絞る
+
+    const lowArrMap = await fetchArrivalsAtStop(lowFuture.map(r=>r.trip_id), wmStop);
+    const lowUpcoming = lowFuture.filter(r=> lowArrMap[r.trip_id]).slice(0,3);
+
+    // Porter に停まる Fitchburg ライン列車
+    const fitchFuture = fitchFromNorth
+      .filter(r=> new Date(new Date(r.departure_time).toLocaleString('en-US',{timeZone:'America/New_York'})) >= now)
+      .sort((a,b)=> new Date(a.departure_time) - new Date(b.departure_time))
+      .slice(0,12);
+
+    const fitchArrMap = await fetchArrivalsAtStop(fitchFuture.map(r=>r.trip_id), porterStop);
+    const fitchUpcoming = fitchFuture.filter(r=> fitchArrMap[r.trip_id]).slice(0,3);
+
+    box.innerHTML = [
+      renderTable('Lowell Line (North Station → West Medford)', lowUpcoming, lowArrMap),
+      renderTable('Fitchburg Line (North Station → Porter)',     fitchUpcoming, fitchArrMap)
+    ].join('');
+    updateCountdowns();
+
+  }catch(e){
+    console.error(e);
+    const box = document.getElementById('next3');
+    if(box) box.innerHTML = `<div class="small bad">Failed to load trains: ${e.message||e}</div>`;
+  }
+  MBTA_BUSY = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // トグルのボタン
+  const toBtn   = document.getElementById('btnToNorth');
+  const fromBtn = document.getElementById('btnFromNorth');
+  function setDir(mode){
+    DIR_MODE = mode;               // 'to' or 'from'
+    toBtn.classList.toggle('active',   mode==='to');
+    fromBtn.classList.toggle('active', mode==='from');
+    refreshNext3_v2();
+  }
+  toBtn?.addEventListener('click',   ()=> setDir('to'));
+  fromBtn?.addEventListener('click', ()=> setDir('from'));
+
+  // 初期表示は 'to'（これまで通り）
+  setDir('to');
+
+  // 周期更新
+  setInterval(refreshNext3_v2, 90*1000);
+  setInterval(updateCountdowns, 1000);
+});
+
+
+/* ========= ENGLISH (GitHub JSONを読み、10秒ごと更新) ========= */
+/* 参照データURL: ?src= で上書き可能。デフォルトはあなたのGitHubを指します。 */
+const ENG_DEFAULT_DATA_URL =
+  new URLSearchParams(location.search).get('src') ||
+  'https://raw.githubusercontent.com/teppeim2002Matsubara/my-html/main/docs/data/phrases.json';
+
+let ENG_DATA = [];
+let ENG_TIMER = null;
+let ENG_LAST = -1;
+
+function ENG_normalizeRow(r){
+  return {
+    ja: String((r&&r.ja)||'').trim(),
+    en: String((r&&r.en)||'').trim(),
+    ex: String((r&&r.ex)||'').trim()
+  };
+}
+function ENG_showRandom(){
+  const enEl = document.getElementById('engEn');
+  const jaEl = document.getElementById('engJa');
+  const exEl = document.getElementById('engEx');
+  if(!ENG_DATA.length){
+    enEl.textContent = 'No data';
+    jaEl.textContent = '';
+    exEl.textContent = '';
+    return;
+  }
+  let idx=0;
+  if(ENG_DATA.length>1){
+    do{ idx = Math.floor(Math.random()*ENG_DATA.length); } while(idx===ENG_LAST);
+  }
+  ENG_LAST = idx;
+  const it = ENG_DATA[idx];
+  enEl.textContent = it.en || '';
+  jaEl.textContent = it.ja || '';
+  exEl.textContent = it.ex || '';
+  document.getElementById('engCard')?.animate([{opacity:.6},{opacity:1}],{duration:220});
+}
+async function ENG_fetch(){
+  try{
+    const r = await fetch(ENG_DEFAULT_DATA_URL, {cache:'no-store'});
+    if(!r.ok) throw new Error('fetch '+r.status);
+    const ct = r.headers.get('content-type')||'';
+    let rows=[];
+    if(ct.includes('application/json') || ENG_DEFAULT_DATA_URL.endsWith('.json')){
+      const arr = await r.json();
+      if(!Array.isArray(arr)) throw new Error('JSON array expected');
+      rows = arr;
+    }else{
+      // CSV/TSV fallback
+      const txt = await r.text();
+      const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+      rows = lines.map(line=>{
+        const cols = line.includes('\t') ? line.split('\t') : parseCsvLine(line);
+        const [ja='',en='',ex=''] = cols;
+        return {ja,en,ex};
+      });
+    }
+    ENG_DATA = rows.map(ENG_normalizeRow).filter(r=>r.en||r.ja);
+    if(!ENG_DATA.length) throw new Error('no rows');
+    ENG_showRandom();
+  }catch(e){
+    console.error(e);
+    document.getElementById('engEn').textContent='Load failed';
+    document.getElementById('engJa').textContent=String(e&&e.message||e);
+    document.getElementById('engEx').textContent='';
+  }
+}
+function parseCsvLine(line){
+  const out=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else { inQ=!inQ; } }
+    else if(ch===',' && !inQ){ out.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  out.push(cur); return out.map(s=>s.trim());
+}
+function ENG_start(){
+  if(ENG_TIMER){ clearInterval(ENG_TIMER); ENG_TIMER=null; }
+  ENG_TIMER = setInterval(ENG_showRandom, 10*1000); // 10秒
+  ENG_showRandom();
+}
+</script>
+<script>
+/* ====== TTS（英語の自動読み上げ）====== */
+
+/* ====== TTS（英語＆日本語ペア対応）====== */
+let TTS_ENABLED = false;
+let TTS_MODE = 'en';     // 'en' | 'enja'
+let EN_VOICE = null;     // Samantha (en-US) を優先
+let JA_VOICE = null;     // Kyoko(ja-JP) を優先（女性）
+let TTS_RATE  = 1.0;
+let TTS_PITCH = 1.0;
+
+const LS_EN = 'tts_en_voice';
+const LS_JA = 'tts_ja_voice';
+
+function preferredEn(voices) {
+  return voices.find(v => v.name === "Samantha" && v.lang === "en-US")
+      || voices.find(v => v.lang === "en-US")
+      || voices.find(v => v.lang && v.lang.startsWith("en"))
+      || null;
+}
+
+function preferredJa(voices) {
+  return voices.find(v => v.name && v.name.toLowerCase().includes("kyoko") && v.lang === "ja-JP")
+      || voices.find(v => v.lang === "ja-JP" && v.name && /kyoko|female|女/i.test(v.name))
+      || voices.find(v => v.lang === "ja-JP")
+      || null;
+}
+
+// 画面上の<select>に候補を並べる
+function populateVoiceSelectors() {
+  const voices = speechSynthesis.getVoices() || [];
+  const enSel  = document.getElementById("enVoiceSelect");
+  const jaSel  = document.getElementById("jaVoiceSelect");
+  if (!enSel || !jaSel) return;
+
+  // EN 一覧
+  enSel.innerHTML = "";
+  voices.filter(v => v.lang?.startsWith("en")).forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.name;
+    opt.textContent = `${v.name} (${v.lang})`;
+    enSel.appendChild(opt);
+  });
+
+  // JA 一覧
+  jaSel.innerHTML = "";
+  voices.filter(v => v.lang === "ja-JP").forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.name;
+    opt.textContent = `${v.name} (${v.lang})`;
+    jaSel.appendChild(opt);
+  });
+
+  // 保存された選択 or 既定を反映
+  const enSaved = localStorage.getItem(LS_EN);
+  const jaSaved = localStorage.getItem(LS_JA);
+
+  const enDefault = preferredEn(voices);
+  const jaDefault = preferredJa(voices);
+
+  if (enSaved && voices.find(v => v.name === enSaved)) {
+    enSel.value = enSaved;
+    EN_VOICE = voices.find(v => v.name === enSaved);
+  } else if (enDefault) {
+    enSel.value = enDefault.name;
+    EN_VOICE = enDefault;
+  }
+
+  if (jaSaved && voices.find(v => v.name === jaSaved)) {
+    jaSel.value = jaSaved;
+    JA_VOICE = voices.find(v => v.name === jaSaved);
+  } else if (jaDefault) {
+    jaSel.value = jaDefault.name;
+    JA_VOICE = jaDefault;
+  }
+}
+
+// セレクタ変更で即反映＋保存
+function wireVoiceSelectors() {
+  const enSel = document.getElementById("enVoiceSelect");
+  const jaSel = document.getElementById("jaVoiceSelect");
+  if (enSel) enSel.addEventListener("change", () => {
+    const voices = speechSynthesis.getVoices() || [];
+    EN_VOICE = voices.find(v => v.name === enSel.value) || EN_VOICE;
+    localStorage.setItem(LS_EN, EN_VOICE?.name || "");
+    // ON中は現在文で試聴
+    if (TTS_ENABLED) retrySpeakCurrent();
+  });
+  if (jaSel) jaSel.addEventListener("change", () => {
+    const voices = speechSynthesis.getVoices() || [];
+    JA_VOICE = voices.find(v => v.name === jaSel.value) || JA_VOICE;
+    localStorage.setItem(LS_JA, JA_VOICE?.name || "");
+    if (TTS_ENABLED) retrySpeakCurrent();
+  });
+}
+
+// 既存：デフォ声セット関数の中でセレクタも更新
+function selectDefaultVoices() {
+  const voices = speechSynthesis.getVoices() || [];
+  // 既存ロジックを置き換え／統合
+  EN_VOICE = preferredEn(voices);
+  JA_VOICE = preferredJa(voices);
+  // セレクタにも反映（DOMがあれば）
+  populateVoiceSelectors();
+}
+
+// voices が遅延で来るiOS対策
+if ('onvoiceschanged' in speechSynthesis) {
+  speechSynthesis.onvoiceschanged = () => {
+    selectDefaultVoices();
+    wireVoiceSelectors();
+  };
+}
+// 初期呼び出し
+selectDefaultVoices();
+populateVoiceSelectors();
+wireVoiceSelectors();
+
+// 現在表示テキストを再読上げ（話者変更時の試聴に使う）
+function retrySpeakCurrent() {
+  const en = (document.getElementById('engEn')?.textContent || "").trim();
+  const ja = (document.getElementById('engJa')?.textContent || "").trim();
+  if (en || ja) speakPair(en, ja);
+}
+
+
+/* --- 音声初期化：英語は Samantha/en-US、 日本語は Kyoko/ja-JP を最優先 --- */
+function selectDefaultVoices() {
+  const voices = speechSynthesis.getVoices() || [];
+
+  // 英語：Samantha(en-US) > そのほか en-US > その他en-*
+  EN_VOICE = voices.find(v => v.name === "Samantha" && v.lang === "en-US")
+          || voices.find(v => v.lang === "en-US")
+          || voices.find(v => v.lang && v.lang.startsWith("en"))
+          || null;
+
+  // 日本語：Kyoko(女性) を優先 → 次に ja-JP の女性っぽい → それ以外の ja-JP
+  JA_VOICE = voices.find(v => v.name && v.name.toLowerCase().includes("kyoko") && v.lang === "ja-JP")
+          || voices.find(v => v.lang === "ja-JP" && v.name && /kyoko|female|女/i.test(v.name))
+          || voices.find(v => v.lang === "ja-JP")
+          || null;
+}
+if ('onvoiceschanged' in speechSynthesis) {
+  speechSynthesis.onvoiceschanged = selectDefaultVoices;
+}
+selectDefaultVoices();
+
+/* --- Quiet Hours: 9:00–18:00 に入った瞬間だけ自動でOFF（手動ONは常に可能） --- */
+function isQuietHours() {
+  const h = new Date().getHours();
+  return h >= 9 && h < 18;
+}
+let _wasQuiet = null;
+function autoFlipOffIfEnteringQuiet() {
+  const quiet = isQuietHours();
+  if (_wasQuiet === null) { _wasQuiet = quiet; return; }
+  if (!_wasQuiet && quiet && TTS_ENABLED) {
+    TTS_ENABLED = false;
+    speechSynthesis.cancel();
+    updateTtsButtonLabel();
+  }
+  _wasQuiet = quiet;
+}
+setInterval(autoFlipOffIfEnteringQuiet, 30_000);
+autoFlipOffIfEnteringQuiet();
+
+/* --- 読み上げ（英語のみ / 英語→日本語） --- */
+function speakPair(enText, jaText) {
+  if (!TTS_ENABLED) return;
+
+  // 前の発話を止める
+  try { if (speechSynthesis.speaking) speechSynthesis.cancel(); } catch {}
+
+  // 英語
+  if (enText) {
+    const uttEn = new SpeechSynthesisUtterance(enText);
+    if (EN_VOICE) uttEn.voice = EN_VOICE;
+    uttEn.lang  = (EN_VOICE && EN_VOICE.lang) || "en-US";
+    uttEn.rate  = TTS_RATE;
+    uttEn.pitch = TTS_PITCH;
+    speechSynthesis.speak(uttEn);
+  }
+
+  // モードが 'enja' のときだけ日本語も続けて読む（キューに積む）
+  if (TTS_MODE === 'enja' && jaText) {
+    const uttJa = new SpeechSynthesisUtterance(jaText);
+    if (JA_VOICE) uttJa.voice = JA_VOICE;
+    uttJa.lang  = (JA_VOICE && JA_VOICE.lang) || "ja-JP";
+    uttJa.rate  = TTS_RATE;
+    uttJa.pitch = TTS_PITCH;
+    speechSynthesis.speak(uttJa);
+  }
+}
+
+/* --- トグルボタン（ON/OFF） --- */
+function updateTtsButtonLabel() {
+  const btn = document.getElementById('ttsToggle');
+  if (!btn) return;
+  const suffix = isQuietHours() ? " (Quiet hours)" : "";
+  btn.textContent = TTS_ENABLED ? `🔊 Read aloud: ON${suffix}` : `🔇 Read aloud: OFF${suffix}`;
+  btn.classList.toggle('active', TTS_ENABLED);
+}
+document.getElementById('ttsToggle')?.addEventListener('click', () => {
+  TTS_ENABLED = !TTS_ENABLED;
+  updateTtsButtonLabel();
+  if (TTS_ENABLED) {
+    const en = (document.getElementById('engEn')?.textContent || "").trim();
+    const ja = (document.getElementById('engJa')?.textContent || "").trim();
+    if (en || ja) speakPair(en, ja);
+  } else {
+    speechSynthesis.cancel();
+  }
+});
+updateTtsButtonLabel();
+
+/* --- 読み上げモード（英語のみ / 英語＋日本語） --- */
+function wireModeRadios() {
+  const radios = document.querySelectorAll('input[name="ttsMode"]');
+  radios.forEach(r => {
+    r.addEventListener('change', () => {
+      TTS_MODE = r.value; // 'en' or 'enja'
+      // ONのときはモード変更直後に再読上げして確認できるように
+      if (TTS_ENABLED) {
+        const en = (document.getElementById('engEn')?.textContent || "").trim();
+        const ja = (document.getElementById('engJa')?.textContent || "").trim();
+        if (en || ja) speakPair(en, ja);
+      }
+    });
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', wireModeRadios);
+} else {
+  wireModeRadios();
+}
+
+/* --- 10秒ごとの更新フック（テキスト変化を監視） --- */
+let lastSpokenKey = null;
+function setupObserver() {
+  const target = document.getElementById('engEn'); // 英語側のDOMにフック
+  if (!target) return;
+  const obs = new MutationObserver(() => {
+    if (!TTS_ENABLED) return;
+    const en = (document.getElementById('engEn')?.textContent || "").trim();
+    const ja = (document.getElementById('engJa')?.textContent || "").trim();
+    const key = en + " /// " + ja;       // ペアの同一性チェック
+    if (!en && !ja) return;
+    if (key === lastSpokenKey) return;
+    lastSpokenKey = key;
+    // DOM反映直後の読み上げを安定させるため極短遅延
+    setTimeout(() => speakPair(en, ja), 0);
+  });
+  obs.observe(target, { childList: true, characterData: true, subtree: true });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupObserver);
+} else {
+  setupObserver();
+}
+
+
+
+/* --- voiceSelect での手動変更に対応（任意） --- */
+document.getElementById("voiceSelect")?.addEventListener("change", e => {
+  const name = e.target.value;
+  const voices = speechSynthesis.getVoices();
+  const v = voices.find(v => v.name === name);
+  if (v) TTS_VOICE = v;
+});
+
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await ENG_fetch();
+  ENG_start();
+});
+</script>
+<script>
+
+// Pause countdowns and reduce work while tab is hidden
+document.addEventListener('visibilitychange', ()=>{
+  const hidden = document.hidden;
+  if (hidden) {
+    if (window._cdTimer) { clearInterval(window._cdTimer); window._cdTimer = null; }
+  } else {
+    if (!window._cdTimer && typeof updateCountdowns==='function') {
+      window._cdTimer = setInterval(updateCountdowns, 1000);
+    }
+    if (typeof refreshNext3_v2==='function') refreshNext3_v2(); // refresh when returning
+  }
+});
+
+// ensure countdown timer handle is tracked
+if (typeof updateCountdowns==='function') {
+  if (!window._cdTimer) window._cdTimer = setInterval(updateCountdowns, 1000);
+}
+
+</script>
+</body>
+</html>
