@@ -1047,25 +1047,11 @@ function ttsStopAll(){
 
 /* ---- 監視：テキスト変化でキュー投入（英→日ペア） ---- */
 let _lastKey = null;
+// すでに ENG_showRandom() 側で“表示→即読み上げ”しているので、Observerは使わない
 function setupEngObserver(){
-  const enEl = document.getElementById('engEn');
-  const jaEl = document.getElementById('engJa');
-  if (!enEl) return;
-  const obs = new MutationObserver(()=>{
-    if (!TTS_ENABLED) return;
-    const en = (enEl.textContent||'').trim();
-    const ja = (jaEl?.textContent||'').trim();
-    const key = en + ' /// ' + ja;
-    if (!en && !ja) return;
-    if (key === _lastKey) return;
-    _lastKey = key;
-    // 変更をキューへ（同時多発は内部で最新1件に集約）
-    ttsEnqueue(en, ja);
-  });
-  obs.observe(enEl, {childList:true, characterData:true, subtree:true});
+  return; // ← 無効化（重複読み防止）
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupEngObserver);
-else setupEngObserver();
+
 
 /* ---- タブ非表示で停止（戻っても自動再開しない：手動ON前提） ---- */
 document.addEventListener('visibilitychange', ()=>{
