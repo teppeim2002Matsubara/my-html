@@ -25,7 +25,7 @@
     #mapContainer { width: 100%; height: 70vh; display:grid; place-items:center; }
     svg { width: 100%; height: 100%; }
     .question { font-size: 18px; font-weight: 700; }
-    .highlight-correct { opacity: .9; transition: fill .2s ease; }
+    .highlight-correct { opacity:.95; transition: fill .2s ease; }
     .highlight-wrong { fill: #ef4444 !important; opacity:.9; transition: fill .2s ease; }
     .hoverable { cursor:pointer; }
     .score { font-variant-numeric: tabular-nums; }
@@ -54,6 +54,7 @@
 
   <div class="row">
     <div class="col">
+      $1
         <legend>参加</legend>
         <div class="side" style="gap:8px;align-items:center;flex-wrap:wrap;">
           <label>名前</label>
@@ -138,9 +139,11 @@ let state = {
   turnMax: 10,
   current: null,
   scores: {},
+  playerColors: {},
   clickable: true,
   svgDoc: null,
-  prefectures: []
+  prefectures: [],
+  svgLoaded: false
 };
 
 function updateButtons(){ const ok = state.prefectures.length && (state.mode==='solo' || (ws && ws.readyState===1)); const sb = document.querySelector('#startBtn'); if(sb) sb.disabled = !ok; }
@@ -151,11 +154,10 @@ function connect(){ if(ws){ try{ ws.close(); }catch(_){} }
   ws.onopen = ()=>{ $('#connState').textContent = 'オンライン'; if(me.room&&me.name){ send({type:'join', room:me.room, name:me.name, color: me.color}); } };
   ws.onclose = ()=>{ $('#connState').textContent = 'オフライン'; };
   ws.onerror = ()=>{ $('#connState').textContent = 'エラー'; };
-  ws.onmessage = (ev)=>{
-    const msg = JSON.parse(ev.data);
+  ws.onmessage = (ev)=>{ const msg = JSON.parse(ev.data);
     switch(msg.type){
-      case 'joined': me.id = msg.id; $('#playersCount').textContent = msg.players; state.scores = msg.scores || {}; renderScores(); break;
-      case 'players': $('#playersCount').textContent = msg.players; state.scores = msg.scores || {}; renderScores(); break;
+      case 'joined': me.id = msg.id; document.querySelector('#playersCount').textContent = msg.players; state.scores = msg.scores || {}; if(msg.colors){ state.playerColors = msg.colors; } else { state.playerColors[me.name]=me.color; } renderScores(); break;
+      case 'players': document.querySelector('#playersCount').textContent = msg.players; state.scores = msg.scores || {}; if(msg.colors){ state.playerColors = msg.colors; } renderScores(); break;
       case 'start': state.mode='multi'; state.questionList = msg.questions; state.turn=0; state.turnMax = msg.questions.length; nextQuestion(); $('#turnMax').textContent = state.turnMax; break;
       case 'click-result': showClickResult(msg); break;
       case 'advance': state.turn = msg.turn; setQuestion(msg.question); break;
@@ -202,8 +204,20 @@ function onMapClick(target){
 
 
 function showClickResult(msg){
+  if(!state.svgDoc) return;
   let el = null;
   if(msg.clickedId){ el = state.svgDoc.getElementById(msg.clickedId); }
+  if(!el && msg.answer){
+    const targetName = msg.answer;
+    el = state.prefectures.find(node => normName(getDisplayName(node)) === normName(targetName));
+  }
+  if(!el) return;
+  if(msg.correct){
+    const col = msg.color || state.playerColors[msg.name] || '#22c55e';
+    highlight(el, col);
+  } else { flashWrong(el); }
+  if(msg.next){ state.turn = msg.turn; setQuestion(msg.next); const t=document.querySelector('#turn'); if(t) t.textContent = (state.turn+1); }
+}
   // 旧サーバ互換: clickedId が無い場合、answer(=名前)で要素を推定
   if(!el && msg.answer){
     const targetName = msg.answer;
@@ -224,7 +238,13 @@ function attachHandlersToSVG(root){
   state.prefectures = els;
 }
 
-function highlight(el, color){ el.classList.remove('highlight-wrong'); if(color){ el.style.fill = color; } el.classList.add('highlight-correct'); }
+function paintElement(el, color){
+  if(!el) return;
+  const tag = (el.tagName||'').toLowerCase();
+  const targets = (tag==='g') ? el.querySelectorAll('path,polygon,rect,circle,ellipse') : [el];
+  targets.forEach(node=>{ if(color){ node.style.fill = color; node.setAttribute('fill', color); } });
+}
+function highlight(el, color){ el.classList.remove('highlight-wrong'); paintElement(el,color); el.classList.add('highlight-correct'); } el.classList.add('highlight-correct'); }
 function highlightClear(){
   state.prefectures.forEach(el=>{
     el.classList.remove('highlight-correct','highlight-wrong');
