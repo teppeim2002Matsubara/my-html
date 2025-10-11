@@ -195,13 +195,20 @@ function onMapClick(target){
     if(good){ highlight(target, me.color||'#22c55e'); toast('正解！'); state.turn++; nextQuestion(); }
     else { flashWrong(target); toast('ちがうよ'); }
   } else {
-    send({ type:'click', room: me.room, id: me.id, name: me.name, color: me.color, answerId: clickedId, answerName: clickedName });
+    send({ type:'click', room: me.room, id: me.id, name: me.name, color: me.color, // 互換性のため全部送る
+      answer: clickedName, answerName: clickedName, answerId: clickedId });
   }
 }
 
 
 function showClickResult(msg){
-  const el = state.svgDoc.getElementById(msg.clickedId);
+  let el = null;
+  if(msg.clickedId){ el = state.svgDoc.getElementById(msg.clickedId); }
+  // 旧サーバ互換: clickedId が無い場合、answer(=名前)で要素を推定
+  if(!el && msg.answer){
+    const targetName = msg.answer;
+    el = state.prefectures.find(node => normName(getDisplayName(node)) === normName(targetName));
+  }
   if(!el) return;
   if(msg.correct){ highlight(el, msg.color || '#22c55e'); }
   else { flashWrong(el); }
