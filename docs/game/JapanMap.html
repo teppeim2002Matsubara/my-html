@@ -3,23 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>都道府県バトル（リアルタイム） – 固定版 v1.1</title>
-  <!--
-  変更点 (v1.1):
-  - WebSocket 初期化待ちのキュー(sendSafe)を実装 → 「shared Env not inited yet」対策
-  - 接続状態とSVG読込完了を満たさない限り「対戦スタート」を無効化
-  - SVG ローダの堅牢化: PDFや不正XMLを検出し、詳細エラー表示
-  - クリック判定の堅牢化: null 参照防止、SVG無読込時のガード
-  - 診断パネル(画面右下)を追加: 接続/ファイル/ID/ログを可視化
-  - 最小“テストケース”ボタンを追加（デモ読込/誤ファイル/WS URL 妥当性/接続前join）
-  - HTTPS環境の wss 推奨チェック
-  -->
+  <title>都道府県バトル（リアルタイム）</title>
   <style>
     html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
     header { display:flex; gap:12px; align-items:center; padding:10px 14px; box-shadow: 0 1px 0 rgba(0,0,0,.08); position: sticky; top:0; background:#fff; z-index:2; }
     .brand { font-weight:700; }
     .row { display:flex; gap:16px; padding:14px; }
-    .col { flex:1; min-width: 300px; }
+    .col { flex:1; min-width: 280px; }
     fieldset { border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
     legend { padding: 0 6px; color:#374151; }
     label { font-size: 12px; color:#374151; }
@@ -35,7 +25,7 @@
     #mapContainer { width: 100%; height: 70vh; display:grid; place-items:center; }
     svg { width: 100%; height: 100%; }
     .question { font-size: 18px; font-weight: 700; }
-    .highlight-correct { fill: #22c55e !important; opacity: .9; transition: fill .2s ease; }
+    .highlight-correct { opacity: .9; transition: fill .2s ease; }
     .highlight-wrong { fill: #ef4444 !important; opacity:.9; transition: fill .2s ease; }
     .hoverable { cursor:pointer; }
     .score { font-variant-numeric: tabular-nums; }
@@ -44,13 +34,10 @@
     .hint { font-size: 12px; color:#6b7280; }
     .toast { position: fixed; right: 12px; bottom: 12px; background: #111827; color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 13px; opacity: 0; transform: translateY(10px); transition: all .2s ease; }
     .toast.show { opacity: 1; transform: translateY(0); }
+    .pill { display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; color:#111827; border-radius:9999px; padding:4px 8px; font-size:12px; }
     .chip { display:inline-flex; gap:6px; font-size:12px; color:#374151; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     .foot { font-size:12px; color:#6b7280; padding: 8px 14px 16px; }
-    /* 診断パネル */
-    .diag { position: fixed; right: 12px; bottom: 12px; width: 360px; max-height: 40vh; overflow:auto; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding:10px; font-size:12px; }
-    .diag h4 { margin: 4px 0 6px; font-size:12px; }
-    .diag pre { background:#f9fafb; padding:6px; border-radius:8px; white-space:pre-wrap; word-break:break-all; }
   </style>
 </head>
 <body>
@@ -67,29 +54,30 @@
 
   <div class="row">
     <div class="col">
-      <fieldset class="stack">
         <legend>参加</legend>
-        <div class="side">
+        <div class="side" style="gap:8px;align-items:center;flex-wrap:wrap;">
           <label>名前</label>
           <input id="name" placeholder="例: てっぺい" size="10" />
+          <label>色</label>
+          <input type="color" id="color" value="#22c55e" title="自分の正解カラー" />
           <label>ルーム</label>
           <input id="room" placeholder="例: meg1" size="8" />
           <button id="joinBtn">入室</button>
         </div>
-        <div class="hint">WS サーバ（デフォルト）: <span class="mono" id="wsUrl">ws://localhost:3000</span></div>
+        <div class="hint">WS サーバ（デフォルト）: <span class="mono" id="wsUrl">wss://calisthenical-migdalia-cousinly.ngrok-free.dev</span></div>
         <div class="side">
           <label>WS URL</label>
-          <input id="wsInput" placeholder="ws://localhost:3000" size="24" />
+          <input id="wsInput" value="wss://calisthenical-migdalia-cousinly.ngrok-free.dev" size="24" />
           <button id="wsApply">適用</button>
         </div>
-        <div class="hint">URL に <span class="mono">?room=XXXX&name=YYY</span> を付けてもOK。<span id="secureHint"></span></div>
+        <div class="hint">URL に <span class="mono">?room=XXXX&name=YYY</span> を付けてもOK。</div>
       </fieldset>
 
       <fieldset class="stack" style="margin-top:12px;">
         <legend>地図の読み込み</legend>
         <div class="stack">
           <input type="file" id="svgFile" accept="image/svg+xml" />
-          <div class="hint">★ PDF は直接は読み込めません。Inkscape等で <b>SVGに変換</b>してから読み込んでください。<br>SVG内の要素に <span class="mono">id="北海道"</span> のように<b>都道府県名の id</b> を付けると自動判定します。</div>
+          <div class="hint">★ 添付 PDF を <b>SVG に変換</b>（例: Inkscape で “PDF を開く → SVGで保存”）し、ここに読み込ませてください。<br>SVG 内の <span class="mono">&lt;path id="北海道"&gt;</span> のように <b>都道府県名の id</b> を付けると自動で判定します。</div>
           <details>
             <summary>ミニデモ（北海道・沖縄・東京 だけの簡易 SVG を使う）</summary>
             <button id="loadDemo">デモSVGを読み込み</button>
@@ -99,7 +87,7 @@
 
       <fieldset class="stack" style="margin-top:12px;">
         <legend>問題 / スコア</legend>
-        <div class="question">Q: <span id="question">（読み込み待ち）</span></div>
+        <div class="question">Q: <span id="question">（読み込み待ち）</span> <button id="skipBtn" style="margin-left:8px">スキップ▶</button></div>
         <div class="status">ターン: <span id="turn">0</span> / <span id="turnMax">0</span></div>
         <div style="margin-top:8px;">
           <table id="scoreTable">
@@ -109,19 +97,8 @@
         </div>
       </fieldset>
 
-      <fieldset class="stack" style="margin-top:12px;">
-        <legend>自己診断 & テストケース</legend>
-        <div class="side" style="flex-wrap:wrap; gap:6px;">
-          <button id="tDemo">[TC1] デモSVG読込</button>
-          <button id="tPdf">[TC2] PDF誤投入検出</button>
-          <button id="tWsUrl">[TC3] WS URL 妥当性</button>
-          <button id="tJoinEarly">[TC4] 接続前 join() キュー</button>
-        </div>
-        <div class="hint">結果は右下の「診断パネル」に表示されます。</div>
-      </fieldset>
-
       <div class="foot">
-        出典（地図ベース）: ちびむすドリル塗り絵日本地図（PDF）→SVG化してご利用ください。著作権・利用規約にご注意ください。
+        出典（地図ベース）: ちびむすドリル塗り絵日本地図（PDF）を利用の上で SVG 化してお使いください。著作権と利用規約にご注意ください。
       </div>
     </div>
 
@@ -133,26 +110,27 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <div class="diag" id="diag" hidden>
-    <h4>診断パネル</h4>
-    <div>接続: <span id="dConn">-</span> / SVG: <span id="dSvg">-</span> / 県ID数: <span id="dIds">0</span></div>
-    <pre id="dLog">(ログはここに出ます)</pre>
-  </div>
 
 <script>
-// ===== ユーティリティ =====
+// ============ 小ユーティリティ ==========
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); log(msg); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200); }
 function normName(s){ return (s||'').replace(/\s+/g,'').replace(/[都道府県府 ]/g,''); }
-function log(...a){ const s=a.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' '); const pre=$('#dLog'); pre.textContent += "\n"+s; pre.scrollTop=pre.scrollHeight; }
-function showDiag(){ $('#diag').hidden=false; }
+function getDisplayName(el){
+  if(!el) return '';
+  return (
+    el.getAttribute('data-name') ||
+    el.getAttribute('aria-label') ||
+    el.getAttribute('inkscape:label') ||
+    (el.querySelector && el.querySelector('title') && el.querySelector('title').textContent) ||
+    el.id || ''
+  ).trim();
+}
 
-// ===== 状態 =====
-let ws=null; let wsUrl = 'ws://localhost:3000';
-let wsOpen = false; let wsReady = Promise.resolve();
-let wsQueue = [];
-let me = { id:null, name:'', room:'' };
+// ============ 状態 ============
+let ws=null; let wsUrl = 'wss://calisthenical-migdalia-cousinly.ngrok-free.dev';
+let me = { id:null, name:'', room:'', color:'#22c55e' };
 let state = {
   mode: 'solo', // 'solo' or 'multi'
   questionList: [],
@@ -162,28 +140,17 @@ let state = {
   scores: {},
   clickable: true,
   svgDoc: null,
-  prefectures: [],
-  svgLoaded: false
+  prefectures: []
 };
 
-function updateButtons(){
-  const canStart = state.svgLoaded && (state.mode==='solo' || wsOpen);
-  $('#startBtn').disabled = !canStart;
-  $('#dConn').textContent = wsOpen? 'OPEN':'CLOSED';
-  $('#dSvg').textContent = state.svgLoaded? 'LOADED':'NONE';
-  $('#dIds').textContent = state.prefectures.length;
-}
+function updateButtons(){ const ok = state.prefectures.length && (state.mode==='solo' || (ws && ws.readyState===1)); const sb = document.querySelector('#startBtn'); if(sb) sb.disabled = !ok; }
 
-// ===== WebSocket 接続 (キュー+安全送信) =====
-function connect(){
-  if(ws){ try{ ws.close(); }catch(_){} }
-  wsOpen = false;
+// ============ サーバ通信（WebSocket） ============
+function connect(){ if(ws){ try{ ws.close(); }catch(_){} }
   ws = new WebSocket(wsUrl);
-  wsReady = new Promise((resolve)=>{
-    ws.onopen = ()=>{ wsOpen=true; $('#connState').textContent='オンライン'; resolve(); flushQueue(); updateButtons(); log('WS open:', wsUrl); };
-  });
-  ws.onclose = ()=>{ wsOpen=false; $('#connState').textContent='オフライン'; updateButtons(); log('WS closed'); };
-  ws.onerror = (e)=>{ $('#connState').textContent='エラー'; updateButtons(); log('WS error'); };
+  ws.onopen = ()=>{ $('#connState').textContent = 'オンライン'; if(me.room&&me.name){ send({type:'join', room:me.room, name:me.name, color: me.color}); } };
+  ws.onclose = ()=>{ $('#connState').textContent = 'オフライン'; };
+  ws.onerror = ()=>{ $('#connState').textContent = 'エラー'; };
   ws.onmessage = (ev)=>{
     const msg = JSON.parse(ev.data);
     switch(msg.type){
@@ -196,108 +163,89 @@ function connect(){
     }
   };
 }
-function sendSafe(o){
-  if(wsOpen && ws && ws.readyState===1){ ws.send(JSON.stringify(o)); }
-  else { wsQueue.push(o); log('queued', o.type); }
-}
-function flushQueue(){
-  while(wsOpen && wsQueue.length){ const o = wsQueue.shift(); try{ ws.send(JSON.stringify(o)); }catch(e){ log('flush err', e.message); break; } }
-}
+function send(o){ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }
 
-// ===== ゲーム =====
-function setQuestion(name){ state.current = name; $('#question').textContent = name || '（問題なし）'; }
+// ============ ゲーム ============
+function setQuestion(name){ state.current = name; $('#question').textContent = name; }
 function nextQuestion(){
   if(state.turn >= state.turnMax){ $('#question').textContent = '終了！'; state.clickable=false; return; }
   const q = state.questionList[state.turn]; setQuestion(q); $('#turn').textContent = (state.turn+1);
 }
 function startSolo(){
   state.mode='solo'; if(!state.prefectures.length){ toast('先にSVGを読み込んでください'); return; }
-  const prefNames = [
-    '北海道',
-    '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
-    '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
-    '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県',
-    '岐阜県', '静岡県', '愛知県', '三重県',
-    '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県',
-    '鳥取県', '島根県', '岡山県', '広島県', '山口県',
-    '徳島県', '香川県', '愛媛県', '高知県',
-    '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
-  ];
+  const prefNames = [ '北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県' ];
+  const prefSet = new Set(prefNames.map(n=>normName(n)));
   const names = state.prefectures
-    .map(el=>el.id)
-    .filter(id => prefNames.includes(id));
+    .map(el=>getDisplayName(el))
+    .filter(n=>prefSet.has(normName(n)));
   state.questionList = shuffle(names).slice(0, Math.min(10, names.length));
   state.turn=0; state.turnMax=state.questionList.length; $('#turnMax').textContent = state.turnMax; state.scores = {}; renderScores();
-  highlightClear();
-  state.clickable=true;
-  nextQuestion(); updateButtons();
+  highlightClear(); state.clickable=true; nextQuestion(); updateButtons();
 }
-function startMulti(){ sendSafe({type:'start', room: me.room}); }
+function startMulti(){
+ send({type:'start', room: me.room}); }
 
-function onMapClick(target){ if(!state.clickable || !state.current) return; if(!target) return; const clicked = (target.id||'').trim();
-  if(!clicked){ toast('この要素に id がありません'); return; }
-  const good = normName(clicked) === normName(state.current);
+function onMapClick(target){
+  if(!state.clickable || !state.current) return; if(!target) return;
+  const clickedId = (target.id||'').trim();
+  const clickedName = getDisplayName(target);
+  if(!clickedId && !clickedName){ toast('この要素に id/名前 がありません'); return; }
+  const good = normName(clickedName) === normName(state.current);
   if(state.mode==='solo'){
-    if(good){ highlight(target, true); toast('正解！'); state.turn++; nextQuestion(); }
+    if(good){ highlight(target, me.color||'#22c55e'); toast('正解！'); state.turn++; nextQuestion(); }
     else { flashWrong(target); toast('ちがうよ'); }
   } else {
-    sendSafe({ type:'click', room: me.room, id: me.id, name: me.name, answer: clicked });
+    send({ type:'click', room: me.room, id: me.id, name: me.name, color: me.color, answerId: clickedId, answerName: clickedName });
   }
 }
 
+
 function showClickResult(msg){
-  if(!state.svgDoc) return; // SVG未読込ガード
   const el = state.svgDoc.getElementById(msg.clickedId);
-  if(!el) { log('clickedId not found in SVG:', msg.clickedId); return; }
-  if(msg.correct){ highlight(el, true); }
+  if(!el) return;
+  if(msg.correct){ highlight(el, msg.color || '#22c55e'); }
   else { flashWrong(el); }
   if(msg.next){ state.turn = msg.turn; setQuestion(msg.next); $('#turn').textContent = (state.turn+1); }
 }
 
-// ===== SVG 取扱い =====
+// ============ SVG 取扱い ============
 function attachHandlersToSVG(root){
+  // クリックターゲット: path, polygon, rect, g（id 保持）
   const sels=['path','polygon','rect','g'];
   const els = [];
   sels.forEach(s=> root.querySelectorAll(s).forEach(el=>{ if(el.id){ els.push(el); el.classList.add('hoverable'); el.addEventListener('click', (e)=>{ e.stopPropagation(); onMapClick(el); }, false); } }));
-  state.prefectures = els; state.svgLoaded = true; updateButtons();
+  state.prefectures = els;
 }
 
-function highlight(el){ el.classList.remove('highlight-wrong'); el.classList.add('highlight-correct'); }
-function highlightClear(){ state.prefectures.forEach(el=>{ el.classList.remove('highlight-correct','highlight-wrong'); }); }
+function highlight(el, color){ el.classList.remove('highlight-wrong'); if(color){ el.style.fill = color; } el.classList.add('highlight-correct'); }
+function highlightClear(){
+  state.prefectures.forEach(el=>{
+    el.classList.remove('highlight-correct','highlight-wrong');
+    el.style.fill='';
+  });
+}
 function flashWrong(el){ el.classList.add('highlight-wrong'); setTimeout(()=>el.classList.remove('highlight-wrong'), 600); }
 function shuffle(a){ const arr=[...a]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
-// ファイル選択 → テキスト → 検証 → 描画
+// ============ UI 初期化 ============
+$('#wsApply').onclick = ()=>{ const v=$('#wsInput').value.trim(); if(v){ wsUrl=v; $('#wsUrl').textContent=v; connect(); }};
+$('#joinBtn').onclick = ()=>{ me.name=$('#name').value||`player_${Math.random().toString(36).slice(2,6)}`; me.room=$('#room').value||'room1'; me.color=$('#color')?$('#color').value:'#22c55e'; $('#roomLabel').textContent=me.room; state.mode='multi'; connect(); };
+$('#startBtn').onclick = ()=>{ if(state.mode==='solo') startSolo(); else startMulti(); }
+$('#soloBtn').onclick = ()=>{ state.mode='solo'; $('#connState').textContent = 'ソロ'; toast('ソロ練習モード'); startSolo(); };
+
+// URL パラメータで自動 join
+(function(){ const u=new URL(location.href); const room=u.searchParams.get('room'); const name=u.searchParams.get('name'); const wsx=u.searchParams.get('ws'); if(wsx){ wsUrl=wsx; $('#wsUrl').textContent=wsUrl; $('#wsInput').value=wsUrl; }
+  if(room){ $('#room').value=room; } if(name){ $('#name').value=name; }
+  if(room||name){ $('#joinBtn').click(); }
+})();
+
+// SVG 読み込み（ファイル）
 $('#svgFile').addEventListener('change', async (ev)=>{
-  const file = ev.target.files[0]; if(!file) return; showDiag();
-  if(file.type && file.type !== 'image/svg+xml'){ toast('これはSVGではありません。PDFはSVGに変換してください。'); log('file.type:', file.type); return; }
-  const text = await file.text();
-  if(/^%PDF-/.test(text.slice(0,8))){ toast('PDFは直接読み込めません。SVGへ変換してください。'); log('detected PDF header'); return; }
-  loadSVGText(text);
+  const file = ev.target.files[0]; if(!file) return; const text = await file.text(); loadSVGText(text);
 });
 
-// テキスト → SVG 解析
-function loadSVGText(text){
-  try{
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'image/svg+xml');
-    const svg = doc.querySelector('svg');
-    if(!svg){ toast('SVGタグが見つかりません'); log('no <svg> element'); return; }
-    // 既存を置換
-    $('#mapContainer').innerHTML='';
-    const imported = document.importNode(svg, true);
-    $('#mapContainer').appendChild(imported);
-    state.svgDoc = imported;
-    attachHandlersToSVG(imported);
-    $('#question').textContent = '（準備OK：問題を開始してください）';
-    updateButtons();
-    log('SVG loaded, id count:', state.prefectures.length);
-  }catch(e){ toast('SVG 解析に失敗しました'); log('loadSVGText error:', e.message); }
-}
-
-// デモ SVG
+// デモ SVG（簡易）
 $('#loadDemo').onclick = ()=>{
-  showDiag();
   const demo = `<?xml version="1.0" encoding="UTF-8"?><svg viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
    <rect width="100%" height="100%" fill="#eef2ff"/>
    <g id="北海道"><path d="M60,60 L160,40 L200,80 L160,120 L80,120 Z" fill="#c7d2fe" stroke="#334155"/></g>
@@ -308,53 +256,34 @@ $('#loadDemo').onclick = ()=>{
   loadSVGText(demo);
 };
 
-// ===== UI 初期化 =====
-$('#wsApply').onclick = ()=>{
-  const v=$('#wsInput').value.trim(); if(!v){ toast('WS URL を入力してください'); return; }
-  try{
-    const u = new URL(v);
-    if(u.protocol!== 'ws:' && u.protocol!=='wss:'){ toast('WS URL は ws:// または wss://'); return; }
-  }catch(_){ toast('WS URL が不正です'); return; }
-  wsUrl=v; $('#wsUrl').textContent=v; connect(); showDiag();
-};
+function loadSVGText(text){
+  const container = document.createElement('div'); container.innerHTML = text.trim();
+  const svg = container.querySelector('svg');
+  if(!svg){ toast('SVG が見つかりません'); return; }
+  $('#mapContainer').innerHTML=''; $('#mapContainer').appendChild(svg);
+  state.svgDoc = svg;
+  attachHandlersToSVG(svg);
+  // 質問ボタン活性
+  $('#startBtn').disabled = false;
+  // 初期問題セット（ソロ）
+  if(state.mode==='solo'){ startSolo(); }
+}
 
-$('#joinBtn').onclick = async ()=>{
-  me.name=$('#name').value||`player_${Math.random().toString(36).slice(2,6)}`;
-  me.room=$('#room').value||'room1';
-  $('#roomLabel').textContent=me.room; state.mode='multi'; showDiag();
-  // 接続が無ければ接続 (wss 推奨チェック)
-  if(location.protocol==='https:' && !/^wss:\/\//.test(wsUrl)){
-    $('#secureHint').textContent = '（HTTPSでは wss:// を推奨）';
-  }
-  if(!ws || !wsOpen){ connect(); }
-  await wsReady; // open 待ち
-  sendSafe({type:'join', room:me.room, name:me.name});
-  updateButtons();
-};
+// スキップボタン
+if(document.getElementById('skipBtn')){
+  document.getElementById('skipBtn').onclick = ()=>{
+    if(state.mode==='solo'){ state.turn++; nextQuestion(); }
+    else { send({ type:'skip', room: me.room, id: me.id, name: me.name }); }
+  };
+}
 
-$('#startBtn').onclick = ()=>{ if(state.mode==='solo') startSolo(); else startMulti(); };
-$('#soloBtn').onclick = ()=>{ state.mode='solo'; $('#connState').textContent = 'ソロ'; toast('ソロ練習モード'); updateButtons(); if(state.svgLoaded) startSolo(); };
-
-// URL パラメータで自動 join
-(function(){ const u=new URL(location.href); const room=u.searchParams.get('room'); const name=u.searchParams.get('name'); const wsx=u.searchParams.get('ws'); if(wsx){ $('#wsInput').value=wsx; $('#wsApply').click(); }
-  if(room){ $('#room').value=room; } if(name){ $('#name').value=name; }
-  if(room||name){ $('#joinBtn').click(); }
-})();
-
-// スコア描画
+// スコア表示
 function renderScores(){
   const tb = $('#scoreTable tbody'); tb.innerHTML='';
   Object.entries(state.scores).sort((a,b)=>b[1]-a[1]).forEach(([name,sc])=>{
     const tr=document.createElement('tr'); tr.innerHTML=`<td>${name}</td><td class="score">${sc}</td>`; tb.appendChild(tr);
   });
 }
-
-// ===== テストケース =====
-$('#tDemo').onclick = ()=>{ $('#loadDemo').click(); toast('[TC1] OK: デモ読み込み'); };
-$('#tPdf').onclick = ()=>{ showDiag(); const fakePdf = '%PDF-1.7\n...'; if(/^%PDF-/.test(fakePdf)){ toast('[TC2] OK: PDF検出メッセージ表示'); log('TC2: detected PDF header (sim)'); } };
-$('#tWsUrl').onclick = ()=>{ showDiag(); const bad='http://example.com'; $('#wsInput').value=bad; $('#wsApply').click(); };
-$('#tJoinEarly').onclick = ()=>{ showDiag(); me.name='earlyUser'; me.room='t'; state.mode='multi'; sendSafe({type:'join', room:'t', name:'earlyUser'}); toast('[TC4] OK: 接続前にjoin→キュー'); };
-
 </script>
 
 <!-- ====== 同梱用：Node WebSocket サーバ（server.js） ======
@@ -384,30 +313,26 @@ wss.on('connection', (ws)=>{
       if(!rooms.has(roomId)) rooms.set(roomId, { players: new Map(), questions: [], turn:0 });
       const room = rooms.get(roomId);
       const id = nextId++;
-      room.players.set(ws, { id, name, score:0 });
+      room.players.set(ws, { id, name, score:0, color: msg.color || '#22c55e' });
       ws._roomId = roomId; ws._id = id; ws._name = name;
+      // 返答
       const scores = {}; for(const p of room.players.values()){ scores[p.name]=p.score; }
       ws.send(JSON.stringify({ type:'joined', id, players: room.players.size, scores }));
       broadcast(roomId, { type:'players', players: room.players.size, scores });
     }
     else if(msg.type==='start'){
       const roomId = msg.room; const room = rooms.get(roomId); if(!room) return;
+      // 既存の SVG から prefecture ids を送ることはできないので、クライアント側のロード後に set を想定。
+      // ここでは代表的な都道府県名セットを用意（必要に応じて編集）。
       const baseList = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
       room.questions = makeQuestions(baseList, 10);
       room.turn = 0;
       broadcast(roomId, { type:'start', questions: room.questions });
     }
-    else if(msg.type==='click'){
-      const roomId = msg.room; const room = rooms.get(roomId); if(!room) return; const p = room.players.get(ws); if(!p) return;
-      const current = room.questions[room.turn]; if(!current) return;
-      const good = normName(msg.answer) === normName(current);
-      if(good){ p.score += 1; room.turn += 1; const next = room.questions[room.turn];
-        broadcast(roomId, { type:'click-result', name:p.name, clickedId: msg.answer, correct: true, turn: room.turn, next });
-        const scores = {}; for(const q of room.players.values()){ scores[q.name]=q.score; }
-        broadcast(roomId, { type:'scores', scores });
-      } else {
-        ws.send(JSON.stringify({ type:'click-result', name:p.name, clickedId: msg.answer, correct: false, turn: room.turn }));
-      }
+    $1    else if(msg.type==='skip'){
+      const roomId = msg.room; const room = rooms.get(roomId); if(!room) return;
+      room.turn += 1; const next = room.questions[room.turn];
+      broadcast(roomId, { type:'advance', turn: room.turn, question: next });
     }
   });
   ws.on('close', ()=>{
