@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ja">
 <head>
@@ -32,7 +33,12 @@
     <span class="pill">状態: <b id="connState">接続準備</b></span>
     <span class="pill">ルーム: <b id="roomLabel">-</b></span>
     <span class="pill">プレイヤー: <b id="playersCount">0</b></span>
-    <div style="margin-left:auto;display:flex;gap:8px">
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <label class="hint" for="modeSelect">モード</label>
+      <select id="modeSelect" style="border:1px solid var(--line);border-radius:10px;padding:6px 8px">
+        <option value="random" selected>ランダム (10問)</option>
+        <option value="all">全問 (47問)</option>
+      </select>
       <button class="btn" id="soloBtn">ソロ練習</button>
       <button class="btn primary" id="startBtn" disabled>対戦スタート</button>
     </div>
@@ -99,8 +105,19 @@ function connect(){
   ws.onmessage=(ev)=>{ const msg=JSON.parse(ev.data); switch(msg.type){
     case 'joined': me.id=msg.id; $('#playersCount').textContent=msg.players; state.scores=msg.scores||{}; if(msg.colors) state.playerColors=msg.colors; renderScores(); break;
     case 'players': $('#playersCount').textContent=msg.players; state.scores=msg.scores||{}; if(msg.colors) state.playerColors=msg.colors; renderScores(); break;
-    case 'start': // サーバが問題配布 → それに従う（クライアントで作らない）
-      state.mode='multi'; state.questionList=msg.questions; state.turn=0; state.turnMax=msg.questions.length; nextQuestion(); $('#turnMax').textContent=state.turnMax; break;
+    case 'start':
+      state.mode = 'multi';
+      state.questionList = msg.questions;
+      state.turn = 0;
+      state.turnMax = msg.total || msg.questions.length; // ★ここポイント
+      resetColors();
+      state.scores = msg.scores || {};
+      renderScores();
+      nextQuestion();
+      document.getElementById('turnMax').textContent = state.turnMax;
+      break;
+
+
     case 'click-result': showClickResult(msg); break;
     case 'advance': state.turn=msg.turn; setQuestion(msg.question); $('#turn').textContent=(state.turn+1); break;
     case 'scores': state.scores=msg.scores||{}; if(msg.colors) state.playerColors=msg.colors; renderScores(); break;
@@ -112,24 +129,97 @@ function send(o){ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }
 function setQuestion(name){ state.current=name; $('#question').textContent=name||'（問題なし）'; }
 function nextQuestion(){ if(state.turn>=state.turnMax){ setQuestion('終了！'); state.clickable=false; return; } const q=state.questionList[state.turn]; setQuestion(q); $('#turn').textContent=(state.turn+1); }
 function startSolo(){ state.mode='solo'; if(!state.prefectures.length){ alert('先にSVG'); return; } const pref=[ '北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県' ]; const allow=new Set(pref.map(n=>normName(n))); const names=state.prefectures.map(el=>getDisplayName(el)).filter(n=>allow.has(normName(n))); state.questionList=shuffle(names).slice(0,Math.min(10,names.length)); state.turn=0; state.turnMax=state.questionList.length; $('#turnMax').textContent=state.turnMax; state.scores={}; renderScores(); clearMarks(); state.clickable=true; nextQuestion(); updateButtons(); }
-function startMulti(){ state.mode='multi'; send({type:'start', room:me.room}); }
+function startMulti() {
+  state.mode = 'multi';
+  const sel = document.getElementById('modeSelect');
+  const urlMode = new URL(location.href).searchParams.get('mode');
+  const mode = (sel && sel.value) || (urlMode === 'all' ? 'all' : 'random'); // デフォルトは random
+
+  console.log('[CLIENT] send start:', { room: me.room, mode }); // ★ 送信前ログ
+  send({ type: 'start', room: me.room, mode });
+}
+function updateButtons() {
+  const ok = state.svgLoaded && (state.mode === 'solo' || (ws && ws.readyState === 1));
+  document.getElementById('startBtn').disabled = !ok;
+}
+
+// --- SVG 読み込み完了時 ---
+function onSvgLoaded() {
+  state.svgLoaded = true;
+  updateButtons();   // ★ここで呼ぶ
+}
+
+// --- WebSocket 接続完了時 ---
+function onWsOpen() {
+  console.log('[CLIENT] WS connected');
+  updateButtons();   // ★ここでも呼ぶ
+}
 
 function onMapClick(target){ if(!state.clickable||!state.current) return; const clickedId=(target.id||'').trim(); const clickedName=getDisplayName(target); if(!clickedId&&!clickedName){ return; } const good=normName(clickedName)===normName(state.current); if(state.mode==='solo'){ if(good){ colorize(target, me.color||'#22c55e'); state.turn++; nextQuestion(); } else { flashWrong(target); } } else { send({ type:'click', room:me.room, id:me.id, name:me.name, color:me.color, answer:clickedName, answerName:clickedName, answerId:clickedId }); } }
 
 function showClickResult(msg){ if(!state.svgDoc) return; let el=null; if(msg.clickedId) el=state.svgDoc.getElementById(msg.clickedId); if(!el && msg.answer){ const t=msg.answer; el=state.prefectures.find(n=>normName(getDisplayName(n))===normName(t)); } if(!el) return; if(msg.correct){ const col=msg.color || state.playerColors[msg.name] || '#22c55e'; colorize(el,col); } else { flashWrong(el); } if(msg.next){ state.turn=msg.turn; setQuestion(msg.next); $('#turn').textContent=(state.turn+1); } }
 
 // ===== SVG helpers =====
-function attachHandlersToSVG(root){ const sels=['path','polygon','rect','circle','ellipse','g']; const els=[]; sels.forEach(s=> root.querySelectorAll(s).forEach(el=>{ if(el.id){ els.push(el); el.classList.add('hoverable'); el.addEventListener('click',e=>{ e.stopPropagation(); onMapClick(el); }, false); } })); state.prefectures=els; state.svgLoaded=true; updateButtons(); }
+function attachHandlersToSVG(root){
+  const sels=['path','polygon','rect','circle','ellipse','g'];
+  const els=[];
+  const recordOrig = (node)=>{
+    if(node && node.dataset){
+      if(node.dataset.origFill === undefined){
+        const attrFill = node.getAttribute('fill');
+        node.dataset.origFill = (attrFill!=null? attrFill : '');
+      }
+    }
+  };
+  sels.forEach(s=> root.querySelectorAll(s).forEach(el=>{
+    if(el.id){
+      // クリック登録
+      els.push(el); el.classList.add('hoverable');
+      el.addEventListener('click',e=>{ e.stopPropagation(); onMapClick(el); }, false);
+      // 塗り対象ノードの元色を保存
+      const tag=(el.tagName||'').toLowerCase();
+      const targets=(tag==='g')? el.querySelectorAll('path,polygon,rect,circle,ellipse') : [el];
+      targets.forEach(recordOrig);
+    }
+  }));
+  state.prefectures=els; state.svgLoaded=true; updateButtons();
+}
 function forEachPaintTarget(el, cb){ const tag=(el.tagName||'').toLowerCase(); const targets=(tag==='g')? el.querySelectorAll('path,polygon,rect,circle,ellipse') : [el]; targets.forEach(cb); }
 function colorize(el, color){ forEachPaintTarget(el, node=>{ if(color){ node.style.fill=color; node.setAttribute('fill',color); } node.classList.remove('highlight-wrong'); }); }
-function clearMarks(){ state.prefectures.forEach(el=>{ el.classList.remove('highlight-wrong'); /* 元の色は触らない */ }); }
+function resetColors(){
+  const restoreNode = (node)=>{
+    if(node && node.dataset && node.dataset.origFill !== undefined){
+      const orig = node.dataset.origFill;
+      node.style.fill='';
+      if(orig===''){ node.removeAttribute('fill'); } else { node.setAttribute('fill', orig); }
+    } else {
+      node.style.fill=''; node.removeAttribute('fill');
+    }
+    node.classList.remove('highlight-wrong');
+  };
+  state.prefectures.forEach(el=>{
+    const tag=(el.tagName||'').toLowerCase();
+    const targets=(tag==='g')? el.querySelectorAll('path,polygon,rect,circle,ellipse') : [el];
+    targets.forEach(restoreNode);
+  });
+}
+function clearMarks(){ resetColors(); }
 function flashWrong(el){ forEachPaintTarget(el, node=>{ node.classList.add('highlight-wrong'); setTimeout(()=>node.classList.remove('highlight-wrong'),500); }); }
 function shuffle(a){ const arr=[...a]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
 // ===== UI init =====
 $('#skipBtn').onclick=()=>{ if(state.mode==='solo'){ state.turn++; nextQuestion(); } else { send({type:'skip', room:me.room, id:me.id, name:me.name}); } };
 $('#soloBtn').onclick=()=>{ state.mode='solo'; $('#connState').textContent='ソロ'; if(state.svgLoaded) startSolo(); };
-$('#startBtn').onclick=()=>{ if(state.mode==='solo') startSolo(); else startMulti(); };
+$('#startBtn').onclick = () => {
+  console.log('[CLIENT] startBtn clicked');  // ←ボタンが押されたか確認
+  if (state.mode === 'solo') {
+    console.log('[CLIENT] solo mode start');
+    startSolo();
+  } else {
+    console.log('[CLIENT] multi mode start');
+    startMulti();
+  }
+};
 $('#svgFile').addEventListener('change', async(ev)=>{ const f=ev.target.files[0]; if(!f) return; const text=await f.text(); if(/^%PDF-/.test(text.slice(0,8))){ alert('PDFは直接読めません。SVGへ変換を。'); return; } loadSVG(text); });
 $('#loadDemo').onclick=()=>{ const demo=`<?xml version="1.0" encoding="UTF-8"?><svg viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#eef2ff"/><g id="北海道" data-name="北海道"><path d="M60,60 L160,40 L200,80 L160,120 L80,120 Z" fill="#c7d2fe" stroke="#334155"/></g><g id="沖縄県" data-name="沖縄県"><circle cx="520" cy="340" r="18" fill="#c7d2fe" stroke="#334155"/></g><g id="東京都" data-name="東京都"><rect x="320" y="200" width="24" height="24" fill="#c7d2fe" stroke="#334155"/></g><text x="70" y="30" font-size="14">（デモ）ざっくり配置</text></svg>`; loadSVG(demo); };
 
