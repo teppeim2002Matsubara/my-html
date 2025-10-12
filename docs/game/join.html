@@ -1,6 +1,4 @@
-# join.html (参加ページ)
-
-
+# join.html — 参加ページ（v2）
 <!doctype html>
 <html lang="ja">
 <head>
@@ -20,14 +18,13 @@
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .muted{color:var(--muted);font-size:13px}
     .primary{background:#111827;color:#fff;border-color:#111827;cursor:pointer}
-    .ghost{background:#fff}
     .pill{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#111827;border-radius:999px;padding:6px 10px;font-size:12px}
   </style>
 </head>
 <body>
   <header>
     <div>🗾 都道府県バトル</div>
-    <div class="pill">2人以上で対戦可 / ソロ練習も可</div>
+    <div class="pill">2ページ構成: 参加 → ゲーム</div>
   </header>
 
   <main class="container">
@@ -46,7 +43,7 @@
         <input id="ws" size="34" value="wss://calisthenical-migdalia-cousinly.ngrok-free.dev">
         <button id="go" class="primary">ゲームを開始</button>
       </div>
-      <p class="muted" style="margin-top:10px">URL パラメータで直行も可: <code>?name=AAA&room=BBB&color=%23ffcc00&ws=wss://.../</code></p>
+      <p class="muted" style="margin-top:10px">URL 直行: <code>?name=AAA&room=BBB&color=%23ffcc00&ws=wss://.../</code></p>
     </fieldset>
   </main>
 
@@ -64,10 +61,8 @@
     const room = encodeURIComponent($('#room').value.trim()||'room1');
     const color = encodeURIComponent($('#color').value.trim()||'#22c55e');
     const ws = encodeURIComponent($('#ws').value.trim());
-    const url = `game.html?name=${name}&room=${room}&color=${color}&ws=${ws}`;
-    location.href = url;
+    location.href = `game.html?name=${name}&room=${room}&color=${color}&ws=${ws}`;
   };
   </script>
 </body>
 </html>
-
