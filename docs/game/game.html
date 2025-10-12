@@ -65,6 +65,8 @@
       <div id="mapMeta">
         <input type="file" id="svgFile" accept="image/svg+xml">
         <button class="btn" id="loadDemo">デモSVG</button>
+        <button class="btn" id="fetchShared">共有地図を読み込む</button>
+
         <details>
           <summary class="hint">WS 設定</summary>
           <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
@@ -208,6 +210,19 @@ function flashWrong(el){ forEachPaintTarget(el, node=>{ node.classList.add('high
 function shuffle(a){ const arr=[...a]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
 // ===== UI init =====
+document.getElementById('fetchShared').onclick = async () => {
+  try {
+    const res = await fetch('/map.svg', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    loadSVG(text);            // ← 既にあるSVG読み込み関数を呼ぶ
+    state.svgShared = true;
+    console.log('[CLIENT] shared map loaded');
+  } catch (e) {
+    alert('共有地図の取得に失敗しました: ' + e.message);
+  }
+};
+
 $('#skipBtn').onclick=()=>{ if(state.mode==='solo'){ state.turn++; nextQuestion(); } else { send({type:'skip', room:me.room, id:me.id, name:me.name}); } };
 $('#soloBtn').onclick=()=>{ state.mode='solo'; $('#connState').textContent='ソロ'; if(state.svgLoaded) startSolo(); };
 $('#startBtn').onclick = () => {
