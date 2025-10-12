@@ -1,0 +1,73 @@
+# join.html (参加ページ)
+
+
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>参加 | 都道府県バトル</title>
+  <style>
+    :root { --fg:#111827; --muted:#6b7280; --line:#e5e7eb; }
+    html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:var(--fg)}
+    header{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+    .container{max-width:720px;margin:24px auto;padding:0 16px}
+    fieldset{border:1px solid var(--line);border-radius:14px;padding:16px}
+    legend{padding:0 8px;color:#374151}
+    label{font-size:13px;color:#374151}
+    input,button{font-size:16px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+    input[type="color"]{padding:0;width:52px;height:38px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .muted{color:var(--muted);font-size:13px}
+    .primary{background:#111827;color:#fff;border-color:#111827;cursor:pointer}
+    .ghost{background:#fff}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#111827;border-radius:999px;padding:6px 10px;font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <div>🗾 都道府県バトル</div>
+    <div class="pill">2人以上で対戦可 / ソロ練習も可</div>
+  </header>
+
+  <main class="container">
+    <fieldset>
+      <legend>参加設定</legend>
+      <div class="row" style="margin-bottom:10px">
+        <label>名前</label>
+        <input id="name" placeholder="例: てっぺい" size="12">
+        <label>色</label>
+        <input type="color" id="color" value="#22c55e" title="自分の正解カラー">
+        <label>ルーム</label>
+        <input id="room" placeholder="例: room1" size="10">
+      </div>
+      <div class="row">
+        <label>WS URL</label>
+        <input id="ws" size="34" value="wss://calisthenical-migdalia-cousinly.ngrok-free.dev">
+        <button id="go" class="primary">ゲームを開始</button>
+      </div>
+      <p class="muted" style="margin-top:10px">URL パラメータで直行も可: <code>?name=AAA&room=BBB&color=%23ffcc00&ws=wss://.../</code></p>
+    </fieldset>
+  </main>
+
+  <script>
+  const $ = (s)=>document.querySelector(s);
+  (function initFromUrl(){
+    const u=new URL(location.href);
+    $('#name').value = u.searchParams.get('name') || '';
+    $('#room').value = u.searchParams.get('room') || '';
+    $('#color').value = u.searchParams.get('color') || '#22c55e';
+    $('#ws').value = u.searchParams.get('ws') || $('#ws').value;
+  })();
+  document.getElementById('go').onclick = ()=>{
+    const name = encodeURIComponent($('#name').value.trim()||'');
+    const room = encodeURIComponent($('#room').value.trim()||'room1');
+    const color = encodeURIComponent($('#color').value.trim()||'#22c55e');
+    const ws = encodeURIComponent($('#ws').value.trim());
+    const url = `game.html?name=${name}&room=${room}&color=${color}&ws=${ws}`;
+    location.href = url;
+  };
+  </script>
+</body>
+</html>
+
