@@ -36,7 +36,7 @@
     <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
       <label class="hint" for="modeSelect">モード</label>
       <select id="modeSelect" style="border:1px solid var(--line);border-radius:10px;padding:6px 8px">
-        <option value="random" selected>ランダム (15問)</option>
+        <option value="random" selected>ランダム (10問)</option>
         <option value="all">全問 (47問)</option>
       </select>
       <button class="btn" id="soloBtn">ソロ練習</button>
@@ -130,7 +130,7 @@ function send(o){ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }
 // ===== game =====
 function setQuestion(name){ state.current=name; $('#question').textContent=name||'（問題なし）'; }
 function nextQuestion(){ if(state.turn>=state.turnMax){ setQuestion('終了！'); state.clickable=false; return; } const q=state.questionList[state.turn]; setQuestion(q); $('#turn').textContent=(state.turn+1); }
-function startSolo(){ state.mode='solo'; if(!state.prefectures.length){ alert('先にSVG'); return; } const pref=[ '北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県' ]; const allow=new Set(pref.map(n=>normName(n))); const names=state.prefectures.map(el=>getDisplayName(el)).filter(n=>allow.has(normName(n))); state.questionList=shuffle(names).slice(0,Math.min(15,names.length)); state.turn=0; state.turnMax=state.questionList.length; $('#turnMax').textContent=state.turnMax; state.scores={}; renderScores(); clearMarks(); state.clickable=true; nextQuestion(); updateButtons(); }
+function startSolo(){ state.mode='solo'; if(!state.prefectures.length){ alert('先にSVG'); return; } const pref=[ '北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県' ]; const allow=new Set(pref.map(n=>normName(n))); const names=state.prefectures.map(el=>getDisplayName(el)).filter(n=>allow.has(normName(n))); state.questionList=shuffle(names).slice(0,Math.min(10,names.length)); state.turn=0; state.turnMax=state.questionList.length; $('#turnMax').textContent=state.turnMax; state.scores={}; renderScores(); clearMarks(); state.clickable=true; nextQuestion(); updateButtons(); }
 function startMulti() {
   state.mode = 'multi';
   const sel = document.getElementById('modeSelect');
