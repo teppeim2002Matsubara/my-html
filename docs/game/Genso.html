@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>元素周期表ゲーム（H〜Ca）</title>
+  <style>
+    :root{
+      --bg:#0b0e14;
+      --panel:#121827;
+      --txt:#e9eefc;
+      --muted:#aab4d6;
+      --ok:#39d98a;
+      --ng:#ff5c77;
+      --metal:#2b6cb0;
+      --nonmetal:#2f855a;
+      --metalloid:#805ad5;
+      --unknown:#4a5568;
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+    }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN","Noto Sans JP", sans-serif;
+      background:var(--bg);
+      color:var(--txt);
+    }
+    header{
+      padding:16px 18px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    select, button{
+      background: var(--panel);
+      color: var(--txt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 14px;
+      cursor:pointer;
+    }
+    select:disabled{ opacity:.45; cursor:not-allowed; }
+    button:hover{ filter: brightness(1.08); }
+
+    .legend{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size: 13px; color: var(--muted); }
+    .dot{ width:10px;height:10px;border-radius:999px;display:inline-block;margin-right:6px; border:1px solid rgba(255,255,255,.18); vertical-align:middle; }
+
+    main{ padding: 14px 18px 26px; max-width:1100px; margin:0 auto; }
+
+    .hud{ display:flex; align-items:stretch; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
+
+    .questionBox, .scoreBox{
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+    .questionBox{ flex: 1; min-width: 280px; }
+    .scoreBox{ min-width: 220px; }
+
+    .questionTitle{
+      color: var(--txt);
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .questionSub{
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .hint{ color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+    .tray{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      padding: 8px 0 0;
+      min-height: 44px;
+      align-items:center;
+    }
+    .token{
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-weight: 800;
+      cursor: grab;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      white-space: nowrap;
+    }
+    .token:active{ cursor: grabbing; }
+
+    .scoreRow{ display:flex; justify-content:space-between; color: var(--muted); font-size: 13px; }
+    .scoreVal{ color: var(--txt); font-weight: 800; }
+
+    /* periodic table grid: 18 columns */
+    .table{ display:grid; grid-template-columns: repeat(18, minmax(42px, 1fr)); gap:8px; user-select:none; }
+    .cell{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      min-height: 64px;
+      padding: 8px;
+      position:relative;
+      transition: transform .06s ease, filter .06s ease, outline .06s ease, border-color .06s ease;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      overflow:hidden;
+    }
+    .cell.dropok{ border-color: rgba(57,217,138,.55); }
+    .cell.dropng{ border-color: rgba(255,92,119,.55); }
+    .cell:hover{ transform: translateY(-1px); filter: brightness(1.06); }
+
+    .cell.locked{
+      border-color: rgba(255,255,255,.22);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+
+    .cell .top{ display:flex; justify-content:space-between; align-items:center; gap: 8px; font-size: 12px; color: var(--muted); min-height: 16px; }
+    .cell .mid{ font-size: 18px; font-weight: 900; line-height:1; letter-spacing: .5px; }
+    .cell .bot{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.1;
+      min-height: 14px;
+      white-space: nowrap;
+      overflow: hidden;      /* JSで収める */
+      text-overflow: clip;
+    }
+
+    .cat-metal{ background: color-mix(in srgb, var(--metal) 30%, var(--panel)); }
+    .cat-nonmetal{ background: color-mix(in srgb, var(--nonmetal) 30%, var(--panel)); }
+    .cat-metalloid{ background: color-mix(in srgb, var(--metalloid) 30%, var(--panel)); }
+    .cat-unknown{ background: color-mix(in srgb, var(--unknown) 30%, var(--panel)); }
+
+    .flash-ok{ outline: 2px solid color-mix(in srgb, var(--ok) 75%, transparent); }
+    .flash-ng{ outline: 2px solid color-mix(in srgb, var(--ng) 75%, transparent); }
+
+    .small{ font-size: 12px; color: var(--muted); margin-left: 8px; }
+
+    @media (max-width: 720px){
+      .table{ grid-template-columns: repeat(9, minmax(42px, 1fr)); }
+      .cell{ min-height: 60px; }
+    }
+
+    /* Help button */
+    .helpBtn{
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 50;
+      border-radius: 999px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      background: rgba(18,24,39,.95);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--txt);
+      font-weight: 800;
+      cursor: pointer;
+      user-select:none;
+    }
+    .helpBtn:hover{ filter: brightness(1.08); }
+
+    /* Modal */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+      padding: 18px;
+    }
+    .modal{
+      width: min(1100px, 100%);
+      max-height: min(88vh, 900px);
+      overflow: auto;
+      background: rgba(18,24,39,.98);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .modalHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .modalHeader .title{
+      font-weight: 900;
+      font-size: 16px;
+    }
+    .modalClose{
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      cursor:pointer;
+    }
+    .modalClose:hover{ filter: brightness(1.08); }
+    .modalHint{ color: var(--muted); font-size: 13px; margin: 6px 0 12px; }
+    .modalTableWrap{ padding: 4px; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <div style="font-weight:900; font-size:16px;">元素周期表ゲーム（H〜Ca）</div>
+    <div class="small">metal / nonmetal / metalloid を色で覚える</div>
+  </div>
+
+  <div class="controls">
+    <label>
+      レベル:
+      <select id="level">
+        <option value="0">Lv0（原子番号を覚えよう）</option>
+        <option value="1">Lv1（元素記号と元素名を覚えよう）</option>
+        <option value="21">Lv2-1（クイズ 原子番号あり・セル固定）</option>
+        <option value="22">Lv2-2 (クイズ 原子番号あり・セル未固定)</option>
+        <option value="31">Lv3-1 (クイズ 原子番号なし・セル固定)</option>
+        <option value="32">Lv3-2 (クイズ原子番号なし・セル未固定)</option>
+        <option value="4">Lv4（ハードクイズ）</option>
+      </select>
+    </label>
+
+    <label>
+      questionタイプ:
+      <select id="qtype">
+        <option value="symbol">元素記号（例: H）</option>
+        <option value="name">元素名（例: 水素）</option>
+      </select>
+    </label>
+
+    <label id="speedWrap" style="display:none;">
+      速度:
+      <select id="speed">
+        <option value="5">遅い（5秒）</option>
+        <option value="3" selected>普通（3秒）</option>
+        <option value="1">早い（1秒）</option>
+      </select>
+    </label>
+
+    <button id="reset">リセット</button>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--metal)"></span>metal</span>
+    <span><span class="dot" style="background:var(--nonmetal)"></span>nonmetal</span>
+    <span><span class="dot" style="background:var(--metalloid)"></span>metalloid</span>
+  </div>
+</header>
+
+<main>
+  <div class="hud">
+    <div class="questionBox">
+      <div class="questionTitle">
+        <span id="questionTitleText">Question</span>
+        <span class="small" id="modeHint"></span>
+      </div>
+      <div class="questionSub" id="hintText"></div>
+
+      <div class="tray" id="tray"></div>
+    </div>
+
+    <div class="scoreBox">
+      <div class="scoreRow"><span>正解</span><span class="scoreVal" id="correct">0</span></div>
+      <div class="scoreRow"><span>不正解</span><span class="scoreVal" id="wrong">0</span></div>
+      <div class="scoreRow"><span>連続</span><span class="scoreVal" id="streak">0</span></div>
+    </div>
+  </div>
+
+  <div class="table" id="table"></div>
+</main>
+
+<div class="helpBtn" id="helpBtn">お助け</div>
+
+<div class="modalOverlay" id="modalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHeader">
+      <div class="title">完成表（H〜Ca）</div>
+      <div class="modalClose" id="modalClose">閉じる</div>
+    </div>
+    <div class="modalHint">原子番号 / 記号 / 元素名（色は分類）</div>
+    <div class="modalTableWrap">
+      <div class="table" id="modalTable"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const elements = [
+    {Z:1,  sym:"H",  name:"水素",       cat:"nonmetal",  period:1, group:1},
+    {Z:2,  sym:"He", name:"ヘリウム",   cat:"nonmetal",  period:1, group:18},
+    {Z:3,  sym:"Li", name:"リチウム",   cat:"metal",     period:2, group:1},
+    {Z:4,  sym:"Be", name:"ベリリウム", cat:"metal",     period:2, group:2},
+    {Z:5,  sym:"B",  name:"ホウ素",     cat:"metalloid", period:2, group:13},
+    {Z:6,  sym:"C",  name:"炭素",       cat:"nonmetal",  period:2, group:14},
+    {Z:7,  sym:"N",  name:"窒素",       cat:"nonmetal",  period:2, group:15},
+    {Z:8,  sym:"O",  name:"酸素",       cat:"nonmetal",  period:2, group:16},
+    {Z:9,  sym:"F",  name:"フッ素",     cat:"nonmetal",  period:2, group:17},
+    {Z:10, sym:"Ne", name:"ネオン",     cat:"nonmetal",  period:2, group:18},
+    {Z:11, sym:"Na", name:"ナトリウム",   cat:"metal",     period:3, group:1},
+    {Z:12, sym:"Mg", name:"マグネシウム", cat:"metal",     period:3, group:2},
+    {Z:13, sym:"Al", name:"アルミニウム", cat:"metal",     period:3, group:13},
+    {Z:14, sym:"Si", name:"ケイ素",       cat:"metalloid", period:3, group:14},
+    {Z:15, sym:"P",  name:"リン",         cat:"nonmetal",  period:3, group:15},
+    {Z:16, sym:"S",  name:"硫黄",         cat:"nonmetal",  period:3, group:16},
+    {Z:17, sym:"Cl", name:"塩素",         cat:"nonmetal",  period:3, group:17},
+    {Z:18, sym:"Ar", name:"アルゴン",     cat:"nonmetal",  period:3, group:18},
+    {Z:19, sym:"K",  name:"カリウム",     cat:"metal",     period:4, group:1},
+    {Z:20, sym:"Ca", name:"カルシウム",   cat:"metal",     period:4, group:2},
+  ];
+
+  const tableEl = document.getElementById("table");
+  const trayEl  = document.getElementById("tray");
+  const levelEl = document.getElementById("level");
+  const qtypeEl = document.getElementById("qtype");
+  const speedEl = document.getElementById("speed");
+  const speedWrap = document.getElementById("speedWrap");
+  const hintTextEl = document.getElementById("hintText");
+  const modeHintEl = document.getElementById("modeHint");
+  const correctEl = document.getElementById("correct");
+  const wrongEl = document.getElementById("wrong");
+  const streakEl = document.getElementById("streak");
+  const resetEl = document.getElementById("reset");
+  const questionTitleTextEl = document.getElementById("questionTitleText");
+
+  const helpBtn = document.getElementById("helpBtn");
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalClose = document.getElementById("modalClose");
+  const modalTable = document.getElementById("modalTable");
+
+  let timer = null;
+
+  let state = {
+    level: 0,
+    qtype: "symbol",
+    speedSec: 3,
+    correct: 0,
+    wrong: 0,
+    streak: 0,
+    active: [], // tokens: {id, targetZ, text, createdAt}
+    nextId: 1,
+    maxActive: 6,
+    lockedZ: new Set(),  // for Lv2-1 / Lv3-1
+  };
+
+  const CELL_HOLD_SECONDS = 2; // ★ セル表示保持（未固定モード）
+  const LV4_TOKEN_DROP_SECONDS = 2; // ★ Lv4で古い問題が消えるまで少し待つ
+
+  function isLevel2(){ return state.level === 21 || state.level === 22; }
+  function isLevel3(){ return state.level === 31 || state.level === 32; }
+  function isLevel2_1(){ return state.level === 21; }
+  function isLevel3_1(){ return state.level === 31; }
+  function isLevel2_2(){ return state.level === 22; }
+  function isLevel3_2(){ return state.level === 32; }
+  function isDragMode(){ return isLevel2() || isLevel3() || state.level === 4; }
+  function shouldLockOnCorrect(){ return isLevel2_1() || isLevel3_1(); }
+  function shouldShowCellNumber(){ return state.level === 1 || isLevel2(); } // drag中は常に表示（後で setAnswer にも反映）
+
+  function levelText(){
+    switch(state.level){
+      case 0: return {
+        title: "Lv0",
+        desc: "クリックすると原子番号が出るよ。"
+      };
+      case 1: return {
+        title: "Lv1",
+        desc: "クリックすると元素記号と元素名が出るよ。"
+      };
+      case 21: return {
+        title: "Lv2-1",
+        desc: "ドラッグしよう。正解セルは固定される。元素記号と元素名はスイッチ可能。"
+      };
+      case 22: return {
+        title: "Lv2-2",
+        desc: "ドラッグしよう。正解セルも消える。元素記号と元素名はスイッチ可能。"
+      };
+      case 31: return {
+        title: "Lv3-1",
+        desc: "ドラッグしよう。正解セルは固定される。元素記号と元素名はスイッチ可能。"
+      };
+      case 32: return {
+        title: "Lv3-2",
+        desc: "ドラッグしよう。正解セルも消える。元素記号と元素名はスイッチ可能。"
+      };
+      case 4: return {
+        title: "Lv4",
+        desc: "元素記号と元素名はスイッチ可能。速度も変更可能。遅いと古い問題は消える。"
+      };
+      default: return {title:"Question", desc:""};
+    }
+  }
+
+  function catClass(cat){
+    if (cat === "metal") return "cat-metal";
+    if (cat === "nonmetal") return "cat-nonmetal";
+    if (cat === "metalloid") return "cat-metalloid";
+    return "cat-unknown";
+  }
+
+  function setScoreUI(){
+    correctEl.textContent = state.correct;
+    wrongEl.textContent = state.wrong;
+    streakEl.textContent = state.streak;
+  }
+
+  function flash(cell, ok){
+    cell.classList.remove("flash-ok","flash-ng");
+    cell.classList.add(ok ? "flash-ok" : "flash-ng");
+    setTimeout(()=>cell.classList.remove("flash-ok","flash-ng"), 260);
+  }
+
+  function clearTimer(){
+    if (timer){ clearInterval(timer); timer = null; }
+  }
+
+  function updateQtypeAvailability(){
+    const enabled = isDragMode();
+    qtypeEl.disabled = !enabled;
+  }
+
+  function setModeUI(){
+    speedWrap.style.display = (state.level === 4) ? "" : "none";
+    updateQtypeAvailability();
+
+    const t = levelText();
+    questionTitleTextEl.textContent = t.title;
+    hintTextEl.textContent = t.desc;
+    modeHintEl.textContent = "";
+  }
+
+  // ======== Text fitting ========
+  function fitTextToCell(elem, {maxPx=12, minPx=6} = {}){
+    if (!elem) return;
+    elem.style.fontSize = maxPx + "px";
+    elem.style.letterSpacing = "0px";
+    const parent = elem.parentElement;
+    if (!parent) return;
+    const available = parent.clientWidth - 10;
+    if (available <= 0) return;
+
+    let px = maxPx;
+    while (px > minPx && elem.scrollWidth > available){
+      px -= 0.5;
+      elem.style.fontSize = px + "px";
+    }
+    if (elem.scrollWidth > available){
+      elem.style.letterSpacing = "-0.5px";
+    }
+  }
+
+  function fitAllCellNames(root=document){
+    root.querySelectorAll(".cell .bot").forEach(bot => {
+      if (!bot.textContent) return;
+      fitTextToCell(bot, {maxPx: 12, minPx: 6});
+    });
+  }
+  // ============================
+
+  function setAnswerOnCell(cell, el, {locked=false} = {}){
+    // ★ ドラッグ後は「番号・記号・名前」をセットで表示
+    const top = cell.querySelector(".top");
+    const mid = cell.querySelector(".mid");
+    const bot = cell.querySelector(".bot");
+
+    top.textContent = String(el.Z);
+    mid.textContent = el.sym;
+    bot.textContent = el.name;
+
+    if (locked) cell.classList.add("locked");
+    requestAnimationFrame(()=>fitAllCellNames(document));
+  }
+
+  function clearAnswerOnCell(cell, el){
+    if (!cell) return;
+    if (state.lockedZ.has(el.Z)) return;
+    const top = cell.querySelector(".top");
+    const mid = cell.querySelector(".mid");
+    const bot = cell.querySelector(".bot");
+
+    // そのレベルに応じて「元の表示」に戻す
+    if (state.level === 1){
+      top.textContent = String(el.Z);
+      mid.textContent = "";
+      bot.textContent = "";
+    } else if (isLevel2()){
+      top.textContent = String(el.Z);
+      mid.textContent = "";
+      bot.textContent = "";
+    } else if (state.level === 0){
+      top.textContent = "";
+      mid.textContent = el.sym;
+      bot.textContent = el.name;
+    } else {
+      // Lv3-*, Lv4
+      top.textContent = "";
+      mid.textContent = "";
+      bot.textContent = "";
+    }
+  }
+
+  function renderTable(){
+    tableEl.innerHTML = "";
+    const maxPeriod = 4;
+
+    for (let p=1; p<=maxPeriod; p++){
+      for (let g=1; g<=18; g++){
+        const el = elements.find(e => e.period===p && e.group===g);
+        if (!el){
+          const spacer = document.createElement("div");
+          spacer.style.minHeight = "64px";
+          spacer.style.borderRadius = "14px";
+          spacer.style.opacity = "0";
+          tableEl.appendChild(spacer);
+          continue;
+        }
+
+        const cell = document.createElement("div");
+        cell.className = `cell ${catClass(el.cat)}`;
+        cell.dataset.z = String(el.Z);
+
+        const top = document.createElement("div");
+        top.className = "top";
+        const mid = document.createElement("div");
+        mid.className = "mid";
+        const bot = document.createElement("div");
+        bot.className = "bot";
+
+        // default displays
+        if (state.level === 0){
+          top.textContent = "";
+          mid.textContent = el.sym;
+          bot.textContent = el.name;
+        } else if (state.level === 1){
+          top.textContent = el.Z;
+          mid.textContent = "";
+          bot.textContent = "";
+        } else if (isLevel2()){
+          top.textContent = el.Z;
+          mid.textContent = "";
+          bot.textContent = "";
+        } else {
+          // Lv3-*, Lv4
+          top.textContent = "";
+          mid.textContent = "";
+          bot.textContent = "";
+        }
+
+        cell.appendChild(top);
+        cell.appendChild(mid);
+        cell.appendChild(bot);
+
+        // locked display
+        if (state.lockedZ.has(el.Z)){
+          setAnswerOnCell(cell, el, {locked:true});
+        }
+
+        // Lv0 click => toggle number (and keep sym+name visible)
+        cell.addEventListener("click", () => {
+          if (state.level !== 0) return;
+          top.textContent = top.textContent ? "" : String(el.Z);
+        });
+
+        // Lv1 click => toggle sym+name (Z is already in top)
+        cell.addEventListener("click", () => {
+          if (state.level !== 1) return;
+          const showing = (mid.textContent || bot.textContent);
+          if (!showing){
+            mid.textContent = el.sym;
+            bot.textContent = el.name;
+            requestAnimationFrame(()=>fitAllCellNames(document));
+          } else {
+            mid.textContent = "";
+            bot.textContent = "";
+          }
+        });
+
+        // Drag/drop targets
+        cell.addEventListener("dragover", (ev) => {
+          if (!isDragMode()) return;
+          if (shouldLockOnCorrect() && state.lockedZ.has(el.Z)) return;
+          ev.preventDefault();
+          cell.classList.add("dropok");
+        });
+        cell.addEventListener("dragleave", () => {
+          cell.classList.remove("dropok","dropng");
+        });
+        cell.addEventListener("drop", (ev) => {
+          if (!isDragMode()) return;
+          if (shouldLockOnCorrect() && state.lockedZ.has(el.Z)) return;
+
+          ev.preventDefault();
+          cell.classList.remove("dropok","dropng");
+
+          const tokenId = ev.dataTransfer.getData("text/tokenId");
+          if (!tokenId) return;
+
+          const token = state.active.find(t => String(t.id) === String(tokenId));
+          if (!token) return;
+
+          const ok = (String(token.targetZ) === String(el.Z));
+          flash(cell, ok);
+
+          if (ok){
+            state.correct++; state.streak++;
+
+            // show full set immediately
+            setAnswerOnCell(cell, el, {locked: shouldLockOnCorrect()});
+
+            if (shouldLockOnCorrect()){
+              state.lockedZ.add(el.Z);
+              removeToken(token.id);
+              // すぐ次の問題へ
+              ensureAtLeastOneToken();
+              setScoreUI();
+              renderTray();
+              return;
+            }
+
+            // 未固定 (Lv2-2/Lv3-2/Lv4):
+            // 1) トークンは「すぐ消して」次の問題へ（＝Questionは次を表示）
+            removeToken(token.id);
+
+            // 2) Lv2-2/Lv3-2 は「すぐ次の問題を追加」
+            if (isLevel2_2() || isLevel3_2()){
+              ensureAtLeastOneToken();
+            }
+
+            // 3) セルは2秒後に消す
+            setTimeout(()=>{
+              clearAnswerOnCell(cell, el);
+              renderTray();
+            }, CELL_HOLD_SECONDS * 1000);
+
+          } else {
+            state.wrong++; state.streak = 0;
+          }
+
+          setScoreUI();
+          renderTray();
+        });
+
+        tableEl.appendChild(cell);
+      }
+    }
+
+    requestAnimationFrame(()=>fitAllCellNames(document));
+  }
+
+  function tokenTextFor(el){
+    return (state.qtype === "symbol") ? el.sym : el.name;
+  }
+
+  function availableElementsForQuestions(){
+    if (shouldLockOnCorrect()){
+      return elements.filter(e => !state.lockedZ.has(e.Z));
+    }
+    return elements.slice();
+  }
+
+  function addToken(){
+    const pool = availableElementsForQuestions();
+    if (pool.length === 0){
+      hintTextEl.textContent = "全部固定できました！おつかれさま。";
+      return;
+    }
+    const el = pool[Math.floor(Math.random()*pool.length)];
+    const t = {
+      id: state.nextId++,
+      targetZ: el.Z,
+      text: tokenTextFor(el),
+      createdAt: Date.now(),
+      _pendingRemove: false,
+    };
+    state.active.push(t);
+
+    // Lv4: too many => remove oldest after ~2 sec (slower than instant)
+    if (state.level === 4 && state.active.length > state.maxActive){
+      const oldest = state.active[0];
+      if (!oldest._pendingRemove){
+        oldest._pendingRemove = true;
+        setTimeout(()=>{
+          const stillThere = state.active.find(x => x.id === oldest.id);
+          if (stillThere){
+            state.active = state.active.filter(x => x.id !== oldest.id);
+            state.wrong++; state.streak = 0;
+            setScoreUI();
+            renderTray();
+          }
+        }, LV4_TOKEN_DROP_SECONDS * 1000);
+      }
+    }
+  }
+
+  function removeToken(id){
+    state.active = state.active.filter(t => t.id !== id);
+  }
+
+  function ensureAtLeastOneToken(){
+    if (state.active.length === 0){
+      addToken();
+    }
+  }
+
+  function renderTray(){
+    trayEl.innerHTML = "";
+    if (!isDragMode()) return;
+
+    for (const t of state.active){
+      const token = document.createElement("div");
+      token.className = "token";
+      token.draggable = true;
+      token.dataset.id = t.id;
+      // ★ #は出さない
+      token.innerHTML = `<span>${escapeHtml(t.text)}</span>`;
+
+      token.addEventListener("dragstart", (ev) => {
+        ev.dataTransfer.setData("text/tokenId", String(t.id));
+        ev.dataTransfer.effectAllowed = "move";
+      });
+
+      trayEl.appendChild(token);
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function startLv4Timer(){
+    clearTimer();
+    timer = setInterval(()=>{
+      if (state.level !== 4) return;
+      addToken();
+      renderTray();
+      setModeUI();
+    }, state.speedSec * 1000);
+  }
+
+  function resetAll(){
+    clearTimer();
+
+    state.correct = 0;
+    state.wrong = 0;
+    state.streak = 0;
+    state.active = [];
+    state.nextId = 1;
+    state.lockedZ = new Set();
+
+    setScoreUI();
+    setModeUI();
+    renderTable();
+
+    if (isLevel2() || isLevel3()){
+      ensureAtLeastOneToken();
+      renderTray();
+    } else if (state.level === 4){
+      addToken(); addToken();
+      renderTray();
+      startLv4Timer();
+    } else {
+      trayEl.innerHTML = "";
+    }
+  }
+
+  // Help modal
+  function renderCompleteTable(){
+    modalTable.innerHTML = "";
+    const maxPeriod = 4;
+
+    for (let p=1; p<=maxPeriod; p++){
+      for (let g=1; g<=18; g++){
+        const el = elements.find(e => e.period===p && e.group===g);
+        if (!el){
+          const spacer = document.createElement("div");
+          spacer.style.minHeight = "64px";
+          spacer.style.borderRadius = "14px";
+          spacer.style.opacity = "0";
+          modalTable.appendChild(spacer);
+          continue;
+        }
+
+        const cell = document.createElement("div");
+        cell.className = `cell ${catClass(el.cat)}`;
+
+        const top = document.createElement("div");
+        top.className = "top";
+        const mid = document.createElement("div");
+        mid.className = "mid";
+        const bot = document.createElement("div");
+        bot.className = "bot";
+
+        top.textContent = el.Z;
+        mid.textContent = el.sym;
+        bot.textContent = el.name;
+
+        cell.appendChild(top);
+        cell.appendChild(mid);
+        cell.appendChild(bot);
+        modalTable.appendChild(cell);
+      }
+    }
+    requestAnimationFrame(()=>fitAllCellNames(modalOverlay));
+  }
+
+  function openModal(){
+    renderCompleteTable();
+    modalOverlay.style.display = "flex";
+    modalOverlay.setAttribute("aria-hidden", "false");
+  }
+  function closeModal(){
+    modalOverlay.style.display = "none";
+    modalOverlay.setAttribute("aria-hidden", "true");
+  }
+  helpBtn.addEventListener("click", openModal);
+  modalClose.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+  window.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape" && modalOverlay.style.display === "flex") closeModal();
+  });
+
+  levelEl.addEventListener("change", ()=>{
+    state.level = Number(levelEl.value);
+    resetAll();
+  });
+
+  qtypeEl.addEventListener("change", ()=>{
+    state.qtype = qtypeEl.value;
+    if (isDragMode()){
+      state.active = state.active.map(t => {
+        const el = elements.find(e => e.Z === t.targetZ);
+        return {...t, text: tokenTextFor(el)};
+      });
+      renderTray();
+    }
+  });
+
+  speedEl.addEventListener("change", ()=>{
+    state.speedSec = Number(speedEl.value);
+    if (state.level === 4){
+      setModeUI();
+      startLv4Timer();
+    }
+  });
+
+  resetEl.addEventListener("click", resetAll);
+
+  window.addEventListener("resize", () => {
+    requestAnimationFrame(()=>fitAllCellNames(document));
+    if (modalOverlay.style.display === "flex"){
+      requestAnimationFrame(()=>fitAllCellNames(modalOverlay));
+    }
+  });
+
+  // init
+  state.level = Number(levelEl.value);
+  state.qtype = qtypeEl.value;
+  state.speedSec = Number(speedEl.value);
+  resetAll();
+</script>
+</body>
+</html>
